@@ -1,6 +1,6 @@
 from abc import abstractmethod, abstractproperty
 import os.path as path
-from input_editors.input_editor import InputEditor
+from multiwindcalc.input_editors.input_editor import InputEditor
 
 
 def _absolutise_path(line, root_dir, local_path):

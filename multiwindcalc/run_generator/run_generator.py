@@ -1,6 +1,6 @@
 import os.path as path
 import numpy as np
-from input_editors.nrel_input_editor import TurbSimInputEditor, FastInputEditor
+from multiwindcalc.input_editors.nrel_input_editor import TurbSimInputEditor, FastInputEditor
 from .combinators import gridify
 from .directory_handler import DirectoryHandler
 

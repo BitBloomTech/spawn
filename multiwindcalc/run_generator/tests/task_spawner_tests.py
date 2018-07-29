@@ -2,8 +2,8 @@ import os.path as path
 import tempfile
 import luigi
 from ..task_spawner import FastTaskSpawner
-from component_tests import example_data_folder
-from input_editors.nrel_input_editor import FastInputEditor, TurbSimInputEditor
+from multiwindcalc.component_tests import example_data_folder
+from multiwindcalc.input_editors.nrel_input_editor import FastInputEditor, TurbSimInputEditor
 
 
 def test_can_run_single_run_including_wind():

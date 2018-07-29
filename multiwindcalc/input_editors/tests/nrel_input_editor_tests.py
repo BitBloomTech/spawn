@@ -1,9 +1,9 @@
 import os.path as path
 import tempfile
 from ..nrel_input_editor import TurbSimInputEditor, AeroDynInputEditor, FastInputEditor
+from multiwindcalc.component_tests import example_data_folder
 
-
-__examples_folder = path.join(path.dirname(path.realpath(__file__)), path.pardir, path.pardir, 'example_data', 'fast_input_files')
+__examples_folder = path.join(example_data_folder, 'fast_input_files')
 
 
 def test_turbsim_input_editor_edits_file():

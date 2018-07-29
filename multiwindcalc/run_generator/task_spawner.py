@@ -1,8 +1,7 @@
 import os
 import os.path as path
-from run_generator.directory_handler import DirectoryHandler
-from run_generator.tasks import FastSimulationTask, WindGenerationTask
-from input_editors.nrel_input_editor import FastInputEditor, TurbSimInputEditor
+from multiwindcalc.run_generator.directory_handler import DirectoryHandler
+from multiwindcalc.run_generator.tasks import FastSimulationTask, WindGenerationTask
 
 
 class FastTaskSpawner:

@@ -1,4 +1,6 @@
-
 example_data/temp/
-
+*.egg-info
+*.pytest_cache
 \.idea/
+multiwindcalc/dist/
+multiwindcalc/temp/

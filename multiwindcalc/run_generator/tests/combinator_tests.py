@@ -1,4 +1,4 @@
-from run_generator.combinators import gridify
+from multiwindcalc.run_generator.combinators import gridify
 
 
 def test_gridify_creates_2d_grid():

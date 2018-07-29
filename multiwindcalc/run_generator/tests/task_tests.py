@@ -1,7 +1,7 @@
 import os.path as path
 import tempfile
 from ..tasks import SimulationTask, WindGenerationTask
-from component_tests import example_data_folder
+from multiwindcalc.component_tests import example_data_folder
 
 
 def _check_run_fails(task, error_file):

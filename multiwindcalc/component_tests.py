@@ -2,16 +2,16 @@ import json
 import tempfile
 import os
 import os.path as path
-from run_generator.run_generator import generate_preprocessing_runs, generate_time_domain_runs
-from run_generator.batch import Batch
+from multiwindcalc.run_generator.run_generator import generate_preprocessing_runs, generate_time_domain_runs
+from multiwindcalc.run_generator.batch import Batch
 
 
 __home_dir = path.dirname(path.realpath(__file__))
-example_data_folder = path.join(__home_dir, 'example_data')
+example_data_folder = path.join(__home_dir, os.pardir, 'example_data')
 
 
 def test_can_run_one_turbsim_and_fast_run():
-    os.chdir(path.join(__home_dir, 'example_data'))
+    os.chdir(example_data_folder)
     with open('dlc_spec.json', 'r') as fp:
         spec = json.load(fp)
 

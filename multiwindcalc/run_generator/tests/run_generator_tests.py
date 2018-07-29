@@ -1,7 +1,7 @@
 import os
 import os.path as path
 from ..run_generator import generate_preprocessing_runs, generate_time_domain_runs
-from component_tests import example_data_folder
+from multiwindcalc.component_tests import example_data_folder
 
 
 class DummyBatch:
