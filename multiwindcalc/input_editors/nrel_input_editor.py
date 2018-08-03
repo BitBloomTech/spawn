@@ -10,7 +10,6 @@ def _absolutise_path(line, root_dir, local_path):
 
 class NRELInputEditor(InputEditor):
     def __init__(self, base_file_path):
-        print(base_file_path, getcwd(), path.isfile(base_file_path))
         with open(base_file_path, 'r') as fp:
             self._input_lines = fp.readlines()
 

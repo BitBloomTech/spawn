@@ -3,7 +3,7 @@
 	"base_wind_input": "./example_data/fast_input_files/TurbSim.inp",
 	"wind_executable": "./example_data/TurbSim.exe",
 	"base_time_domain_input": "./example_data/fast_input_files/NRELOffshrBsline5MW_Onshore.fst",
-	"time_domain_executable": "FASTv7.0.2.exe",
+	"time_domain_executable": "./example_data/FASTv7.0.2.exe",
 	"load_cases": [
 		{
 			"type": "grid",
