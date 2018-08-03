@@ -15,14 +15,14 @@ def test_turbsim_input_editor_edits_file():
     with open(temp.name, 'r') as fp:
         lines = fp.readlines()
     wind_speed_line = lines[36].split()
-    assert(wind_speed_line[0] == str(10.0))
-    assert(wind_speed_line[1] == 'URef')
+    assert wind_speed_line[0] == str(10.0)
+    assert wind_speed_line[1] == 'URef'
     turbulence_line = lines[31].split()
-    assert(turbulence_line[0] == str(12.0))
-    assert(turbulence_line[1] == 'IECturbc')
+    assert turbulence_line[0] == str(12.0)
+    assert turbulence_line[1] == 'IECturbc'
     turb_model_line = lines[29].split()
-    assert(turb_model_line[0] == '"IECKAI"')
-    assert(turb_model_line[1] == 'TurbModel')
+    assert turb_model_line[0] == '"IECKAI"'
+    assert turb_model_line[1] == 'TurbModel'
 
 
 def test_turbsim_input_editor_writes_multiple_input_files_without_persisting_fields():
@@ -39,7 +39,7 @@ def test_turbsim_input_editor_writes_multiple_input_files_without_persisting_fie
     with open(temp_file2.name, 'r') as fp:
         lines = fp.readlines()
     new_wind_speed = lines[36].split()[0]
-    assert(new_wind_speed == wind_speed)
+    assert new_wind_speed == wind_speed
 
 
 def test_aerodyn_editor_edits_file():
@@ -54,7 +54,7 @@ def test_aerodyn_editor_edits_file():
     for line in lines:
         parts = line.split()
         if parts[1] == 'WindFile':
-            assert(parts[0] == new_wind_file)
+            assert parts[0] == new_wind_file
             found = True
             break
     assert found
@@ -81,7 +81,7 @@ def test_fast_paths_are_absolutised():
         for line in lines:
             parts = line.split()
             if len(parts) > 1 and 'BldFile' in parts[1]:
-                assert(path.isfile(parts[0].strip('"')))
+                assert path.isfile(parts[0].strip('"'))
 
 
 def test_fast_editor_edits_fast_input_file():
@@ -91,5 +91,5 @@ def test_fast_editor_edits_fast_input_file():
     editor.write(temp.name, {'total_run_time': 620.0, 'output_start_time': 20.0})
     with open(temp.name, 'r') as fp:
         lines = fp.readlines()
-    assert(lines[9].split()[0] == str(620.0))
-    assert(lines[172].split()[0] == str(20.0))
+    assert lines[9].split()[0] == str(620.0)
+    assert lines[172].split()[0] == str(20.0)

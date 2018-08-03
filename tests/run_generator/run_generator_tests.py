@@ -33,13 +33,13 @@ def test_generates_preprocessing():
     }
     batch = DummyBatch()
     generate_preprocessing_runs(spec, path.join(os.getcwd(), 'temp'), batch)
-    assert(len(batch.runs) == 4)
-    assert(spec['load_cases'][0]['type'] == 'list')
-    assert(len(spec['load_cases'][0]['variables']) == 4)
+    assert len(batch.runs) == 4
+    assert spec['load_cases'][0]['type'] == 'list'
+    assert len(spec['load_cases'][0]['variables']) == 4
     for run in spec['load_cases'][0]['variables']:
-        assert('wind_file' in run)
-        assert('wind_speed' in run)
-        assert('turbulence_intensity' in run)
+        assert 'wind_file' in run
+        assert 'wind_speed' in run
+        assert 'turbulence_intensity' in run
 
 
 def test_generates_time_domain_runs():
@@ -69,7 +69,7 @@ def test_generates_time_domain_runs():
     generate_time_domain_runs(spec, path.join(os.getcwd(), 'temp'), batch)
     for var in spec['load_cases'][0]['variables']:
         assert '.outb' in var['output']
-    assert(len(batch.runs) == 2)
+    assert len(batch.runs) == 2
     with open(batch.runs[0]['input_file']) as fp:
         file1 = fp.read()
     with open(batch.runs[1]['input_file']) as fp:
