@@ -1,6 +1,6 @@
 import subprocess
 import os
-import os.path as path
+from os import path
 import luigi
 
 

@@ -1,4 +1,4 @@
-import os.path as path
+from os import path
 import tempfile
 from ..nrel_input_editor import TurbSimInputEditor, AeroDynInputEditor, FastInputEditor
 from multiwindcalc.component_tests import example_data_folder

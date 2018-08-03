@@ -1,6 +1,6 @@
 import queue
 import subprocess
-import os.path as path
+from os import path, getcwd
 
 
 def write_logs(run_name, output):

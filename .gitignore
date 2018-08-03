@@ -4,3 +4,6 @@ example_data/temp/
 \.idea/
 multiwindcalc/dist/
 multiwindcalc/temp/
+.*
+*.pyc
+**/temp/*

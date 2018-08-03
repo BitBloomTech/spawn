@@ -1,4 +1,4 @@
-import os.path as path
+from os import path
 import tempfile
 from ..tasks import SimulationTask, WindGenerationTask
 from multiwindcalc.component_tests import example_data_folder

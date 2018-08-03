@@ -1,5 +1,5 @@
 import os
-import os.path as path
+from os import path
 
 
 class DirectoryHandler:

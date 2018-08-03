@@ -1,5 +1,5 @@
 import os
-import os.path as path
+from os import path
 from ..run_generator import generate_preprocessing_runs, generate_time_domain_runs
 from multiwindcalc.component_tests import example_data_folder
 

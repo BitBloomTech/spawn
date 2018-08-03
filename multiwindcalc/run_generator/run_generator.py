@@ -1,4 +1,4 @@
-import os.path as path
+from os import path
 import numpy as np
 from multiwindcalc.input_editors.nrel_input_editor import TurbSimInputEditor, FastInputEditor
 from .combinators import gridify

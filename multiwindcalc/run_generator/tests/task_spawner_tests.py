@@ -1,4 +1,4 @@
-import os.path as path
+from os import path
 import tempfile
 import luigi
 from ..task_spawner import FastTaskSpawner

@@ -1,5 +1,5 @@
 import os
-import os.path as path
+from os import path
 from multiwindcalc.run_generator.directory_handler import DirectoryHandler
 from multiwindcalc.run_generator.tasks import FastSimulationTask, WindGenerationTask
 
