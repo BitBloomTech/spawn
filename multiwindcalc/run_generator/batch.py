@@ -1,7 +1,9 @@
 import queue
 import subprocess
-import os.path as path
+from os import path, getcwd
+import logging
 
+LOGGER = logging.getLogger(__name__)
 
 def write_logs(run_name, output):
     with open(run_name + '.log', 'wb') as fp:
@@ -21,14 +23,14 @@ class Batch:
 
     def execute(self):
         n_runs = self._runs.qsize()
-        print('Batch executing {} runs'.format(n_runs))
+        ('Batch executing {} runs'.format(n_runs))
         runs_done = 0
         while not self._runs.empty():
             run = self._runs.get()
             args = [run['executable'], run['input_file_path']]
-            print('Executing \'{}\''.format(run['run_id']))
+            LOGGER.info('Executing \'{}\''.format(run['run_id']))
             output = subprocess.run(args=args, cwd=self._working_dir,
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             write_logs(path.splitext(run['input_file_path'])[0], output)
             runs_done += 1
-            print('{:.1%}'.format(runs_done / n_runs))
+            LOGGER.info('{:.1%}'.format(runs_done / n_runs))

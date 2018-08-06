@@ -1,5 +1,5 @@
 from abc import abstractmethod, abstractproperty
-import os.path as path
+from os import path, getcwd
 from multiwindcalc.input_editors.input_editor import InputEditor
 
 
