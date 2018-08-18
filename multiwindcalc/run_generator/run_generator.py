@@ -1,6 +1,6 @@
 from os import path
 import numpy as np
-from multiwindcalc.input_editors.nrel_input_editor import TurbSimInputEditor, FastInputEditor
+from multiwindcalc.simulation_inputs.nrel_simulation_input import TurbsimInput, FastInput
 from .combinators import gridify
 from .directory_handler import DirectoryHandler
 
@@ -13,7 +13,7 @@ def _get_field(spec, field):
 
 
 def _make_turbsim_editor(spec):
-    return TurbSimInputEditor(_get_field(spec, 'base_wind_input'))
+    return TurbsimInput(_get_field(spec, 'base_wind_input'))
 
 
 def _combine_variables(load_case):
@@ -81,7 +81,7 @@ def generate_time_domain_runs(spec, base_folder, batch, spec_paths_root=None):
         __absolutise_path_field(spec, 'time_domain_executable', spec_paths_root)
 
     base_input_file = _get_field(spec, 'base_time_domain_input')
-    fast_editor = FastInputEditor(base_input_file)
+    fast_editor = FastInput(base_input_file)
     executable = _get_field(spec, 'time_domain_executable')
 
     for load_case in spec['load_cases']:
