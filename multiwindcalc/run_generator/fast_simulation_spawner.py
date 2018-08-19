@@ -8,6 +8,8 @@ from multiwindcalc.run_generator.directory_handler import DirectoryHandler
 
 
 class TurbsimSpawner(TaskSpawner):
+    """Spawns TurbSim wind generation tasks"""
+
     def __init__(self, directory, turbsim_input, turbsim_exe, working_dir=os.getcwd()):
         self._directory = directory if isinstance(directory, DirectoryHandler) else DirectoryHandler(directory)
         self._input = turbsim_input
@@ -35,6 +37,8 @@ class TurbsimSpawner(TaskSpawner):
 
 
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
+    """Spawns FAST simulation tasks with wind generation dependency if necessary"""
+
     def __init__(self, directory, fast_input, fast_exe, wind_spawner, working_dir=os.getcwd()):
         self._directory = directory if isinstance(directory, DirectoryHandler) else DirectoryHandler(directory)
         self._input = fast_input
@@ -73,6 +77,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     # Properties in FAST input file
     @property
     def simulation_time(self):
+        """Total simulation time in seconds"""
         return self._input['TMax']
 
     @simulation_time.setter
@@ -82,6 +87,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     # Properties deferred to wind generation spawner:
     @property
     def wind_speed(self):
+        """Mean wind speed in m/s"""
         return self._wind_spawner.wind_speed
 
     @wind_speed.setter

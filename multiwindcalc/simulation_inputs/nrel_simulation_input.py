@@ -8,6 +8,10 @@ def _absolutise_path(line, root_dir, local_path):
 
 
 class NRELSimulationInput(SimulationInput):
+    """
+    Handles contents of input files for NREL's aeroelastic modules such as FAST, AeroDyn and TurbSim.
+    These tend to be of a whitespace separated {value|key} format with newlines separating key:value pairs
+    """
     def __init__(self, input_lines, root_folder):
         self._input_lines = input_lines
         self._absolutise_paths(root_folder, self._lines_with_paths())
@@ -51,10 +55,12 @@ class NRELSimulationInput(SimulationInput):
 
 
 class TurbsimInput(NRELSimulationInput):
+    """Handles contents of TurbSim (FAST wind generation) input file"""
     pass
 
 
 class AerodynInput(NRELSimulationInput):
+    """Handles contents of Aerodyn (FAST aerodynamics) input file"""
     def _lines_with_paths(self):
         num_foils = int(self['NumFoil'])
         index, _ = self._get_index_and_parts('FoilNm')
@@ -62,6 +68,7 @@ class AerodynInput(NRELSimulationInput):
 
 
 class FastInput(NRELSimulationInput):
+    """Handles contents of primary FAST input file"""
     def _lines_with_paths(self):
         def is_file_path(key):
             return key in ['TwrFile', 'ADFile', 'ADAMSFile'] or 'BldFile' in key
