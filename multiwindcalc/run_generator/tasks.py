@@ -13,6 +13,7 @@ class SimulationTask(luigi.Task):
     _dependencies = luigi.Parameter(default=[])
     _working_dir = luigi.Parameter(default=os.getcwd())
     _complete = False
+    _metadata = {}
 
     def requires(self):
         return self._dependencies
@@ -44,6 +45,10 @@ class SimulationTask(luigi.Task):
     @property
     def run_name_with_path(self):
         return path.splitext(self._input_file_path)[0]
+
+    @property
+    def metadata(self):
+        return self._metadata
 
 
 class WindGenerationTask(SimulationTask):

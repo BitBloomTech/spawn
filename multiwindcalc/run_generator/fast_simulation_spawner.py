@@ -7,6 +7,11 @@ from multiwindcalc.run_generator.task_spawner import TaskSpawner, AeroelasticSim
 from multiwindcalc.run_generator.directory_handler import DirectoryHandler
 
 
+def quote(strpath):
+    if strpath[0] != '"' or strpath[-1] != '"':
+        return '"' + strpath + '"'
+
+
 class TurbsimSpawner(TaskSpawner):
     """Spawns TurbSim wind generation tasks"""
 
@@ -35,6 +40,14 @@ class TurbsimSpawner(TaskSpawner):
     def wind_speed(self, value):
         self._input['URef'] = value
 
+    @property
+    def simulation_time(self):
+        return self._input['AnalysisTime']
+
+    @simulation_time.setter
+    def simulation_time(self, time):
+        self._input['AnalysisTime'] = time
+
 
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
     """Spawns FAST simulation tasks with wind generation dependency if necessary"""
@@ -50,13 +63,13 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         self._wind_environment_changed = False
 
     def spawn(self):
-        self._aerodyn_input.to_file(path.join(self._directory.abspath, 'aerodyn.ipt'))
+        preproc_tasks = self._spawn_preproc_tasks()
         sim_input_file = path.join(self._directory.abspath, 'simulation.ipt')
         self._input.to_file(sim_input_file)
         sim_task = FastSimulationTask('run ' + self._directory.relative_path,
                                       self._executable,
                                       sim_input_file,
-                                      self._spawn_preproc_tasks(),
+                                      preproc_tasks,
                                       _working_dir=self._working_dir)
         return sim_task
 
@@ -65,7 +78,10 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         # Generate new wind file if needed
         if self._wind_environment_changed:
             wind_task = self._wind_spawner.spawn()
-            self._aerodyn_input['WindFile'] = wind_task.wind_file_path
+            self._aerodyn_input['WindFile'] = quote(wind_task.wind_file_path)
+            aerodyn_file_path = path.join(self._directory.abspath, 'aerodyn.ipt')
+            self._aerodyn_input.to_file(aerodyn_file_path)
+            self._input['ADFile'] = quote(aerodyn_file_path)
             self._wind_environment_changed = False
             preproc_tasks.append(wind_task)
         return preproc_tasks
@@ -76,6 +92,14 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     # Properties in FAST input file
     @property
+    def output_start_time(self):
+        return self._input['TStart']
+
+    @output_start_time.setter
+    def output_start_time(self, time):
+        self._input['TStart'] = time
+
+    @property
     def simulation_time(self):
         """Total simulation time in seconds"""
         return self._input['TMax']
@@ -83,6 +107,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     @simulation_time.setter
     def simulation_time(self, time):
         self._input['TMax'] = time
+        self._wind_spawner.simulation_time = time
 
     # Properties deferred to wind generation spawner:
     @property

@@ -16,6 +16,14 @@ class AeroelasticSimulationSpawner:
     """Spawner of aeroelastic simulations of wind turbines including pre-processing dependencies"""
 
     @property
+    def output_start_time(self):
+        raise NotImplementedError
+
+    @output_start_time.setter
+    def output_start_time(self, time):
+        raise NotImplementedError
+
+    @property
     def simulation_time(self):
         """Total simulation time in seconds"""
         raise NotImplementedError

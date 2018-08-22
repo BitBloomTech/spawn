@@ -10,7 +10,9 @@ def generate_tasks(task_spawner, run_list):
         branch = task_spawner.branch()
         for k, v in run.items():
             setattr(branch, k, v)
-        tasks.append(branch.spawn())
+        task = branch.spawn()
+        task.metadata.update(run)
+        tasks.append(task)
     return tasks
 
 
