@@ -15,11 +15,11 @@ def quote(strpath):
 class TurbsimSpawner(TaskSpawner):
     """Spawns TurbSim wind generation tasks"""
 
-    def __init__(self, directory, turbsim_input, turbsim_exe, working_dir=os.getcwd()):
+    def __init__(self, directory, turbsim_input, turbsim_exe, working_dir=None):
         self._directory = directory if isinstance(directory, DirectoryHandler) else DirectoryHandler(directory)
         self._input = turbsim_input
         self._executable = turbsim_exe
-        self._working_dir = working_dir
+        self._working_dir = working_dir if working_dir is not None else os.getcwd()
 
     def spawn(self):
         wind_input_file = path.join(self._directory.abspath, 'wind.ipt')
@@ -52,12 +52,12 @@ class TurbsimSpawner(TaskSpawner):
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
     """Spawns FAST simulation tasks with wind generation dependency if necessary"""
 
-    def __init__(self, directory, fast_input, fast_exe, wind_spawner, working_dir=os.getcwd()):
+    def __init__(self, directory, fast_input, fast_exe, wind_spawner, working_dir=None):
         self._directory = directory if isinstance(directory, DirectoryHandler) else DirectoryHandler(directory)
         self._input = fast_input
         self._executable = fast_exe
         self._wind_spawner = wind_spawner
-        self._working_dir = working_dir
+        self._working_dir = working_dir if working_dir is not None else os.getcwd()
         # non-arguments:
         self._aerodyn_input = AerodynInput.from_file(self._input['ADFile'])
         self._wind_environment_changed = False
