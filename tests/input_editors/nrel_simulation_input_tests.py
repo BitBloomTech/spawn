@@ -26,7 +26,7 @@ def test_read_write_round_trip(cls, file, key):
     (AerodynInput, 'NRELOffshrBsline5MW_AeroDyn.ipt', 'WindFile', 'Other.wnd'),
     (FastInput, 'NRELOffshrBsline5MW_Onshore.fst', 'TMax', 300.0)
 ])
-def test_writes_edited_parameters(cls, file, key, value):
+def test_writes_edited_Specification(cls, file, key, value):
     _input = cls.from_file(path.join(__examples_folder, file))
     _input[key] = value
     with tempfile.TemporaryDirectory() as outfile:

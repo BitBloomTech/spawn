@@ -1,4 +1,4 @@
-class ParametersModel:
+class SpecificationModel:
     def __init__(self, base_file, root_node, metadata):
         self._base_file = base_file
         self._root_node = root_node
@@ -16,7 +16,7 @@ class ParametersModel:
     def metadata(self):
         return self._metadata
 
-class ParametersMetadata:
+class SpecificationMetadata:
     def __init__(self, creation_time, notes):
         self._creation_time = creation_time
         self._notes = notes
@@ -29,7 +29,7 @@ class ParametersMetadata:
     def notes(self):
         return self._notes
 
-class ParameterNode:
+class SpecificationNode:
     def __init__(self, parent, property_name, property_value):
         self._parent = parent
         self._property_name = property_name
@@ -40,7 +40,7 @@ class ParameterNode:
     
     @classmethod
     def create_root(cls):
-        return ParameterNode(None, None, None)
+        return SpecificationNode(None, None, None)
     
     @property
     def parent(self):

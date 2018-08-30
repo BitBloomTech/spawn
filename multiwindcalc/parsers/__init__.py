@@ -1,1 +1,1 @@
-from .parameters import ParameterFileReader, ParameterDescriptionProvider, ParameterNodeParser
+from .specification import SpecificationFileReader, SpecificationDescriptionProvider, SpecificationNodeParser

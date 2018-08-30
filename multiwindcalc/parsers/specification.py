@@ -1,13 +1,13 @@
 from os import path
 from json import load
 
-from ..parameters import ParametersModel, ParametersMetadata, ParameterNode
+from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode
 
-class ParameterDescriptionProvider:
+class SpecificationDescriptionProvider:
     def get(self):
         raise NotImplementedError()
 
-class ParameterFileReader(ParameterDescriptionProvider):
+class SpecificationFileReader(SpecificationDescriptionProvider):
     def __init__(self, input_file):
         if not path.isfile(input_file):
             raise FileNotFoundError('Could not find input file ' + input_file)
@@ -17,26 +17,26 @@ class ParameterFileReader(ParameterDescriptionProvider):
         with open(self._input_file) as input_fp:
             return load(input_fp)
 
-class ParameterParser:
+class SpecificationParser:
     def __init__(self, provider):
-        if not isinstance(provider, ParameterDescriptionProvider):
-            raise TypeError('provider must be of type ' + ParameterDescriptionProvider)
+        if not isinstance(provider, SpecificationDescriptionProvider):
+            raise TypeError('provider must be of type ' + SpecificationDescriptionProvider)
         self._provider = provider
 
     def parse(self):
         description = self._provider.get()
-        metadata = ParametersMetadata(description.get('creation_time'), description.get('notes'))
-        root_node = ParameterNodeParser().parse(description.get('parameters'))
-        return ParametersModel(description.get('base_file'), root_node, metadata)
+        metadata = SpecificationMetadata(description.get('creation_time'), description.get('notes'))
+        root_node = SpecificationNodeParser().parse(description.get('spec'))
+        return SpecificationModel(description.get('base_file'), root_node, metadata)
 
-class ParameterNodeParser:
+class SpecificationNodeParser:
     def __init__(self):
         self._functions = {
             'zip': self._zip
         }
 
     def parse(self, node, parent=None):
-        parent = parent or ParameterNode.create_root()
+        parent = parent or SpecificationNode.create_root()
         if node is None or node == {}:
             return parent
         if not isinstance(node, dict):
@@ -57,7 +57,7 @@ class ParameterNodeParser:
             self.parse(value, parent)
             self.parse(next_node, parent)
         else:
-            self.parse(next_node, ParameterNode(parent, name, value))
+            self.parse(next_node, SpecificationNode(parent, name, value))
     
     def _zip(self, value):
         return [{k: v for k, v in zip(value.keys(), values)} for values in zip(*value.values())]
