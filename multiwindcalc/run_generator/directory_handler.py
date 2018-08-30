@@ -3,20 +3,17 @@ from os import path
 
 
 class DirectoryHandler:
-    def __init__(self, base_folder, extension_path=''):
-        self._base_folder = base_folder
-        self._extension_path = extension_path
+    def __init__(self, base_folder, relative_path=''):
+        self._base_folder = path.abspath(base_folder)
+        self._relative_path = relative_path
         self._digit = 0
-        self._relative_path = None
-        self._abspath = None
-
-    def make_new_dir(self):
-        self._digit += 1
-        self._relative_path = path.join(self._extension_path, str(self._digit))\
-            if self._extension_path else str(self._digit)
-        self._abspath = path.join(self._base_folder, self._relative_path)
         self._prepare_directory()
-        return self._relative_path
+
+    def branch(self, new_dir=None):
+        self._digit += 1
+        if new_dir is None:
+            new_dir = str(self._digit)
+        return DirectoryHandler(self._base_folder, path.join(self._relative_path, new_dir))
 
     @property
     def relative_path(self):
@@ -24,10 +21,10 @@ class DirectoryHandler:
 
     @property
     def abspath(self):
-        return self._abspath
+        return path.join(self._base_folder, self._relative_path)
 
     def _prepare_directory(self):
         try:
-            os.makedirs(self._abspath)
+            os.makedirs(self.abspath)
         except FileExistsError:
             pass
