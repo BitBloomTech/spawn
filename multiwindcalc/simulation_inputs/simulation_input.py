@@ -6,16 +6,16 @@ class SimulationInput:
 
     @classmethod
     def from_file(cls, file_path):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def to_file(self, file_path):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def __setitem__(self, key, value):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @abstractmethod
     def __getitem__(self, key):
-        raise NotImplementedError
+        raise NotImplementedError()

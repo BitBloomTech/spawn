@@ -61,6 +61,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         # non-arguments:
         self._aerodyn_input = AerodynInput.from_file(self._input['ADFile'])
         self._wind_environment_changed = False
+        self._wind_task = None
 
     def spawn(self):
         preproc_tasks = self._spawn_preproc_tasks()
@@ -77,14 +78,13 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         preproc_tasks = []
         # Generate new wind file if needed
         if self._wind_environment_changed:
-            wind_task = self._wind_spawner.spawn()
-            self._aerodyn_input['WindFile'] = quote(wind_task.wind_file_path)
+            self._wind_task = self._wind_spawner.spawn()
+            self._aerodyn_input['WindFile'] = quote(self._wind_task.wind_file_path)
             aerodyn_file_path = path.join(self._directory.abspath, 'aerodyn.ipt')
             self._aerodyn_input.to_file(aerodyn_file_path)
             self._input['ADFile'] = quote(aerodyn_file_path)
             self._wind_environment_changed = False
-            preproc_tasks.append(wind_task)
-        return preproc_tasks
+        return [self._wind_task] if self._wind_task is not None else []
 
     def branch(self, branch_id=None):
         return FastSimulationSpawner(self._directory.branch(branch_id), copy.deepcopy(self._input), self._executable,

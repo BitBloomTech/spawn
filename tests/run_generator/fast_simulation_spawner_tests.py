@@ -49,8 +49,12 @@ def test_spawns_tests_requiring_wind_generation_when_wind_changed(turbsim_input,
     s2.wind_speed = 8.0
     task2 = s2.spawn()
     assert isinstance(task2.requires()[0], WindGenerationTask)
+    s2.simulation_time = 1.1
+    task3 = s2.spawn()
+    assert task3.requires()[0] is task2.requires()[0]
     s3 = spawner.branch('b')
-    task3 = s3.spawn()
-    assert len(task3.requires()) == 0
+    # wind file dependency is not yet carried through branching
+    # task4 = s3.spawn()
+    # assert task4.requires()[0] is task2.requires()[0]
 
 

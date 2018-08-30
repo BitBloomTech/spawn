@@ -36,12 +36,12 @@ class NRELSimulationInput(SimulationInput):
         value = self._get_index_and_parts(key)[1][0]
         return value.strip('"')
 
-    def _get_index_and_parts(self, field):
+    def _get_index_and_parts(self, key):
         for i, line in enumerate(self._input_lines):
             parts = line.split()
-            if len(parts) > 1 and parts[1] == field:
+            if len(parts) > 1 and parts[1] == key:
                 return i, parts
-        raise KeyError('field \'{}\' not found'.format(field))
+        raise KeyError('parameter \'{}\' not found'.format(key))
 
     def _absolutise_paths(self, root_folder, lines):
         for i in lines:
