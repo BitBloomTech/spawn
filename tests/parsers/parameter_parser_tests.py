@@ -1,3 +1,4 @@
+import pytest
 from multiwindcalc.parsers.parameters import *
 
 def test_parse_null_node_returns_root_node_no_children():
@@ -78,3 +79,8 @@ def test_parse_with_zip_function_produces_pairs():
     collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
     for expected in expected_args:
         assert expected in collected_properties
+
+
+def test_zip_function_raises_error_if_lists_have_unequal_size():
+    with pytest.raises(RuntimeError):
+        ParameterNodeParser().parse({'zip': {'wind_speed': [8.0, 10.0, 12.0], 'wind_direction': [0.0, 180.0]}})
