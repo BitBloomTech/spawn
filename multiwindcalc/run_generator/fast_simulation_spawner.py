@@ -29,8 +29,10 @@ class TurbsimSpawner(TaskSpawner):
         return wind_task
 
     def branch(self, branch_id=None):
-        return TurbsimSpawner(self._directory.branch(branch_id), copy.deepcopy(self._input), self._executable,
-                              self._working_dir)
+        branched_spawner = copy.copy(self)
+        branched_spawner._directory = self._directory.branch(branch_id)
+        branched_spawner._input = copy.deepcopy(self._input)
+        return branched_spawner
 
     @property
     def wind_speed(self):
@@ -87,8 +89,11 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         return [self._wind_task] if self._wind_task is not None else []
 
     def branch(self, branch_id=None):
-        return FastSimulationSpawner(self._directory.branch(branch_id), copy.deepcopy(self._input), self._executable,
-                                     self._wind_spawner.branch(branch_id), self._working_dir)
+        branched_spawner = copy.copy(self)
+        branched_spawner._directory = self._directory.branch(branch_id)
+        branched_spawner._input = copy.deepcopy(self._input)
+        branched_spawner._wind_spawner = self._wind_spawner.branch(branch_id)
+        return branched_spawner
 
     # Properties in FAST input file
     @property

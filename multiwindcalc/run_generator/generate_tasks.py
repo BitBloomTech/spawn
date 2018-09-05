@@ -1,6 +1,4 @@
-import os.path as path
-from multiwindcalc.simulation_inputs.nrel_simulation_input import FastInput, TurbsimInput
-from multiwindcalc.run_generator.fast_simulation_spawner import FastSimulationSpawner, TurbsimSpawner
+from multiwindcalc.specification.specification import SpecificationNode
 
 
 def generate_tasks(task_spawner, run_list):
@@ -16,11 +14,19 @@ def generate_tasks(task_spawner, run_list):
     return tasks
 
 
-def generate_aeroelastic_simulations(spec):
-    """Generate list of aeroelastic simulation tasks including pre-processing tasks"""
-    wind_spawner = TurbsimSpawner(path.join(spec['output_base_dir'], 'wind'),
-                                  TurbsimInput.from_file(spec['base_wind_input']), spec['wind_executable'])
-    task_spawner = FastSimulationSpawner(path.join(spec['output_base_dir'], 'runs'),
-                                         FastInput.from_file(spec['base_time_domain_input']),
-                                         spec['time_domain_executable'], wind_spawner)
-    return generate_tasks(task_spawner, spec['runs'])
+def generate_tasks_from_spec(task_spawner, node):
+    """Generate list of luigi.Task for a multiwindcalc.SpecificationNode"""
+    if not isinstance(node, SpecificationNode):
+        raise ValueError('node must be of type ' + SpecificationNode)
+    if not node.is_root:
+        setattr(task_spawner, node.property_name, node.property_value)
+    if not node.children:   # (leaf)
+        task = task_spawner.spawn()
+        task.metadata.update(node.collected_properties)
+        return [task]
+    else:   # (branch)
+        tasks = []
+        for child in node.children:
+            branch = task_spawner.branch()
+            tasks += generate_tasks_from_spec(branch, child)
+        return tasks
