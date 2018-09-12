@@ -98,7 +98,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     # Properties in FAST input file
     @property
     def output_start_time(self):
-        return self._input['TStart']
+        return float(self._input['TStart'])
 
     @output_start_time.setter
     def output_start_time(self, time):
@@ -107,7 +107,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     @property
     def simulation_time(self):
         """Total simulation time in seconds"""
-        return self._input['TMax']
+        return float(self._input['TMax'])
 
     @simulation_time.setter
     def simulation_time(self, time):
@@ -118,7 +118,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     @property
     def wind_speed(self):
         """Mean wind speed in m/s"""
-        return self._wind_spawner.wind_speed
+        return float(self._wind_spawner.wind_speed)
 
     @wind_speed.setter
     def wind_speed(self, speed):
