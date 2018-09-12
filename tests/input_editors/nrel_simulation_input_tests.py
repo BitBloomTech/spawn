@@ -45,3 +45,14 @@ def test_paths_are_absolute(cls, file, keys):
     for k in keys:
         f = _input[k]
         assert path.isfile(f)
+
+
+@pytest.mark.parametrize('cls,file,key', [
+    (AerodynInput, 'NRELOffshrBsline5MW_AeroDyn.ipt', 'WindFile'),
+    (FastInput, 'NRELOffshrBsline5MW_Onshore.fst', 'TwrFile')
+])
+def test_can_handle_spaces_in_paths(cls, file, key):
+    _input = cls.from_file(path.join(__examples_folder, file))
+    spacey_path = '"C:/this is a spacey/path.ipt"'
+    _input[key] = spacey_path
+    assert spacey_path.strip('"') == _input[key].strip('"')

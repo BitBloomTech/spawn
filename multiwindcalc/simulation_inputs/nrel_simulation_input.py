@@ -1,4 +1,5 @@
 from os import path
+import csv
 from multiwindcalc.simulation_inputs.simulation_input import SimulationInput
 
 
@@ -30,22 +31,27 @@ class NRELSimulationInput(SimulationInput):
 
     def __setitem__(self, key, value):
         i, parts = self._get_index_and_parts(key)
-        self._input_lines[i] = self._input_lines[i].replace(parts[0], str(value))
+        self._input_lines[i] = self._input_lines[i].replace(parts[0], str(value).strip('"'))
 
     def __getitem__(self, key):
         value = self._get_index_and_parts(key)[1][0]
         return value.strip('"')
 
+    @staticmethod
+    def _get_parts(line):
+        # CSV reader is the easiest way to interpret quoted strings encompassing spaces as one part
+        return next(csv.reader([line], delimiter=' ', quotechar='"', skipinitialspace=True))
+
     def _get_index_and_parts(self, key):
         for i, line in enumerate(self._input_lines):
-            parts = line.split()
+            parts = self._get_parts(line)
             if len(parts) > 1 and parts[1] == key:
                 return i, parts
         raise KeyError('parameter \'{}\' not found'.format(key))
 
     def _absolutise_paths(self, root_folder, lines):
         for i in lines:
-            parts = self._input_lines[i].split()
+            parts = self._get_parts(self._input_lines[i])
             rel_path = parts[0].strip('"')
             self._input_lines[i] = self._input_lines[i].replace(rel_path,
                                                                 path.abspath(path.join(root_folder, rel_path)))
@@ -74,7 +80,7 @@ class FastInput(NRELSimulationInput):
             return key in ['TwrFile', 'ADFile', 'ADAMSFile'] or 'BldFile' in key
         lines = []
         for i in range(len(self._input_lines)):
-            parts = self._input_lines[i].split()
+            parts = self._get_parts(self._input_lines[i])
             if len(parts) > 1 and is_file_path(parts[1]):
                 lines.append(i)
         return lines

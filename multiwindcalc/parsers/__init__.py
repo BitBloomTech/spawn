@@ -1,1 +1,1 @@
-from .specification import SpecificationFileReader, SpecificationDescriptionProvider, SpecificationNodeParser
+from .specification import SpecificationFileReader, SpecificationDescriptionProvider, SpecificationNodeParser, SpecificationParser
