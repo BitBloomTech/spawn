@@ -35,20 +35,38 @@ class TurbsimSpawner(TaskSpawner):
         return branched_spawner
 
     @property
-    def wind_speed(self):
-        return self._input['URef']
-
-    @wind_speed.setter
-    def wind_speed(self, value):
-        self._input['URef'] = value
-
-    @property
     def simulation_time(self):
         return self._input['AnalysisTime']
 
     @simulation_time.setter
     def simulation_time(self, time):
         self._input['AnalysisTime'] = time
+
+    @property
+    def wind_speed(self):
+        return float(self._input['URef'])
+
+    @wind_speed.setter
+    def wind_speed(self, value):
+        self._input['URef'] = value
+
+    @property
+    def turbulence_intensity(self):
+        """Turbulence intensity as a fraction (not %): ratio of wind speed standard deviation to mean wind speed"""
+        return float(self._input['IECturbc']) / 100
+
+    @turbulence_intensity.setter
+    def turbulence_intensity(self, turbulence_intensity):
+        self._input['IECturbc'] = turbulence_intensity
+
+    @property
+    def turbulence_seed(self):
+        """Random number seed for turbulence generation"""
+        return int(self._input['RandSeed1'])
+
+    @turbulence_seed.setter
+    def turbulence_seed(self, seed):
+        self._input['RandSeed1'] = seed
 
 
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
@@ -118,10 +136,30 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     @property
     def wind_speed(self):
         """Mean wind speed in m/s"""
-        return float(self._wind_spawner.wind_speed)
+        return self._wind_spawner.wind_speed
 
     @wind_speed.setter
     def wind_speed(self, speed):
         self._wind_spawner.wind_speed = speed
+        self._wind_environment_changed = True
+
+    @property
+    def turbulence_intensity(self):
+        """Turbulence intensity as a fraction (not %): ratio of wind speed standard deviation to mean wind speed"""
+        return self._wind_spawner.turbulence_intensity
+
+    @turbulence_intensity.setter
+    def turbulence_intensity(self, turbulence_intensity):
+        self._wind_spawner.turbulence_intensity = turbulence_intensity
+        self._wind_environment_changed = True
+
+    @property
+    def turbulence_seed(self):
+        """Random number seed for turbulence generation"""
+        return self._wind_spawner.turbulence_seed
+
+    @turbulence_seed.setter
+    def turbulence_seed(self, seed):
+        self._wind_spawner.turbulence_seed = seed
         self._wind_environment_changed = True
 

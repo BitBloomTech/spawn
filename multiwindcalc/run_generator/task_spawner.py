@@ -32,6 +32,7 @@ class AeroelasticSimulationSpawner:
     def simulation_time(self):
         raise NotImplementedError()
 
+    # Wind properties
     @property
     def wind_speed(self):
         """Mean wind speed in m/s"""
@@ -39,4 +40,22 @@ class AeroelasticSimulationSpawner:
 
     @wind_speed.setter
     def wind_speed(self, wind_speed):
+        raise NotImplementedError()
+
+    @property
+    def turbulence_intensity(self):
+        """Turbulence intensity as a fraction (not %): ratio of wind speed standard deviation to mean wind speed"""
+        raise NotImplementedError()
+
+    @turbulence_intensity.setter
+    def turbulence_intensity(self, turbulence_intensity):
+        raise NotImplementedError()
+
+    @property
+    def turbulence_seed(self):
+        """Random number seed for turbulence generation"""
+        raise NotImplementedError()
+
+    @turbulence_seed.setter
+    def turbulence_seed(self, seed):
         raise NotImplementedError()

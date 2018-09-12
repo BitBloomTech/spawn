@@ -39,7 +39,9 @@ def baseline():
 @pytest.mark.parametrize('property,type', [
     ('output_start_time', float),
     ('simulation_time', float),
-    ('wind_speed', float)
+    ('wind_speed', float),
+    ('turbulence_intensity', float),
+    ('turbulence_seed', int)
 ])
 def test_property_type(spawner, property, type):
     assert isinstance(getattr(spawner, property), type)
@@ -61,3 +63,16 @@ def test_wind_speed(baseline, spawner):
     spawner.wind_speed = 2 * spawner.wind_speed
     res = run_and_get_results(spawner)
     assert pytest.approx(2*np.mean(baseline['WindVxi']), np.mean(res['WindVxi']))
+
+
+def test_turbulence_intensity(baseline, spawner):
+    assert spawner.turbulence_intensity < 1.0
+    spawner.turbulence_intensity = 2 * spawner.turbulence_intensity
+    res = run_and_get_results(spawner)
+    assert pytest.approx(2*np.std(baseline['WindVxi']), np.std(res['WindVxi']))
+
+
+def test_turbulence_seed(baseline, spawner):
+    spawner.turbulence_seed += 1
+    res = run_and_get_results(spawner)
+    assert np.all(baseline['WindVxi'] != res['WindVxi'])
