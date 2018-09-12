@@ -15,6 +15,7 @@ class TaskSpawner:
 class AeroelasticSimulationSpawner:
     """Spawner of aeroelastic simulations of wind turbines including pre-processing dependencies"""
 
+    # Simulation options
     @property
     def output_start_time(self):
         raise NotImplementedError()
@@ -30,6 +31,34 @@ class AeroelasticSimulationSpawner:
 
     @simulation_time.setter
     def simulation_time(self):
+        raise NotImplementedError()
+
+    # Initial Conditions
+    @property
+    def initial_rotor_speed(self):
+        """Rotor speed at start of simulation in rpm"""
+        raise NotImplementedError()
+
+    @initial_rotor_speed.setter
+    def initial_rotor_speed(self, rotor_speed):
+        raise NotImplementedError()
+
+    @property
+    def initial_azimuth(self):
+        """Rotor azimuth of blade 1 at start of simulation in degrees"""
+        raise NotImplementedError
+
+    @initial_azimuth.setter
+    def initial_azimuth(self, azimuth):
+        raise NotImplementedError()
+
+    @property
+    def initial_yaw_angle(self):
+        """Nacelle yaw angle at start of simulation in degrees; clockwise from North"""
+        raise NotImplementedError()
+
+    @initial_yaw_angle.setter
+    def initial_yaw_angle(self, angle):
         raise NotImplementedError()
 
     # Wind properties

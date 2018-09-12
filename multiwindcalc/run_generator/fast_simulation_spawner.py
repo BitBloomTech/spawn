@@ -113,7 +113,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         branched_spawner._wind_spawner = self._wind_spawner.branch(branch_id)
         return branched_spawner
 
-    # Properties in FAST input file
+    # Simulation options
     @property
     def output_start_time(self):
         return float(self._input['TStart'])
@@ -131,6 +131,34 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     def simulation_time(self, time):
         self._input['TMax'] = time
         self._wind_spawner.simulation_time = time
+
+    # Initial Conditions
+    @property
+    def initial_rotor_speed(self):
+        """Rotor speed at start of simulation in rpm"""
+        return float(self._input['RotSpeed'])
+
+    @initial_rotor_speed.setter
+    def initial_rotor_speed(self, rotor_speed):
+        self._input['RotSpeed'] = rotor_speed
+
+    @property
+    def initial_azimuth(self):
+        """Rotor azimuth of blade 1 at start of simulation in degrees"""
+        return float(self._input['Azimuth'])
+
+    @initial_azimuth.setter
+    def initial_azimuth(self, azimuth):
+        self._input['Azimuth'] = azimuth
+
+    @property
+    def initial_yaw_angle(self):
+        """Nacelle yaw angle at start of simulation in degrees; clockwise from North"""
+        return float(self._input['NacYaw'])
+
+    @initial_yaw_angle.setter
+    def initial_yaw_angle(self, angle):
+        self._input['NacYaw'] = angle
 
     # Properties deferred to wind generation spawner:
     @property

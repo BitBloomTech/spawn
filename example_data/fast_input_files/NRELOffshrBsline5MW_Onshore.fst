@@ -58,7 +58,7 @@ True        EdgeDOF     - First edgewise blade mode DOF (flag)
 False       TeetDOF     - Rotor-teeter DOF (flag) [unused for 3 blades]
 True        DrTrDOF     - Drivetrain rotational-flexibility DOF (flag)
 True        GenDOF      - Generator DOF (flag)
-True        YawDOF      - Yaw DOF (flag)
+False       YawDOF      - Yaw DOF (flag)
 True        TwFADOF1    - First fore-aft tower bending-mode DOF (flag)
 True        TwFADOF2    - Second fore-aft tower bending-mode DOF (flag)
 True        TwSSDOF1    - First side-to-side tower bending-mode DOF (flag)
@@ -187,6 +187,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "OoPDefl1 , IPDefl1  , TwstDefl1"                            - Blade 1 out-of-plane and in-plane deflections and tip twist
 "BldPitch1"                                                  - Blade 1 pitch angle
 "Azimuth"                                                    - Blade 1 azimuth angle
+"YawPzn"                                                     - Nacelle yaw angle
 "RotSpeed , GenSpeed"                                        - Low-speed shaft and high-speed shaft speeds
 "TTDspFA  , TTDspSS  , TTDspTwst"                            - Tower fore-aft and side-to-side displacments and top twist
 "Spn2MLxb1, Spn2MLyb1"                                       - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
