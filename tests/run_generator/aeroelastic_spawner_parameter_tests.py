@@ -11,7 +11,7 @@ import example_data
 
 
 def run_and_get_results(spawner):
-    task = spawner.spawn()
+    task = spawner.spawn(additional_folder=True)
     luigi.build([task], local_scheduler=True, log_level='WARNING')
     data, info = fast_io.load_output(task.output().path)
     return pd.DataFrame(data, columns=info['attribute_names'])
@@ -44,7 +44,8 @@ def baseline():
     ('turbulence_seed', int),
     ('initial_rotor_speed', float),
     ('initial_azimuth', float),
-    ('initial_yaw_angle', float)
+    ('initial_yaw_angle', float),
+    ('number_of_blades', int)
 ])
 def test_property_type(spawner, property, type):
     assert isinstance(getattr(spawner, property), type)
@@ -65,18 +66,35 @@ def test_simulation_time(baseline, spawner):
 @pytest.mark.parametrize('key,value,output_name', [
     ('initial_rotor_speed', 7.0, 'RotSpeed'),
     ('initial_azimuth', 180.0, 'Azimuth'),
-    ('initial_yaw_angle', 90.0, 'YawPzn')
+    ('initial_yaw_angle', 90.0, 'YawPzn'),
+    ('initial_pitch_angle', 30.0, 'BldPitch1')
 ])
-def test_initial_rotor_speed(spawner, key, value, output_name):
+def test_initial_values(spawner, key, value, output_name):
     setattr(spawner, key, value)
     res = run_and_get_results(spawner)
     assert res[output_name][0] == pytest.approx(value, rel=0.1)
 
 
-def test_turbulence_seed(baseline, spawner):
-    spawner.turbulence_seed += 1
+def test_operating_mode(spawner):
+    spawner.operation_mode = 'idling'
+    spawner.initial_pitch_angle = 30.0
     res = run_and_get_results(spawner)
-    assert np.all(baseline['WindVxi'] != res['WindVxi'])
+    assert np.all(res['BldPitch1'] == 30.0)
+    assert np.all(res['GenPwr'] <= 0.0)
+    assert np.all(res['RotSpeed'] != 0.0)
+    assert np.all(abs(res['RotSpeed']) < 1.0)
+    spawner.operation_mode = 'parked'
+    spawner.initial_pitch_angle = 90.0
+    res2 = run_and_get_results(spawner)
+    assert np.all(res2['BldPitch1'] == 90.0)
+    assert np.all(res2['GenPwr'] <= 0.0)
+    assert np.all(abs(res2['RotSpeed']) <= 0.01)    # rotor speed is slightly non-zero due to drive-train flexibility
+    spawner.operation_mode = 'normal'
+    spawner.initial_pitch_angle = 0.0
+    res3 = run_and_get_results(spawner)
+    assert np.all(res3['BldPitch1'] <= 10.0)
+    assert np.all(res3['GenPwr'] >= 0.0)
+    assert np.all(res3['RotSpeed'] > 0.0)
 
 
 def test_turbulence_seed(baseline, spawner):

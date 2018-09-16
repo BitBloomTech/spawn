@@ -185,7 +185,7 @@ True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
 "WindVxi  , WindVyi  , WindVzi"                              - Longitudinal, lateral, and vertical wind speeds
 "GenPwr   , GenTq"                                           - Electrical generator power and torque
 "OoPDefl1 , IPDefl1  , TwstDefl1"                            - Blade 1 out-of-plane and in-plane deflections and tip twist
-"BldPitch1"                                                  - Blade 1 pitch angle
+"BldPitch1", "BldPitch3"                                     - Blade 1 and 3 pitch angle
 "Azimuth"                                                    - Blade 1 azimuth angle
 "YawPzn"                                                     - Nacelle yaw angle
 "RotSpeed , GenSpeed"                                        - Low-speed shaft and high-speed shaft speeds

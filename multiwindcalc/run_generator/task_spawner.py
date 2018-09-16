@@ -33,6 +33,20 @@ class AeroelasticSimulationSpawner:
     def simulation_time(self):
         raise NotImplementedError()
 
+    @property
+    def operation_mode(self):
+        raise NotImplementedError()
+
+    @operation_mode.setter
+    def operation_mode(self, mode):
+        """
+        Operation mode:
+        'normal' - power production run with generator on and rotor free
+        'idling' - generator off but rotor free
+        'parked' - generator off and rotor fixed
+        """
+        raise NotImplementedError()
+
     # Initial Conditions
     @property
     def initial_rotor_speed(self):
@@ -61,6 +75,15 @@ class AeroelasticSimulationSpawner:
     def initial_yaw_angle(self, angle):
         raise NotImplementedError()
 
+    @property
+    def initial_pitch_angle(self):
+        raise NotImplementedError()
+
+    @initial_pitch_angle.setter
+    def initial_pitch_angle(self, angle):
+        """Sets pitch angle for all blades at start of simulation; in degrees, positive towards feather"""
+        raise NotImplementedError()
+
     # Wind properties
     @property
     def wind_speed(self):
@@ -87,4 +110,9 @@ class AeroelasticSimulationSpawner:
 
     @turbulence_seed.setter
     def turbulence_seed(self, seed):
+        raise NotImplementedError()
+
+    # Properties of turbine, for which setting is not supported
+    @property
+    def number_of_blades(self):
         raise NotImplementedError()
