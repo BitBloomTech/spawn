@@ -21,10 +21,11 @@ class TurbsimSpawner(TaskSpawner):
         self._executable = turbsim_exe
         self._working_dir = working_dir if working_dir is not None else os.getcwd()
 
-    def spawn(self):
-        wind_input_file = path.join(self._directory.abspath, 'wind.ipt')
+    def spawn(self, additional_folder=False):
+        directory = self._directory.branch() if additional_folder else self._directory
+        wind_input_file = path.join(directory.abspath, 'wind.ipt')
         self._input.to_file(wind_input_file)
-        wind_task = WindGenerationTask('wind ' + self._directory.relative_path, self._executable,
+        wind_task = WindGenerationTask('wind ' + directory.relative_path, self._executable,
                                        wind_input_file, _working_dir=self._working_dir)
         return wind_task
 
@@ -57,7 +58,7 @@ class TurbsimSpawner(TaskSpawner):
 
     @turbulence_intensity.setter
     def turbulence_intensity(self, turbulence_intensity):
-        self._input['IECturbc'] = turbulence_intensity
+        self._input['IECturbc'] = turbulence_intensity * 100
 
     @property
     def turbulence_seed(self):
@@ -67,6 +68,25 @@ class TurbsimSpawner(TaskSpawner):
     @turbulence_seed.setter
     def turbulence_seed(self, seed):
         self._input['RandSeed1'] = seed
+
+    @property
+    def wind_shear(self):
+        """Vertical wind shear exponent"""
+        exponent = self._input['PLExp']
+        return float('NaN') if exponent == 'default' else float(exponent)
+
+    @wind_shear.setter
+    def wind_shear(self, exponent):
+        self._input['PLExp'] = exponent
+
+    @property
+    def upflow(self):
+        """Wind inclination in degrees from the horizontal"""
+        return float(self._input['VFlowAng'])
+
+    @upflow.setter
+    def upflow(self, angle):
+        self._input['VFlowAng'] = angle
 
 
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
@@ -85,7 +105,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def spawn(self, additional_folder=False):
         directory = self._directory.branch() if additional_folder else self._directory
-        preproc_tasks = self._spawn_preproc_tasks(directory)
+        preproc_tasks = self._spawn_preproc_tasks(directory, additional_folder)
         sim_input_file = path.join(directory.abspath, 'simulation.ipt')
         self._input.to_file(sim_input_file)
         sim_task = FastSimulationTask('run ' + directory.relative_path,
@@ -95,13 +115,13 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
                                       _working_dir=self._working_dir)
         return sim_task
 
-    def _spawn_preproc_tasks(self, directory):
+    def _spawn_preproc_tasks(self, run_directory, additional_folder):
         preproc_tasks = []
         # Generate new wind file if needed
         if self._wind_environment_changed:
-            self._wind_task = self._wind_spawner.spawn()
+            self._wind_task = self._wind_spawner.spawn(additional_folder=additional_folder)
             self._aerodyn_input['WindFile'] = quote(self._wind_task.wind_file_path)
-            aerodyn_file_path = path.join(directory.abspath, 'aerodyn.ipt')
+            aerodyn_file_path = path.join(run_directory.abspath, 'aerodyn.ipt')
             self._aerodyn_input.to_file(aerodyn_file_path)
             self._input['ADFile'] = quote(aerodyn_file_path)
             self._wind_environment_changed = False
@@ -241,6 +261,26 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
     @turbulence_seed.setter
     def turbulence_seed(self, seed):
         self._wind_spawner.turbulence_seed = seed
+        self._wind_environment_changed = True
+
+    @property
+    def wind_shear(self):
+        """Vertical wind shear exponent"""
+        return self._wind_spawner.wind_shear
+
+    @wind_shear.setter
+    def wind_shear(self, exponent):
+        self._wind_spawner.wind_shear = exponent
+        self._wind_environment_changed = True
+
+    @property
+    def upflow(self):
+        """Wind inclination in degrees from the horizontal"""
+        return self._wind_spawner.upflow
+
+    @upflow.setter
+    def upflow(self, angle):
+        self._wind_spawner.upflow = angle
         self._wind_environment_changed = True
 
     # Properties of turbine, for which setting is not supported

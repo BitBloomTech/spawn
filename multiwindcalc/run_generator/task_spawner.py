@@ -112,6 +112,24 @@ class AeroelasticSimulationSpawner:
     def turbulence_seed(self, seed):
         raise NotImplementedError()
 
+    @property
+    def wind_shear(self):
+        """Vertical wind shear exponent"""
+        raise NotImplementedError()
+
+    @wind_shear.setter
+    def wind_shear(self, exponent):
+        raise NotImplementedError()
+
+    @property
+    def upflow(self):
+        """Wind inclination in degrees from the horizontal"""
+        raise NotImplementedError()
+
+    @upflow.setter
+    def upflow(self, angle):
+        raise NotImplementedError()
+
     # Properties of turbine, for which setting is not supported
     @property
     def number_of_blades(self):

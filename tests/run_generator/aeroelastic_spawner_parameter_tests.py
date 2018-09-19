@@ -3,6 +3,7 @@ import pytest
 import tempfile
 import pandas as pd
 import numpy as np
+import math
 import luigi
 from wetb.fast import fast_io
 from multiwindcalc.simulation_inputs.nrel_simulation_input import FastInput, TurbsimInput
@@ -42,6 +43,8 @@ def baseline():
     ('wind_speed', float),
     ('turbulence_intensity', float),
     ('turbulence_seed', int),
+    ('wind_shear', float),
+    ('upflow', float),
     ('initial_rotor_speed', float),
     ('initial_azimuth', float),
     ('initial_yaw_angle', float),
@@ -113,10 +116,25 @@ def test_turbulence_intensity(baseline, spawner):
     assert spawner.turbulence_intensity < 1.0
     spawner.turbulence_intensity = 2 * spawner.turbulence_intensity
     res = run_and_get_results(spawner)
-    assert pytest.approx(2*np.std(baseline['WindVxi']), np.std(res['WindVxi']))
+    assert np.std(res['WindVxi']) == pytest.approx(2*np.std(baseline['WindVxi']), rel=1e-3)
 
 
 def test_turbulence_seed(baseline, spawner):
     spawner.turbulence_seed += 1
     res = run_and_get_results(spawner)
     assert np.all(baseline['WindVxi'] != res['WindVxi'])
+
+
+def test_wind_shear(baseline, spawner):
+    spawner.wind_shear = 0.3
+    res = run_and_get_results(spawner)
+    assert np.all(res['YawBrMyp'] > baseline['YawBrMyp'])  # increase in shear gives predominantly 0P increase in tower-top overturning moment
+
+
+def test_upflow(baseline, spawner):
+    spawner.upflow = 10.0
+    res = run_and_get_results(spawner)
+    assert np.mean(res['WindVxi']) < np.mean(baseline['WindVxi'])
+    upflow_baseline = np.mean(np.arctan2(baseline['WindVzi'], baseline['WindVxi']))
+    upflow_new = np.mean(np.arctan2(res['WindVzi'], res['WindVxi']))
+    assert math.degrees(upflow_new - upflow_baseline) == pytest.approx(spawner.upflow, abs=0.1)
