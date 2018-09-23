@@ -1,8 +1,8 @@
 from os import path, pardir
 import luigi
 from multiwindcalc.simulation_inputs import TurbsimInput, FastInput
-from multiwindcalc.run_generator.fast_simulation_spawner import TurbsimSpawner, FastSimulationSpawner
-from multiwindcalc.run_generator.generate_tasks import generate_tasks_from_spec
+from multiwindcalc.spawners import TurbsimSpawner, FastSimulationSpawner
+from multiwindcalc.generate_tasks import generate_tasks_from_spec
 from multiwindcalc.parsers.specification import SpecificationNodeParser
 
 

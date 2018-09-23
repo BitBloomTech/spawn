@@ -1,8 +1,8 @@
 from os import path
 import numpy as np
-from ..component_tests import example_data_folder, create_spawner
-from multiwindcalc.run_generator.generate_tasks import generate_tasks_from_spec
-from multiwindcalc.run_generator.tasks import SimulationTask, WindGenerationTask
+from tests.component_tests import example_data_folder, create_spawner
+from multiwindcalc.generate_tasks import generate_tasks_from_spec
+from multiwindcalc.tasks.simulation import SimulationTask, WindGenerationTask
 from multiwindcalc.parsers import *
 
 

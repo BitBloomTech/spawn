@@ -7,7 +7,7 @@ import math
 import luigi
 from wetb.fast import fast_io
 from multiwindcalc.simulation_inputs.nrel_simulation_input import FastInput, TurbsimInput
-from multiwindcalc.run_generator.fast_simulation_spawner import FastSimulationSpawner, TurbsimSpawner
+from multiwindcalc.spawners import FastSimulationSpawner, TurbsimSpawner
 import example_data
 
 

@@ -1,6 +1,6 @@
 import tempfile
 import os.path as path
-from multiwindcalc.run_generator.directory_handler import DirectoryHandler
+from multiwindcalc.spawners.directory_handler import DirectoryHandler
 
 
 def test_abspath_exists():

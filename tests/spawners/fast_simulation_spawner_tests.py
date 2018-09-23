@@ -1,8 +1,8 @@
 from os import path
 import tempfile
 import pytest
-from multiwindcalc.run_generator.tasks import WindGenerationTask
-from multiwindcalc.run_generator.fast_simulation_spawner import TurbsimSpawner, FastSimulationSpawner
+from multiwindcalc.tasks.simulation import WindGenerationTask
+from multiwindcalc.spawners import TurbsimSpawner, FastSimulationSpawner
 from multiwindcalc.simulation_inputs.nrel_simulation_input import FastInput, TurbsimInput
 from ..component_tests import example_data_folder
 
