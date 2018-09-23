@@ -3,7 +3,7 @@
 class TaskSpawner:
     """Base class task spawner"""
 
-    def spawn(self):
+    def spawn(self, additional_folder=False):
         """Create new derivative of luigi.Task for later execution"""
         raise NotImplementedError()
 
