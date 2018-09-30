@@ -3,9 +3,11 @@ from json import load
 
 from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode
 
+
 class SpecificationDescriptionProvider:
     def get(self):
         raise NotImplementedError()
+
 
 class SpecificationFileReader(SpecificationDescriptionProvider):
     def __init__(self, input_file):
@@ -16,6 +18,7 @@ class SpecificationFileReader(SpecificationDescriptionProvider):
     def get(self):
         with open(self._input_file) as input_fp:
             return load(input_fp)
+
 
 class SpecificationParser:
     def __init__(self, provider):
@@ -28,6 +31,7 @@ class SpecificationParser:
         metadata = SpecificationMetadata(description.get('creation_time'), description.get('notes'))
         root_node = SpecificationNodeParser().parse(description.get('spec'))
         return SpecificationModel(description.get('base_file'), root_node, metadata)
+
 
 class SpecificationNodeParser:
     def __init__(self):
@@ -50,6 +54,8 @@ class SpecificationNodeParser:
         if name in self._functions:
             for node in self._functions[name](value):
                 self._parse_value(parent, None, node, next_node)
+        elif isinstance(value, str) and self._is_generator(value):
+            self.parse(next_node, SpecificationNode(parent, name, 0.0))
         elif isinstance(value, list):
             for v in value:
                 self._parse_value(parent, name, v, next_node)
@@ -58,10 +64,16 @@ class SpecificationNodeParser:
             self.parse(next_node, parent)
         else:
             self.parse(next_node, SpecificationNode(parent, name, value))
-    
-    def _zip(self, value):
+
+    @staticmethod
+    def _is_generator(value):
+        return value.startswith('@') or value.startswith('gen:')
+
+    @staticmethod
+    def _zip(value):
         return [{k: v for k, v in zip(value.keys(), values)} for values in zip(*value.values())]
 
-    def _get_next_node(self, node):
+    @staticmethod
+    def _get_next_node(node):
         next_key = list(node.keys())[0]
         return (next_key, node[next_key]), {k: v for k, v in node.items() if k != next_key}
