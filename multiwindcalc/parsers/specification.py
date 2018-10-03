@@ -2,7 +2,12 @@ from os import path
 from json import load
 
 from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode
+from .generators import GeneratorsParser
 
+
+_short_form_expansion = {
+    '@': 'gen'
+}
 
 class SpecificationDescriptionProvider:
     def get(self):
@@ -29,12 +34,17 @@ class SpecificationParser:
     def parse(self):
         description = self._provider.get()
         metadata = SpecificationMetadata(description.get('creation_time'), description.get('notes'))
-        root_node = SpecificationNodeParser().parse(description.get('spec'))
+        generator_lib = GeneratorsParser().parse(description.get('generators'))
+        value_libraries = {
+            'gen': generator_lib
+        }
+        root_node = SpecificationNodeParser(value_libraries).parse(description.get('spec'))
         return SpecificationModel(description.get('base_file'), root_node, metadata)
 
 
 class SpecificationNodeParser:
-    def __init__(self):
+    def __init__(self, value_libraries={}):
+        self._value_libraries = value_libraries
         self._functions = {
             'zip': self._zip
         }
@@ -51,19 +61,35 @@ class SpecificationNodeParser:
         return parent
     
     def _parse_value(self, parent, name, value, next_node):
+        # function lookup
         if name in self._functions:
             for node in self._functions[name](value):
                 self._parse_value(parent, None, node, next_node)
-        elif isinstance(value, str) and self._is_generator(value):
-            self.parse(next_node, SpecificationNode(parent, name, 0.0))
+        # list expansion
         elif isinstance(value, list):
             for v in value:
                 self._parse_value(parent, name, v, next_node)
+        # burrow into object
         elif isinstance(value, dict):
             self.parse(value, parent)
             self.parse(next_node, parent)
+        # rhs prefixed evaluation - short form and long form
+        elif isinstance(value, str) and value[0] in _short_form_expansion:
+            self._parse_evaluator(next_node, parent, name, _short_form_expansion[value[0]], value[1:])
+        elif isinstance(value, str) and ':' in value:  # rhs prefixed evaluation
+            parts = value.split(':')
+            if parts[0] not in self._value_libraries:
+                raise KeyError("Library identifier '{parts[0]}' not found when parsing RHS value string '{value}'")
+            self._parse_evaluator(next_node, parent, name, parts[0], parts[1])
+        # simple single value
         else:
             self.parse(next_node, SpecificationNode(parent, name, value))
+
+    def _parse_evaluator(self, next_node, parent, name, type_str, lookup_str):
+        if lookup_str not in self._value_libraries[type_str]:
+            raise LookupError("Look-up string '{lookup_str}' not found in '{type_str}' library")
+        self.parse(next_node, SpecificationNode(parent, name, self._value_libraries[type_str][lookup_str].evaluate()))
+
 
     @staticmethod
     def _is_generator(value):

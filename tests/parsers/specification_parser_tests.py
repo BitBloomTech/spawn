@@ -1,5 +1,6 @@
 import pytest
 from multiwindcalc.parsers.specification import *
+from multiwindcalc.specification.generator_methods import IncrementalInt
 
 def test_parse_null_node_returns_root_node_no_children():
     node = SpecificationNodeParser().parse(None)
@@ -85,3 +86,29 @@ def test_parse_with_zip_function_produces_pairs():
 def test_zip_function_raises_error_if_lists_have_unequal_size():
     with pytest.raises(RuntimeError):
         SpecificationNodeParser().parse({'zip': {'wind_speed': [8.0, 10.0, 12.0], 'wind_direction': [0.0, 180.0]}})
+
+
+@pytest.fixture(scope='function')
+def parser_with_incremental_int_generator():
+    generator_library = {
+        'MyGen': IncrementalInt(4, 2)
+    }
+    return SpecificationNodeParser({'gen': generator_library})
+
+
+def test_can_use_generator_once(parser_with_incremental_int_generator):
+    root_node = parser_with_incremental_int_generator.parse({'seed': '@MyGen'})
+    collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
+    assert collected_properties[0]['seed'] == 4
+
+
+def test_can_use_generator_with_other_params(parser_with_incremental_int_generator):
+    root_node = parser_with_incremental_int_generator.parse({
+        'wind_speed': [5.0, 7.0],
+        'yaw_angle': [0.0, 10.0],
+        'seed': 'gen:MyGen'
+    })
+    collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
+    assert len(collected_properties) == 4
+    for i in range(4):
+        assert collected_properties[i]['seed'] == 4 + 2*i

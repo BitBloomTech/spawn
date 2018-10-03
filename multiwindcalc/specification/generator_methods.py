@@ -14,7 +14,7 @@ class RandomInt:
         self._min = min
         self._max = max
 
-    def generate(self):
+    def evaluate(self):
         return self._generator.randint(self._min, self._max)
 
 
@@ -28,7 +28,7 @@ class IncrementalInt:
         self._next_number = start
         self._step = step
 
-    def generate(self):
+    def evaluate(self):
         v = self._next_number
         self._next_number += self._step
         return v

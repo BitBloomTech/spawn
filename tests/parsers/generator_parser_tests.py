@@ -5,7 +5,7 @@ from multiwindcalc.parsers.generators import GeneratorsParser
 def test_can_instantiate_simple_generator():
     gens = GeneratorsParser().parse([{'method': 'RandomInt'}])
     assert len(gens) == 1
-    assert isinstance(gens[0].generate(), int)
+    assert isinstance(gens[0].evaluate(), int)
 
 
 def test_passes_args_correctly():
@@ -16,8 +16,8 @@ def test_passes_args_correctly():
     }]
     gens = GeneratorsParser().parse(gen_spec)
     assert len(gens) == 1
-    assert gens[0].generate() == 50
-    assert gens[0].generate() == 52
+    assert gens[0].evaluate() == 50
+    assert gens[0].evaluate() == 52
 
 
 def test_raises_key_error_when_method_not_present():
