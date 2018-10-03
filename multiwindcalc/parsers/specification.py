@@ -9,6 +9,7 @@ _short_form_expansion = {
     '@': 'gen'
 }
 
+
 class SpecificationDescriptionProvider:
     def get(self):
         raise NotImplementedError()

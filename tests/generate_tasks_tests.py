@@ -26,7 +26,8 @@ def test_can_create_runs_from_tree_spec(tmpdir):
     input_path = path.join(example_data_folder, 'iec_fatigue_spec.json')
     spec_model = SpecificationParser(SpecificationFileReader(input_path)).parse()
     runs = generate_tasks_from_spec(spawner, spec_model.root_node)
-    assert len(runs) == 12*3*6 + 12*2*6 + 12*3*6
+    assert len(runs) == 12*3 + 12*2 + 12*3
+    seeds = []
     for t in runs:
         assert isinstance(t, SimulationTask)
         assert len(t.requires()) == 1
@@ -36,3 +37,5 @@ def test_can_create_runs_from_tree_spec(tmpdir):
         assert 'wind_speed' in t.metadata
         assert 'turbulence_seed' in t.metadata
         assert 'wind_direction' in t.metadata
+        seeds.append(t.metadata['turbulence_seed'])
+    assert len(seeds) != len(set(seeds))  # testing uniqueness

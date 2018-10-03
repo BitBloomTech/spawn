@@ -112,3 +112,14 @@ def test_can_use_generator_with_other_params(parser_with_incremental_int_generat
     assert len(collected_properties) == 4
     for i in range(4):
         assert collected_properties[i]['seed'] == 4 + 2*i
+
+
+def test_generator_persists(parser_with_incremental_int_generator):
+    root_node = parser_with_incremental_int_generator.parse({
+        'a': {'wind_speed': 4.0, 'seed1': '@MyGen'},
+        'b': {'wind_speed': 6.0, 'seed1': '@MyGen', 'seed2': 'gen:MyGen'}
+    })
+    collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
+    assert collected_properties[0]['seed1'] == 4
+    assert collected_properties[1]['seed1'] == 6
+    assert collected_properties[1]['seed2'] == 8

@@ -7,13 +7,13 @@ class GeneratorsParser:
         pass
 
     def parse(self, generators):
-        generator_objects = []
-        for gen in generators:
+        generator_objects = {}
+        for name, gen in generators.items():
             if 'method' not in gen:
                 raise KeyError("Generator missing 'method'")
             method = gen['method']
             del gen['method']
-            generator_objects.append(self._instantiate(method, gen))
+            generator_objects[name] = self._instantiate(method, gen)
         return generator_objects
 
     @staticmethod
