@@ -27,6 +27,10 @@ class TypedProperty:
         self._name = None
         self._abstract = abstract
         self._readonly = readonly
+    
+    @property
+    def type(self):
+        return self._type
 
     def __set_name__(self, _obj, name):
         self._name = name

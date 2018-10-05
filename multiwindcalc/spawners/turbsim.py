@@ -29,55 +29,43 @@ class TurbsimSpawner(WindGenerationSpawner):
         branched_spawner._input = copy.deepcopy(self._input)
         return branched_spawner
 
-    @property
-    def simulation_time(self):
+    def get_simulation_time(self):
         return self._input['AnalysisTime']
 
-    @simulation_time.setter
-    def simulation_time(self, time):
+    def set_simulation_time(self, time):
         self._input['AnalysisTime'] = time
 
-    @property
-    def wind_speed(self):
+    def get_wind_speed(self):
         return float(self._input['URef'])
 
-    @wind_speed.setter
-    def wind_speed(self, value):
+    def set_wind_speed(self, value):
         self._input['URef'] = value
 
-    @property
-    def turbulence_intensity(self):
+    def get_turbulence_intensity(self):
         """Turbulence intensity as a fraction (not %): ratio of wind speed standard deviation to mean wind speed"""
         return float(self._input['IECturbc']) / 100
 
-    @turbulence_intensity.setter
-    def turbulence_intensity(self, turbulence_intensity):
+    def set_turbulence_intensity(self, turbulence_intensity):
         self._input['IECturbc'] = turbulence_intensity * 100
 
-    @property
-    def turbulence_seed(self):
+    def get_turbulence_seed(self):
         """Random number seed for turbulence generation"""
         return int(self._input['RandSeed1'])
 
-    @turbulence_seed.setter
-    def turbulence_seed(self, seed):
+    def set_turbulence_seed(self, seed):
         self._input['RandSeed1'] = seed
 
-    @property
-    def wind_shear(self):
+    def get_wind_shear(self):
         """Vertical wind shear exponent"""
         exponent = self._input['PLExp']
         return float('NaN') if exponent == 'default' else float(exponent)
 
-    @wind_shear.setter
-    def wind_shear(self, exponent):
+    def set_wind_shear(self, exponent):
         self._input['PLExp'] = exponent
 
-    @property
-    def upflow(self):
+    def get_upflow(self):
         """Wind inclination in degrees from the horizontal"""
         return float(self._input['VFlowAng'])
 
-    @upflow.setter
-    def upflow(self, angle):
+    def set_upflow(self, angle):
         self._input['VFlowAng'] = angle

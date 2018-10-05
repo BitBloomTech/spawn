@@ -58,30 +58,24 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         return branched_spawner
 
     # Simulation options
-    @property
-    def output_start_time(self):
+    def get_output_start_time(self):
         return float(self._input['TStart'])
 
-    @output_start_time.setter
-    def output_start_time(self, time):
+    def set_output_start_time(self, time):
         self._input['TStart'] = time
 
-    @property
-    def simulation_time(self):
+    def get_simulation_time(self):
         """Total simulation time in seconds"""
         return float(self._input['TMax'])
 
-    @simulation_time.setter
-    def simulation_time(self, time):
+    def set_simulation_time(self, time):
         self._input['TMax'] = time
         self._wind_spawner.simulation_time = time
 
-    @property
-    def operation_mode(self):
+    def get_operation_mode(self):
         raise NotImplementedError('Incapable of determining operation mode') # this is a tricky one!
 
-    @operation_mode.setter
-    def operation_mode(self, mode):
+    def set_operation_mode(self, mode):
         """
         Operation mode:
         'normal' - power production run with generator on and rotor free
@@ -114,39 +108,31 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
             self.initial_rotor_speed = 0.0
 
     # Initial Conditions
-    @property
-    def initial_rotor_speed(self):
+    def get_initial_rotor_speed(self):
         """Rotor speed at start of simulation in rpm"""
         return float(self._input['RotSpeed'])
 
-    @initial_rotor_speed.setter
-    def initial_rotor_speed(self, rotor_speed):
+    def set_initial_rotor_speed(self, rotor_speed):
         self._input['RotSpeed'] = rotor_speed
 
-    @property
-    def initial_azimuth(self):
+    def get_initial_azimuth(self):
         """Rotor azimuth of blade 1 at start of simulation in degrees"""
         return float(self._input['Azimuth'])
 
-    @initial_azimuth.setter
-    def initial_azimuth(self, azimuth):
+    def set_initial_azimuth(self, azimuth):
         self._input['Azimuth'] = azimuth
 
-    @property
-    def initial_yaw_angle(self):
+    def get_initial_yaw_angle(self):
         """Nacelle yaw angle at start of simulation in degrees; clockwise from North"""
         return float(self._input['NacYaw'])  # 'YawNeut' could be another possibility here
 
-    @initial_yaw_angle.setter
-    def initial_yaw_angle(self, angle):
+    def set_initial_yaw_angle(self, angle):
         self._input['NacYaw'] = angle
 
-    @property
-    def initial_pitch_angle(self):
+    def get_initial_pitch_angle(self):
         raise NotImplementedError()
 
-    @initial_pitch_angle.setter
-    def initial_pitch_angle(self, angle):
+    def set_initial_pitch_angle(self, angle):
         """Sets pitch angle for all blades at start of simulation; in degrees, positive towards feather"""
         for i in range(self.number_of_blades):
             bld = '({})'.format(i+1)
@@ -156,59 +142,48 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
                 self._input['BlPitchF' + bld] = angle
 
     # Properties deferred to wind generation spawner:
-    @property
-    def wind_speed(self):
+    def get_wind_speed(self):
         """Mean wind speed in m/s"""
         return self._wind_spawner.wind_speed
 
-    @wind_speed.setter
-    def wind_speed(self, speed):
+    def set_wind_speed(self, speed):
         self._wind_spawner.wind_speed = speed
         self._wind_environment_changed = True
 
-    @property
-    def turbulence_intensity(self):
+    def get_turbulence_intensity(self):
         """Turbulence intensity as a fraction (not %): ratio of wind speed standard deviation to mean wind speed"""
         return self._wind_spawner.turbulence_intensity
 
-    @turbulence_intensity.setter
-    def turbulence_intensity(self, turbulence_intensity):
+    def set_turbulence_intensity(self, turbulence_intensity):
         self._wind_spawner.turbulence_intensity = turbulence_intensity
         self._wind_environment_changed = True
 
-    @property
-    def turbulence_seed(self):
+    def get_turbulence_seed(self):
         """Random number seed for turbulence generation"""
         return self._wind_spawner.turbulence_seed
 
-    @turbulence_seed.setter
-    def turbulence_seed(self, seed):
+    def set_turbulence_seed(self, seed):
         self._wind_spawner.turbulence_seed = seed
         self._wind_environment_changed = True
 
-    @property
-    def wind_shear(self):
+    def get_wind_shear(self):
         """Vertical wind shear exponent"""
         return self._wind_spawner.wind_shear
 
-    @wind_shear.setter
-    def wind_shear(self, exponent):
+    def set_wind_shear(self, exponent):
         self._wind_spawner.wind_shear = exponent
         self._wind_environment_changed = True
 
-    @property
-    def upflow(self):
+    def get_upflow(self):
         """Wind inclination in degrees from the horizontal"""
         return self._wind_spawner.upflow
 
-    @upflow.setter
-    def upflow(self, angle):
+    def set_upflow(self, angle):
         self._wind_spawner.upflow = angle
         self._wind_environment_changed = True
 
     # Properties of turbine, for which setting is not supported
-    @property
-    def number_of_blades(self):
+    def get_number_of_blades(self):
         return int(self._input['NumBl'])
 
     # non-properties
