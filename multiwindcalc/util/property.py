@@ -16,16 +16,17 @@ def string_property(fget):
     return StringProperty(fget)
 
 class TypedProperty:
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False):
+    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
         self._type = type_
         self._fget = fget
         self._fset = fset
         self._fdel = fdel
         self._fvalidate = fvalidate
         self._default = default
-        self.__doc__ = docs if docs is not None else fget.__doc__ if fget is not None else None
+        self.__doc__ = doc if doc is not None else fget.__doc__ if fget is not None else None
         self._name = None
         self._abstract = abstract
+        self._readonly = readonly
 
     def __set_name__(self, _obj, name):
         self._name = name
@@ -48,6 +49,8 @@ class TypedProperty:
             return
         if self._name is None:
             raise ValueError('Cannot set property, name has not been set')
+        if self._readonly:
+            raise NotImplementedError()
         self._validate(obj, value)
         if hasattr(obj, self._get_fname('validate')):
             getattr(obj, self._get_fname('validate'))(value)
@@ -111,9 +114,12 @@ class TypedProperty:
     def _get_fname(self, function):
         return '{}_{}'.format(function, self._name)
 
+    def __call__(self, fget):
+        return self.getter(fget)
+
 class NumericProperty(TypedProperty):
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, min=None, max=None):
-        super(NumericProperty, self).__init__(type_, fget, fset, fdel, fvalidate, default, docs, abstract)
+    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
+        super(NumericProperty, self).__init__(type_, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
         if min is not None and not isinstance(min, type_):
             raise TypeError('min')
         if max is not None and not isinstance(max, type_):
@@ -129,16 +135,16 @@ class NumericProperty(TypedProperty):
             raise ValueError('{} > {}'.format(value, self._max))
 
 class IntProperty(NumericProperty):
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, min=None, max=None):
-        super(IntProperty, self).__init__(int, fget, fset, fdel, fvalidate, default, docs, abstract, min, max)
+    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
+        super(IntProperty, self).__init__(int, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
 
 class FloatProperty(NumericProperty):
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, min=None, max=None):
-        super(FloatProperty, self).__init__(float, fget, fset, fdel, fvalidate, default, docs, abstract, min, max)
+    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
+        super(FloatProperty, self).__init__(float, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
 
 class StringProperty(TypedProperty):
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, possible_values=None, regex=None):
-        super(StringProperty, self).__init__(str, fget, fset, fdel, fvalidate, default, docs, abstract)
+    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, possible_values=None, regex=None):
+        super(StringProperty, self).__init__(str, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
         self._possible_values = possible_values
         self._regex = regex
     

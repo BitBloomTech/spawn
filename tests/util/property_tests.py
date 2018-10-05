@@ -18,6 +18,10 @@ class Dummy:
 
     abstract_int = IntProperty(abstract=True)
 
+    @StringProperty(readonly=True)
+    def readonly_string(self):
+        return 'I am readonly'
+
     @int_property
     def decorated_int(self):
         """This is a decorated int"""
@@ -206,3 +210,10 @@ def test_abstract_property_raises_not_implemented_error_for_set(derived_obj):
 def test_abstract_property_raises_not_implemented_error_for_delete(derived_obj):
     with pytest.raises(NotImplementedError):
         del derived_obj.abstract_int
+
+def test_cannot_set_readonly_property(obj):
+    with pytest.raises(NotImplementedError):
+        obj.readonly_string = 'I changed you!'
+
+def test_can_get_readonly_property(obj):
+    assert obj.readonly_string == 'I am readonly'
