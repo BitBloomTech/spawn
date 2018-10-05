@@ -16,6 +16,8 @@ class Dummy:
     possible_values_string = StringProperty(possible_values=['a', 'b', 'c'])
     regex_string = StringProperty(regex='[a-z]+')
 
+    abstract_int = IntProperty(abstract=True)
+
     @int_property
     def decorated_int(self):
         """This is a decorated int"""
@@ -192,3 +194,15 @@ def test_method_overridden_property_raises_value_error_for_invalid_value(derived
 def test_delete_method_overridden_property_correctly_sets_property(derived_obj):
     del derived_obj.basic_string
     assert derived_obj.basic_string == 'hello, deleted'
+
+def test_abstract_property_raises_not_implemented_error_for_get(derived_obj):
+    with pytest.raises(NotImplementedError):
+        _ = derived_obj.abstract_int
+
+def test_abstract_property_raises_not_implemented_error_for_set(derived_obj):
+    with pytest.raises(NotImplementedError):
+        derived_obj.abstract_int = 42
+
+def test_abstract_property_raises_not_implemented_error_for_delete(derived_obj):
+    with pytest.raises(NotImplementedError):
+        del derived_obj.abstract_int

@@ -16,7 +16,7 @@ def string_property(fget):
     return StringProperty(fget)
 
 class TypedProperty:
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None):
+    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False):
         self._type = type_
         self._fget = fget
         self._fset = fset
@@ -25,6 +25,7 @@ class TypedProperty:
         self._default = default
         self.__doc__ = docs if docs is not None else fget.__doc__ if fget is not None else None
         self._name = None
+        self._abstract = abstract
 
     def __set_name__(self, _obj, name):
         self._name = name
@@ -38,6 +39,8 @@ class TypedProperty:
             return getattr(obj, self._get_fname('get'))()
         if self._fget:
             return self._fget(obj)
+        if self._abstract:
+            raise NotImplementedError()
         return obj.__dict__.get(self._name, self._default)
     
     def __set__(self, obj, value):
@@ -54,6 +57,8 @@ class TypedProperty:
             getattr(obj, self._get_fname('set'))(value)
         elif self._fset:
             self._fset(obj, value)
+        elif self._abstract:
+            raise NotImplementedError()
         else:
             obj.__dict__[self._name] = value
     
@@ -64,6 +69,8 @@ class TypedProperty:
             getattr(obj, self._get_fname('delete'))()
         elif self._fdel:
             self._fdel(obj)
+        elif self._abstract:
+            raise NotImplementedError()
         else:
             del obj.__dict__[self._name]
     
@@ -105,8 +112,8 @@ class TypedProperty:
         return '{}_{}'.format(function, self._name)
 
 class NumericProperty(TypedProperty):
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, min=None, max=None):
-        super(NumericProperty, self).__init__(type_, fget, fset, fdel, fvalidate, default, docs)
+    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, min=None, max=None):
+        super(NumericProperty, self).__init__(type_, fget, fset, fdel, fvalidate, default, docs, abstract)
         if min is not None and not isinstance(min, type_):
             raise TypeError('min')
         if max is not None and not isinstance(max, type_):
@@ -122,16 +129,16 @@ class NumericProperty(TypedProperty):
             raise ValueError('{} > {}'.format(value, self._max))
 
 class IntProperty(NumericProperty):
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, min=None, max=None):
-        super(IntProperty, self).__init__(int, fget, fset, fdel, fvalidate, default, docs, min, max)
+    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, min=None, max=None):
+        super(IntProperty, self).__init__(int, fget, fset, fdel, fvalidate, default, docs, abstract, min, max)
 
 class FloatProperty(NumericProperty):
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, min=None, max=None):
-        super(FloatProperty, self).__init__(float, fget, fset, fdel, fvalidate, default, docs, min, max)
+    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, min=None, max=None):
+        super(FloatProperty, self).__init__(float, fget, fset, fdel, fvalidate, default, docs, abstract, min, max)
 
 class StringProperty(TypedProperty):
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, possible_values=None, regex=None):
-        super(StringProperty, self).__init__(str, fget, fset, fdel, fvalidate, default, docs)
+    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, docs=None, abstract=False, possible_values=None, regex=None):
+        super(StringProperty, self).__init__(str, fget, fset, fdel, fvalidate, default, docs, abstract)
         self._possible_values = possible_values
         self._regex = regex
     
