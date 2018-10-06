@@ -91,11 +91,6 @@ class SpecificationNodeParser:
             raise LookupError("Look-up string '{lookup_str}' not found in '{type_str}' library")
         self.parse(next_node, SpecificationNode(parent, name, self._value_libraries[type_str][lookup_str].evaluate()))
 
-
-    @staticmethod
-    def _is_generator(value):
-        return value.startswith('@') or value.startswith('gen:')
-
     @staticmethod
     def _zip(value):
         return [{k: v for k, v in zip(value.keys(), values)} for values in zip(*value.values())]
