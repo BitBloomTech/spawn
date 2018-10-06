@@ -2,7 +2,10 @@ from setuptools import setup, find_packages
 
 install_requires = [
     'luigi',
-    'numpy'
+    'numpy',
+    'pandas',
+    'wetb',
+    'setuptools>=38.3'
 ]
 
 tests_require = [

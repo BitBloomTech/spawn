@@ -1,8 +1,8 @@
 from os import path
 import tempfile
 import pytest
-from multiwindcalc.run_generator.tasks import WindGenerationTask
-from multiwindcalc.run_generator.fast_simulation_spawner import TurbsimSpawner, FastSimulationSpawner
+from multiwindcalc.tasks.simulation import WindGenerationTask
+from multiwindcalc.spawners import TurbsimSpawner, FastSimulationSpawner
 from multiwindcalc.simulation_inputs.nrel_simulation_input import FastInput, TurbsimInput
 from ..component_tests import example_data_folder
 
@@ -58,3 +58,12 @@ def test_spawns_tests_requiring_wind_generation_when_wind_changed(turbsim_input,
     # assert task4.requires()[0] is task2.requires()[0]
 
 
+def test_spawn_with_additional_directory_puts_tasks_in_new_folders(turbsim_input, fast_input, tmpdir):
+    spawner = FastSimulationSpawner(path.join(tmpdir, 'runs'), fast_input, __fast_exe,
+                                    TurbsimSpawner(path.join(tmpdir, 'wind'), turbsim_input, __turbsim_exe))
+    spawner.wind_speed = 6.0
+    task1 = spawner.spawn(additional_folder=True)
+    spawner.wind_speed = 8.0
+    task2 = spawner.spawn(additional_folder=True)
+    assert task1.output().path != task2.output().path
+    assert task1.requires()[0].output().path != task2.requires()[0].output().path
