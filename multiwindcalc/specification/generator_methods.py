@@ -1,7 +1,12 @@
 import random
 
 
-class RandomInt:
+class Generator:
+    def evaluate(self):
+        return NotImplementedError()
+
+
+class RandomInt(Generator):
     def __init__(self, min=1, max=999, seed=1):
         """
         Generator of random integer values
@@ -18,7 +23,7 @@ class RandomInt:
         return self._generator.randint(self._min, self._max)
 
 
-class IncrementalInt:
+class IncrementalInt(Generator):
     def __init__(self, start=1, step=1):
         """
         Generator of incremental integers
