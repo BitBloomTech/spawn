@@ -75,16 +75,25 @@ class SpecificationNodeParser:
             self.parse(value, parent)
             self.parse(next_node, parent)
         # rhs prefixed evaluation - short form and long form
-        elif isinstance(value, str) and value[0] in _short_form_expansion:
-            self._parse_evaluator(next_node, parent, name, _short_form_expansion[value[0]], value[1:])
-        elif isinstance(value, str) and ':' in value:  # rhs prefixed evaluation
-            parts = value.split(':')
-            if parts[0] not in self._value_libraries:
-                raise KeyError("Library identifier '{parts[0]}' not found when parsing RHS value string '{value}'")
-            self._parse_evaluator(next_node, parent, name, parts[0], parts[1])
+        elif isinstance(value, str) and self._is_evaluator(value):
+            type_str, lookup_str = self._get_evaluator(value)
+            self._parse_evaluator(next_node, parent, name, type_str, lookup_str)
         # simple single value
         else:
             self.parse(next_node, SpecificationNode(parent, name, value))
+
+    @staticmethod
+    def _is_evaluator(value):
+        return value[0] in _short_form_expansion or ':' in value
+
+    def _get_evaluator(self, value_str):
+        if value_str[0] in _short_form_expansion:
+            return _short_form_expansion[value_str[0]], value_str[1:]
+        else:
+            parts = value_str.split(':')
+            if parts[0] not in self._value_libraries:
+                raise KeyError("Library identifier '{}' not found when parsing RHS value string '{}'".format(parts[0], value_str))
+            return parts[0], parts[1]
 
     def _parse_evaluator(self, next_node, parent, name, type_str, lookup_str):
         if lookup_str not in self._value_libraries[type_str]:
