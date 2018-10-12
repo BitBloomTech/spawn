@@ -2,10 +2,18 @@ from os import path
 from json import load
 
 from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode
+from .generators import GeneratorsParser
+
+
+_short_form_expansion = {
+    '@': 'gen'
+}
+
 
 class SpecificationDescriptionProvider:
     def get(self):
         raise NotImplementedError()
+
 
 class SpecificationFileReader(SpecificationDescriptionProvider):
     def __init__(self, input_file):
@@ -17,6 +25,7 @@ class SpecificationFileReader(SpecificationDescriptionProvider):
         with open(self._input_file) as input_fp:
             return load(input_fp)
 
+
 class SpecificationParser:
     def __init__(self, provider):
         if not isinstance(provider, SpecificationDescriptionProvider):
@@ -26,11 +35,17 @@ class SpecificationParser:
     def parse(self):
         description = self._provider.get()
         metadata = SpecificationMetadata(description.get('creation_time'), description.get('notes'))
-        root_node = SpecificationNodeParser().parse(description.get('spec'))
+        generator_lib = GeneratorsParser().parse(description.get('generators'))
+        value_libraries = {
+            'gen': generator_lib
+        }
+        root_node = SpecificationNodeParser(value_libraries).parse(description.get('spec'))
         return SpecificationModel(description.get('base_file'), root_node, metadata)
 
+
 class SpecificationNodeParser:
-    def __init__(self):
+    def __init__(self, value_libraries={}):
+        self._value_libraries = value_libraries
         self._functions = {
             'zip': self._zip
         }
@@ -47,21 +62,49 @@ class SpecificationNodeParser:
         return parent
     
     def _parse_value(self, parent, name, value, next_node):
+        # function lookup
         if name in self._functions:
             for node in self._functions[name](value):
                 self._parse_value(parent, None, node, next_node)
+        # list expansion
         elif isinstance(value, list):
             for v in value:
                 self._parse_value(parent, name, v, next_node)
+        # burrow into object
         elif isinstance(value, dict):
             self.parse(value, parent)
             self.parse(next_node, parent)
+        # rhs prefixed evaluation - short form and long form
+        elif isinstance(value, str) and self._is_evaluator(value):
+            type_str, lookup_str = self._get_evaluator(value)
+            self._parse_evaluator(next_node, parent, name, type_str, lookup_str)
+        # simple single value
         else:
             self.parse(next_node, SpecificationNode(parent, name, value))
-    
-    def _zip(self, value):
+
+    @staticmethod
+    def _is_evaluator(value):
+        return value[0] in _short_form_expansion or ':' in value
+
+    def _get_evaluator(self, value_str):
+        if value_str[0] in _short_form_expansion:
+            return _short_form_expansion[value_str[0]], value_str[1:]
+        else:
+            parts = value_str.split(':')
+            if parts[0] not in self._value_libraries:
+                raise KeyError("Library identifier '{}' not found when parsing RHS value string '{}'".format(parts[0], value_str))
+            return parts[0], parts[1]
+
+    def _parse_evaluator(self, next_node, parent, name, type_str, lookup_str):
+        if lookup_str not in self._value_libraries[type_str]:
+            raise LookupError("Look-up string '{lookup_str}' not found in '{type_str}' library")
+        self.parse(next_node, SpecificationNode(parent, name, self._value_libraries[type_str][lookup_str].evaluate()))
+
+    @staticmethod
+    def _zip(value):
         return [{k: v for k, v in zip(value.keys(), values)} for values in zip(*value.values())]
 
-    def _get_next_node(self, node):
+    @staticmethod
+    def _get_next_node(node):
         next_key = list(node.keys())[0]
         return (next_key, node[next_key]), {k: v for k, v in node.items() if k != next_key}
