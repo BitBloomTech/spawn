@@ -1,3 +1,5 @@
+from multiwindcalc.util import PathBuilder
+
 from multiwindcalc.specification.specification import SpecificationNode
 
 from multiwindcalc.util import TypedProperty
@@ -23,20 +25,20 @@ def _check_type(task_spawner, name, value):
                 value = expected_type(value)
     return value
 
-def generate_tasks_from_spec(task_spawner, node):
+def generate_tasks_from_spec(task_spawner, node, base_path):
     """Generate list of luigi.Task for a multiwindcalc.SpecificationNode"""
     if not isinstance(node, SpecificationNode):
-        raise ValueError('node must be of type ' + SpecificationNode)
+        raise ValueError('node must be of type ' + SpecificationNode.__name__)
     if not node.is_root:
         value = _check_type(task_spawner, node.property_name, node.property_value)
         setattr(task_spawner, node.property_name, value)
     if not node.children:   # (leaf)
-        task = task_spawner.spawn()
+        task = task_spawner.spawn(str(PathBuilder(base_path).join(node.path)))
         task.metadata.update(node.collected_properties)
         return [task]
     else:   # (branch)
         tasks = []
         for child in node.children:
             branch = task_spawner.branch()
-            tasks += generate_tasks_from_spec(branch, child)
+            tasks += generate_tasks_from_spec(branch, child, base_path)
         return tasks

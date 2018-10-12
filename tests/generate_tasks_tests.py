@@ -7,10 +7,10 @@ from multiwindcalc.parsers import *
 
 
 def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir):
-    spawner = create_spawner(tmpdir.strpath)
+    spawner = create_spawner()
     run_spec = {'wind_speed': list(np.arange(4.0, 15.0, 2.0))}
     root_node = SpecificationNodeParser().parse(run_spec)
-    tasks = generate_tasks_from_spec(spawner, root_node)
+    tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     assert len(tasks) == 6
     for t in tasks:
         assert isinstance(t, SimulationTask)
@@ -22,10 +22,10 @@ def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir):
 
 
 def test_can_create_runs_from_tree_spec(tmpdir):
-    spawner = create_spawner(tmpdir.strpath)
+    spawner = create_spawner()
     input_path = path.join(example_data_folder, 'iec_fatigue_spec.json')
     spec_model = SpecificationParser(SpecificationFileReader(input_path)).parse()
-    runs = generate_tasks_from_spec(spawner, spec_model.root_node)
+    runs = generate_tasks_from_spec(spawner, spec_model.root_node, tmpdir.strpath)
     assert len(runs) == 12*3 + 12*2 + 12*3
     seeds = []
     for t in runs:

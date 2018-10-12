@@ -1,6 +1,7 @@
+"""This module defines the generator parser
+"""
 import inspect
 from ..specification import generator_methods
-
 
 class GeneratorsParser:
     def __init__(self):
@@ -20,5 +21,5 @@ class GeneratorsParser:
     def _instantiate(method, args):
         for name, _ in inspect.getmembers(generator_methods, inspect.isclass):
             if name == method:
-                return eval("generator_methods." + name)(**args)
+                return getattr(generator_methods, name)(**args)
         raise KeyError("Method '" + method + "' not found in generator methods")

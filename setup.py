@@ -9,11 +9,12 @@ install_requires = [
 ]
 
 tests_require = [
-    'pytest'
+    'pytest',
+    'tox'
 ]
 
 extras_require = {
-    'tests': tests_require
+    'test': tests_require
 }
 
 setup(
