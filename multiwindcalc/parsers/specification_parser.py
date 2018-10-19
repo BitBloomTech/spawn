@@ -6,6 +6,7 @@ from json import load
 from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode
 from ..specification.combinators import zip_properties, product
 from .generators import GeneratorsParser
+from ..util.validation import validate_type, validate_file
 
 COMBINATOR = 'combine'
 GENERATOR = 'gen'
@@ -16,6 +17,11 @@ PATH = 'path'
 
 SHORT_FORM_EXPANSION = {
     '@': GENERATOR
+}
+
+DEFAULT_COMBINATORS = {
+    ZIP: zip_properties,
+    PRODUCT: product
 }
 
 class SpecificationDescriptionProvider:
@@ -54,8 +60,7 @@ class SpecificationFileReader(SpecificationDescriptionProvider):
         input_file : str
             The file containing the specification
         """
-        if not path.isfile(input_file):
-            raise FileNotFoundError('Could not find input file ' + input_file)
+        validate_file(input_file, 'input_file')
         self._input_file = input_file
 
     def get(self):
@@ -69,6 +74,33 @@ class SpecificationFileReader(SpecificationDescriptionProvider):
         with open(self._input_file) as input_fp:
             return load(input_fp)
 
+class DictSpecificationProvider(SpecificationDescriptionProvider):
+    """Class to provide a specification as a dict
+
+    Methods
+    ---------
+    get()
+        Gets the dict representation of the specification
+    """
+    def __init__(self, spec):
+        """Initialises the ``DictSpecificationProvider
+
+        Parameters
+        ----------
+        spec : dict
+            The specification
+        """
+        validate_type(spec, dict, 'spec')
+        self._spec = spec
+    
+    def get(self):
+        """Gets the specification
+
+        Returns
+        description : dict
+            A dict representation of the description
+        """
+        return self._spec
 
 class SpecificationParser:
     """Class for parsing specifications
@@ -90,8 +122,7 @@ class SpecificationParser:
         provider : ``SpecificationDescriptionProvider``
             The source of the specification description
         """
-        if not isinstance(provider, SpecificationDescriptionProvider):
-            raise TypeError('provider must be of type ' + SpecificationDescriptionProvider)
+        validate_type(provider, SpecificationDescriptionProvider, 'provider')
         self._provider = provider
 
     def parse(self):
@@ -122,10 +153,7 @@ class SpecificationParser:
 
     @staticmethod
     def _get_combinators():
-        return {
-            ZIP: zip_properties,
-            PRODUCT: product
-        }
+        return DEFAULT_COMBINATORS
 
 
 class SpecificationNodeParser:
@@ -174,13 +202,13 @@ class SpecificationNodeParser:
         node : ``SpecificationNode``
             The expanded `node_spec`
         """
-        parent = parent or SpecificationNode.create_root()
+        node_policies, node_spec = self._get_policies(node_spec)
+
+        parent = parent or SpecificationNode.create_root(node_policies.pop(PATH, None))
         if node_spec is None or node_spec == {}:
             return parent
-        if not isinstance(node_spec, dict):
-            raise TypeError('node_spec must be of type dict')
 
-        node_policies, node_spec = self._get_policies(node_spec)
+        validate_type(node_spec, dict, 'node_spec')
 
         (name, value), next_node_spec = self._get_next_node(node_spec)
         self._parse_value(parent, name, value, next_node_spec, node_policies)
@@ -189,7 +217,6 @@ class SpecificationNodeParser:
     def _parse_value(self, parent, name, value, next_node_spec, node_policies):
         # combinator lookup
         if self._is_combinator(name):
-            print(name, value)
             self._parse_combinator(parent, name, value, next_node_spec, node_policies)
         # # list expansion
         elif isinstance(value, list):
@@ -205,7 +232,7 @@ class SpecificationNodeParser:
             self._parse_evaluator(next_node_spec, parent, name, type_str, lookup_str, node_policies)
         # simple single value
         else:
-            next_parent = SpecificationNode(parent, name, value, node_policies.get(PATH))
+            next_parent = SpecificationNode(parent, name, value, node_policies.pop(PATH, None))
             self.parse(next_node_spec, next_parent)
 
     def _is_evaluator(self, value):
@@ -257,9 +284,11 @@ class SpecificationNodeParser:
         return (next_key, node_spec[next_key]), next_node_spec
 
     def _get_policies(self, node_spec):
+        if not node_spec:
+            return {}, {}
         prefix = self._prefix(POLICY)
         policies = {k.replace(prefix, ''): v for k, v in node_spec.items() if k.startswith(prefix)}
-        return policies, {k: v for k, v in node_spec.items()}
+        return policies, {k: v for k, v in node_spec.items() if not k.startswith(prefix)}
 
     @staticmethod
     def _prefix(name):

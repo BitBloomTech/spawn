@@ -2,12 +2,14 @@
 """
 import inspect
 from ..specification import generator_methods
+from ..util.validation import validate_type
 
 class GeneratorsParser:
-    def __init__(self):
-        pass
-
     def parse(self, generators):
+        if generators is None:
+            return {}
+        validate_type(generators, dict, 'generators')
+
         generator_objects = {}
         for name, gen in generators.items():
             if 'method' not in gen:
