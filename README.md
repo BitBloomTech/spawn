@@ -26,3 +26,28 @@ The `TaskSpawner` then uses this run list to generate new luigi tasks (simulatio
 This format should be extended to allow children in the runs list so that you can make some editions and then make a set of new runs based on a new baseline with the aforementioned editions.
 
 The idea is that this explicit run list can be generated from a more condensed format using the `combinators`, which support actions such as `zip` and `grid` on co-existing lists of variables. This effectively fills the prupose of the maps in Bladed's multiple calculation setup.
+
+## CLI
+
+Multi Wind Calc provides a CLI. Currently the only available function is specfile inspection.
+
+```
+Usage: multiwindcalc [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --log-level [error|warning|info|debug]
+  --log-console
+  --help                          Show this message and exit.
+
+Commands:
+  inspect
+```
+
+### `inspect` command
+
+```
+Usage: multiwindcalc inspect [OPTIONS] SPECFILE
+
+Options:
+  --help  Show this message and exit.
+```

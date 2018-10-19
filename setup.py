@@ -5,7 +5,9 @@ install_requires = [
     'numpy',
     'pandas',
     'wetb',
-    'setuptools>=38.3'
+    'setuptools>=38.3',
+    'click',
+    'appdirs'
 ]
 
 tests_require = [
