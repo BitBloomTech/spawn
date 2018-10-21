@@ -1,4 +1,4 @@
-from os import path
+from os import path, makedirs
 import tempfile
 import pytest
 from multiwindcalc.tasks.simulation import WindGenerationTask
@@ -23,8 +23,8 @@ def fast_input():
 
 def test_can_spawn_turbsim_task(turbsim_input):
     temp_dir = tempfile.TemporaryDirectory()
-    spawner = TurbsimSpawner(temp_dir.name, turbsim_input, __turbsim_exe)
-    task = spawner.spawn()
+    spawner = TurbsimSpawner(turbsim_input, __turbsim_exe)
+    task = spawner.spawn(temp_dir.name)
     assert len(task.requires()) == 0
     assert task.wind_file_path == path.join(temp_dir.name, 'wind.wnd')
     assert not task.complete()
@@ -32,38 +32,39 @@ def test_can_spawn_turbsim_task(turbsim_input):
 
 def test_spawns_fast_task_without_wind(turbsim_input, fast_input):
     temp_dir = tempfile.TemporaryDirectory()
-    spawner = FastSimulationSpawner(temp_dir.name, fast_input, __fast_exe,
-                                    TurbsimSpawner(temp_dir.name, turbsim_input, __turbsim_exe))
-    task = spawner.spawn()
+    spawner = FastSimulationSpawner(fast_input, __fast_exe, TurbsimSpawner(turbsim_input, __turbsim_exe))
+    task = spawner.spawn(temp_dir.name)
     assert len(task.requires()) == 0
     assert not task.complete()
 
 
 def test_spawns_tests_requiring_wind_generation_when_wind_changed(turbsim_input, fast_input):
     temp_dir = tempfile.TemporaryDirectory()
-    spawner = FastSimulationSpawner(temp_dir.name, fast_input, __fast_exe,
-                                    TurbsimSpawner(temp_dir.name, turbsim_input, __turbsim_exe))
-    task = spawner.spawn()
+    dir_a = path.join(temp_dir.name, 'a')
+    dir_b = path.join(temp_dir.name, 'b')
+    spawner = FastSimulationSpawner(fast_input, __fast_exe, TurbsimSpawner(turbsim_input, __turbsim_exe))
+    task = spawner.spawn(dir_a)
     assert len(task.requires()) == 0
-    s2 = spawner.branch('a')
+    s2 = spawner.branch()
     s2.wind_speed = 8.0
-    task2 = s2.spawn()
+    task2 = s2.spawn(path.join(temp_dir.name, 'b'))
     assert isinstance(task2.requires()[0], WindGenerationTask)
     s2.simulation_time = 1.1
-    task3 = s2.spawn()
+    task3 = s2.spawn(path.join(temp_dir.name, 'c'))
     assert task3.requires()[0] is task2.requires()[0]
-    s3 = spawner.branch('b')
+    s3 = spawner.branch()
     # wind file dependency is not yet carried through branching
     # task4 = s3.spawn()
     # assert task4.requires()[0] is task2.requires()[0]
 
 
 def test_spawn_with_additional_directory_puts_tasks_in_new_folders(turbsim_input, fast_input, tmpdir):
-    spawner = FastSimulationSpawner(path.join(tmpdir, 'runs'), fast_input, __fast_exe,
-                                    TurbsimSpawner(path.join(tmpdir, 'wind'), turbsim_input, __turbsim_exe))
+    runs_dir_1 = path.join(tmpdir, 'runs', '1')
+    runs_dir_2 = path.join(tmpdir, 'runs', '2')
+    spawner = FastSimulationSpawner(fast_input, __fast_exe, TurbsimSpawner(turbsim_input, __turbsim_exe))
     spawner.wind_speed = 6.0
-    task1 = spawner.spawn(additional_folder=True)
+    task1 = spawner.spawn(runs_dir_1)
     spawner.wind_speed = 8.0
-    task2 = spawner.spawn(additional_folder=True)
+    task2 = spawner.spawn(runs_dir_2)
     assert task1.output().path != task2.output().path
     assert task1.requires()[0].output().path != task2.requires()[0].output().path

@@ -1,31 +1,29 @@
-from os import path, getcwd
+from os import path, getcwd, makedirs
 import copy
 
 from multiwindcalc.spawners.wind_generation import WindGenerationSpawner
-from .directory_handler import DirectoryHandler
 from multiwindcalc.tasks.simulation import WindGenerationTask
 
 
 class TurbsimSpawner(WindGenerationSpawner):
     """Spawns TurbSim wind generation tasks"""
 
-    def __init__(self, directory, turbsim_input, turbsim_exe, working_dir=None):
-        self._directory = directory if isinstance(directory, DirectoryHandler) else DirectoryHandler(directory)
+    def __init__(self, turbsim_input, turbsim_exe, working_dir=None):
         self._input = turbsim_input
         self._executable = turbsim_exe
         self._working_dir = working_dir if working_dir is not None else getcwd()
 
-    def spawn(self, additional_folder=False):
-        directory = self._directory.branch() if additional_folder else self._directory
-        wind_input_file = path.join(directory.abspath, 'wind.ipt')
+    def spawn(self, path_):
+        if not path.isdir(path_):
+            makedirs(path_)
+        wind_input_file = path.join(path_, 'wind.ipt')
         self._input.to_file(wind_input_file)
-        wind_task = WindGenerationTask('wind ' + directory.relative_path, self._executable,
+        wind_task = WindGenerationTask('wind ' + path_, self._executable,
                                        wind_input_file, _working_dir=self._working_dir)
         return wind_task
 
-    def branch(self, branch_id=None):
+    def branch(self):
         branched_spawner = copy.copy(self)
-        branched_spawner._directory = self._directory.branch(branch_id)
         branched_spawner._input = copy.deepcopy(self._input)
         return branched_spawner
 

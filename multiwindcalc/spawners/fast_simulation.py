@@ -4,7 +4,6 @@ import copy
 from multiwindcalc.simulation_inputs.nrel_simulation_input import AerodynInput
 from multiwindcalc.tasks.simulation import FastSimulationTask
 from multiwindcalc.spawners.aeroelastic_simulation import AeroelasticSimulationSpawner
-from multiwindcalc.spawners.directory_handler import DirectoryHandler
 
 
 def quote(strpath):
@@ -15,8 +14,7 @@ def quote(strpath):
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
     """Spawns FAST simulation tasks with wind generation dependency if necessary"""
 
-    def __init__(self, directory, fast_input, fast_exe, wind_spawner, working_dir=None):
-        self._directory = directory if isinstance(directory, DirectoryHandler) else DirectoryHandler(directory)
+    def __init__(self, fast_input, fast_exe, wind_spawner, working_dir=None):
         self._input = fast_input
         self._executable = fast_exe
         self._wind_spawner = wind_spawner
@@ -26,35 +24,34 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         self._wind_environment_changed = False
         self._wind_task = None
 
-    def spawn(self, additional_folder=False):
-        directory = self._directory.branch() if additional_folder else self._directory
-        preproc_tasks = self._spawn_preproc_tasks(directory, additional_folder)
-        sim_input_file = path.join(directory.abspath, 'simulation.ipt')
+    def spawn(self, path_):
+        if not path.isdir(path_):
+            os.makedirs(path_)
+        preproc_tasks = self._spawn_preproc_tasks(path_)
+        sim_input_file = path.join(path_, 'simulation.ipt')
         self._input.to_file(sim_input_file)
-        sim_task = FastSimulationTask('run ' + directory.relative_path,
+        sim_task = FastSimulationTask('run ' + path_,
                                       self._executable,
                                       sim_input_file,
                                       preproc_tasks,
                                       _working_dir=self._working_dir)
         return sim_task
 
-    def _spawn_preproc_tasks(self, run_directory, additional_folder):
-        preproc_tasks = []
+    def _spawn_preproc_tasks(self, path_):
         # Generate new wind file if needed
         if self._wind_environment_changed:
-            self._wind_task = self._wind_spawner.spawn(additional_folder=additional_folder)
+            self._wind_task = self._wind_spawner.spawn(path_)
             self._aerodyn_input['WindFile'] = quote(self._wind_task.wind_file_path)
-            aerodyn_file_path = path.join(run_directory.abspath, 'aerodyn.ipt')
+            aerodyn_file_path = path.join(path_, 'aerodyn.ipt')
             self._aerodyn_input.to_file(aerodyn_file_path)
             self._input['ADFile'] = quote(aerodyn_file_path)
             self._wind_environment_changed = False
         return [self._wind_task] if self._wind_task is not None else []
 
-    def branch(self, branch_id=None):
+    def branch(self):
         branched_spawner = copy.copy(self)
-        branched_spawner._directory = self._directory.branch(branch_id)
         branched_spawner._input = copy.deepcopy(self._input)
-        branched_spawner._wind_spawner = self._wind_spawner.branch(branch_id)
+        branched_spawner._wind_spawner = self._wind_spawner.branch()
         return branched_spawner
 
     # Simulation options

@@ -1,3 +1,5 @@
+from multiwindcalc.util import PathBuilder
+
 class SpecificationModel:
     def __init__(self, base_file, root_node, metadata):
         self._base_file = base_file
@@ -30,17 +32,23 @@ class SpecificationMetadata:
         return self._notes
 
 class SpecificationNode:
-    def __init__(self, parent, property_name, property_value):
+    def __init__(self, parent, property_name, property_value, path):
         self._parent = parent
         self._property_name = property_name
         self._property_value = property_value
         self._children = []
         if self._parent is not None:
             self._parent.add_child(self)
-    
+        self._path_part = path
+        self._collected_properties = self._collected_indices = None
+        self._derived_path = None
+        self._leaves = None
+        self._root = None
+        self._path = None
+
     @classmethod
     def create_root(cls):
-        return SpecificationNode(None, None, None)
+        return SpecificationNode(None, None, None, None)
     
     @property
     def parent(self):
@@ -56,12 +64,18 @@ class SpecificationNode:
     
     @property
     def leaves(self):
-        if not self.children:
-            return [self]
-        leaves = []
-        for c in self.children:
-            leaves += c.leaves
-        return leaves
+        if self._leaves is None:
+            self._leaves = sum([c.leaves for c in self.children], []) if self.children else [self]
+        return self._leaves
+    
+    @property
+    def root(self):
+        if self._root is None:
+            current_node = self
+            while not current_node.is_root:
+                current_node = current_node.parent
+            self._root = current_node
+        return self._root
 
     @property
     def is_root(self):
@@ -76,12 +90,56 @@ class SpecificationNode:
         return self._property_value
     
     @property
+    def index(self):
+        if self.parent is not None:
+            return self.parent.children.index(self)
+        return -1
+    
+    @property
     def collected_properties(self):
-        properties = {}
+        if self._collected_properties is None:
+            properties = {}
+            def _f(node):
+                properties.setdefault(node.property_name, node.property_value)
+            self._climb(_f)
+            self._collected_properties = properties
+        return self._collected_properties
+    
+    @property
+    def collected_indices(self):
+        if self._collected_indices is None:
+            indices = {}
+            current_node = self
+            while not current_node.is_root:
+                indices.setdefault(current_node.property_name, current_node.index)
+                current_node = current_node.parent
+            self._collected_indices = indices
+        return self._collected_indices
+    
+    @property
+    def _base_path(self):
+        if self._derived_path is None:
+            path = PathBuilder()
+            current_node = self
+            while not current_node.is_root:
+                if current_node._path_part is not None:
+                    path = path.join_start(current_node._path_part)
+                current_node = current_node.parent
+            self._derived_path = str(path.format(self.collected_properties, self.collected_indices))
+        return self._derived_path
+    
+    @property
+    def path(self):
+        if self._path is None:
+            path = self._base_path
+            nodes_with_matching_paths = [node for node in self.root.leaves if node._base_path == path]
+            if len(nodes_with_matching_paths) > 1:
+                path = str(PathBuilder(path).join(PathBuilder.index(nodes_with_matching_paths.index(self), index_format='a')))
+            self._path = path
+        return self._path
+    
+    def _climb(self, f):
         current_node = self
         while not current_node.is_root:
-            # Only update the property if it is not already set
-            # Child nodes should override parent nodes
-            properties.setdefault(current_node.property_name, current_node.property_value)
+            f(current_node)
             current_node = current_node.parent
-        return properties
