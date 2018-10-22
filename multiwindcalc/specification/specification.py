@@ -47,8 +47,8 @@ class SpecificationNode:
         self._path = None
 
     @classmethod
-    def create_root(cls):
-        return SpecificationNode(None, None, None, None)
+    def create_root(cls, path=None):
+        return SpecificationNode(None, None, None, path)
     
     @property
     def parent(self):
@@ -121,9 +121,11 @@ class SpecificationNode:
         if self._derived_path is None:
             path = PathBuilder()
             current_node = self
-            while not current_node.is_root:
+            while True:
                 if current_node._path_part is not None:
                     path = path.join_start(current_node._path_part)
+                if current_node.is_root:
+                    break
                 current_node = current_node.parent
             self._derived_path = str(path.format(self.collected_properties, self.collected_indices))
         return self._derived_path
@@ -143,3 +145,7 @@ class SpecificationNode:
         while not current_node.is_root:
             f(current_node)
             current_node = current_node.parent
+
+    def __repr__(self):
+        properties = ', '.join('{}={}'.format(k, getattr(self, k)) for k in ['property_name', 'property_value', 'children'])
+        return '{}({})'.format(type(self).__name__, properties)

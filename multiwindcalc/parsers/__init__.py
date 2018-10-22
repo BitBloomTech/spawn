@@ -4,5 +4,6 @@ This module contains any classes, functions and utilities related to parsing dat
 """
 from .specification_parser import (
     SpecificationFileReader, SpecificationDescriptionProvider,
-    SpecificationNodeParser, SpecificationParser
+    SpecificationNodeParser, SpecificationParser,
+    DictSpecificationProvider
 )

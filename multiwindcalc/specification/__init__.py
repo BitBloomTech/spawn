@@ -1,1 +1,2 @@
 from .specification import SpecificationModel, SpecificationMetadata, SpecificationNode
+from .converters import DictSpecificationConverter
