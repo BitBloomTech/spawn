@@ -32,7 +32,7 @@ class SpecificationMetadata:
         return self._notes
 
 class SpecificationNode:
-    def __init__(self, parent, property_name, property_value, path):
+    def __init__(self, parent, property_name, property_value, path, ghosts):
         self._parent = parent
         self._property_name = property_name
         self._property_value = property_value
@@ -40,7 +40,8 @@ class SpecificationNode:
         if self._parent is not None:
             self._parent.add_child(self)
         self._path_part = path
-        self._collected_properties = self._collected_indices = None
+        self._ghosts = ghosts
+        self._collected_properties = self._collected_indices = self._collected_ghosts = None
         self._derived_path = None
         self._leaves = None
         self._root = None
@@ -48,7 +49,7 @@ class SpecificationNode:
 
     @classmethod
     def create_root(cls, path=None):
-        return SpecificationNode(None, None, None, path)
+        return SpecificationNode(None, None, None, path, {})
     
     @property
     def parent(self):
@@ -88,6 +89,23 @@ class SpecificationNode:
     @property
     def property_value(self):
         return self._property_value
+    
+    @property
+    def ghosts(self):
+        """Returns the collected ghost parameters
+
+        :returns: The ghost parameters for this node
+        :rtype: dict
+        """
+        if self._collected_ghosts is None:
+            ghosts = {}
+            current_node = self
+            while not current_node.is_root:
+                # Ghosts lower down the tree supercede those higher up
+                ghosts = {**current_node._ghosts, **ghosts}
+                current_node = current_node.parent
+            self._collected_ghosts = ghosts
+        return self._collected_ghosts
     
     @property
     def index(self):

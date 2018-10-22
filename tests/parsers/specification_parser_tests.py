@@ -267,3 +267,41 @@ def test_node_with_overridden_properties_has_correct_path():
         'WS12.0/WD180.0',
     }
     assert {leaf.path for leaf in root_node.leaves} == expected_paths
+
+def test_ghost_parameters_appear_on_leaf_nodes():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
+        'wind_speed': 8.0,
+        'wind_direction': [13.0, 15.0],
+        '_greeting': 'hello turbine'
+    })
+
+    assert all(l.ghosts == {'greeting': 'hello turbine'} for l in root_node.leaves)
+
+def test_ghost_parameters_are_overwritten_lower_down():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
+        'wind_speed': 8.0,
+        '_greeting': 'hello turbine',
+        '_wind_speed': 'breezy',
+        'dlc1.1': {
+            'wind_direction': 3.0,
+        },
+        'dlc1.2': {
+            '_wind_speed': 'gusty',
+            'wind_direction': 13.0,
+        }
+    })
+
+    expected_ghosts = [
+        {
+            'greeting': 'hello turbine',
+            'wind_speed': 'breezy'
+        },
+        {
+            'greeting': 'hello turbine',
+            'wind_speed': 'gusty'
+        }
+    ]
+
+    assert [l.ghosts for l in root_node.leaves] == expected_ghosts
