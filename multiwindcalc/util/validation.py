@@ -16,7 +16,7 @@ def validate_type(value, expected, name):
         raise TypeError('{} must be of type {}; was {}'.format(name, expected.__name__, type(value).__name__))
 
 def validate_file(value, name):
-    """Validates that the given file exists and is accessible. Raises ``FileNorFoundError`` if not.
+    """Validates that the given file exists and is accessible. Raises ``FileNotFoundError`` if not.
 
     Parameters
     ----------
@@ -26,4 +26,4 @@ def validate_file(value, name):
         The name of the value
     """
     if not path.isfile(value):
-        raise FileNotFoundError('File {} not found or not accessibl at {}'.format(name, value))
+        raise FileNotFoundError('File {} not found or not accessible at {}'.format(name, value))
