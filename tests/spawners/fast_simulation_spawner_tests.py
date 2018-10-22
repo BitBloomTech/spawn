@@ -66,5 +66,5 @@ def test_spawn_with_additional_directory_puts_tasks_in_new_folders(turbsim_input
     task1 = spawner.spawn(runs_dir_1)
     spawner.wind_speed = 8.0
     task2 = spawner.spawn(runs_dir_2)
-    assert task1.output().path != task2.output().path
-    assert task1.requires()[0].output().path != task2.requires()[0].output().path
+    assert task1.output()[0].path != task2.output()[0].path
+    assert task1.requires()[0].output()[0].path != task2.requires()[0].output()[0].path

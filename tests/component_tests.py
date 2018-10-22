@@ -36,4 +36,4 @@ def test_can_run_one_turbsim_and_fast_run(tmpdir):
     root_node = SpecificationNodeParser().parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     luigi.build(tasks, local_scheduler=True, log_level='WARNING')
-    assert tasks[0].output().exists()
+    assert tasks[0].output()[0].exists()

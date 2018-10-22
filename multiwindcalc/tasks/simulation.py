@@ -6,42 +6,42 @@ import luigi
 
 LOGGER = logging.getLogger(__name__)
 
-
 class SimulationTask(luigi.Task):
     _id = luigi.Parameter()
     _executable_path = luigi.Parameter()
     _input_file_path = luigi.Parameter()
     _dependencies = luigi.Parameter(default=[])
     _working_dir = luigi.Parameter(default=os.getcwd())
-    _complete = False
-    _metadata = {}
+    _metadata = luigi.Parameter(default={})
 
     def requires(self):
         return self._dependencies
 
     def run(self):
         args = [self._executable_path, self._input_file_path]
-        LOGGER.info('Executing \'{}\''.format(self._id))
+        LOGGER.info('Executing \'{}\': {}'.format(self._id, args))
         output = subprocess.run(args=args, cwd=self._working_dir,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._write_logs(output)
-        self._complete = True
         if output.returncode != 0:
             raise ChildProcessError('process exited with {}'.format(output.returncode))
-
-    def complete(self):
-        return self._complete
+        else:
+            # Write a .success file to indicate success
+            with open(self.run_name_with_path + '.success', 'w') as fp:
+                fp.write('')
 
     def _write_logs(self, output):
-        run_name = path.splitext(self._input_file_path)[0]
-        with open(run_name + '.log', 'wb') as fp:
+        with open(self.run_name_with_path + '.log', 'wb') as fp:
             fp.write(output.stdout)
         if output.stderr:
-            with open(run_name + '.err', 'wb') as fp:
+            with open(self.run_name_with_path + '.err', 'wb') as fp:
                 fp.write(output.stderr)
         elif output.returncode != 0:
-            with open(run_name + '.err', 'w') as fp:
+            with open(self.run_name_with_path + '.err', 'w') as fp:
                 fp.write(str(output.returncode))
+    
+    def output(self):
+        return [luigi.LocalTarget(self.run_name_with_path + '.success')]
 
     @property
     def run_name_with_path(self):
@@ -56,15 +56,14 @@ class WindGenerationTask(SimulationTask):
     def output(self):
         run_name_with_path = path.splitext(super().run_name_with_path)[0]
         output = run_name_with_path + '.wnd'
-        return luigi.LocalTarget(output)
+        return [luigi.LocalTarget(output)] + super(WindGenerationTask, self).output()
 
     @property
     def wind_file_path(self):
         return super().run_name_with_path + '.wnd'
 
-
 class FastSimulationTask(SimulationTask):
     def output(self):
         run_name_with_path = path.splitext(super().run_name_with_path)[0]
         output = run_name_with_path + '.outb'
-        return luigi.LocalTarget(output)
+        return [luigi.LocalTarget(output)] + super(FastSimulationTask, self).output()

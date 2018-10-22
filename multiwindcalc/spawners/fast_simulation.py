@@ -25,6 +25,8 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         self._wind_task = None
 
     def spawn(self, path_):
+        if not path.isabs(path_):
+            raise ValueError('Must provide an absolute path')
         if not path.isdir(path_):
             os.makedirs(path_)
         preproc_tasks = self._spawn_preproc_tasks(path_)
@@ -33,7 +35,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         sim_task = FastSimulationTask('run ' + path_,
                                       self._executable,
                                       sim_input_file,
-                                      preproc_tasks,
+                                      _dependencies=preproc_tasks,
                                       _working_dir=self._working_dir)
         return sim_task
 

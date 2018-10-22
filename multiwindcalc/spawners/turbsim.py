@@ -32,6 +32,7 @@ class TurbsimSpawner(WindGenerationSpawner):
 
     def set_simulation_time(self, time):
         self._input['AnalysisTime'] = time
+        self._input['UsableTime'] = time
 
     def get_wind_speed(self):
         return float(self._input['URef'])
