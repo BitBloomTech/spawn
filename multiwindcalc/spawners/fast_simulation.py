@@ -34,7 +34,8 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
                                       self._executable,
                                       sim_input_file,
                                       preproc_tasks,
-                                      _working_dir=self._working_dir)
+                                      _working_dir=self._working_dir,
+                                      _metadata=self._metadata)
         return sim_task
 
     def _spawn_preproc_tasks(self, path_):

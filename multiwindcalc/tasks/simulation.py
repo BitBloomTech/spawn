@@ -13,8 +13,8 @@ class SimulationTask(luigi.Task):
     _input_file_path = luigi.Parameter()
     _dependencies = luigi.Parameter(default=[])
     _working_dir = luigi.Parameter(default=os.getcwd())
+    _metadata = luigi.Parameter(default={})
     _complete = False
-    _metadata = {}
 
     def requires(self):
         return self._dependencies
