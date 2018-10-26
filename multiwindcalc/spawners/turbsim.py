@@ -8,18 +8,15 @@ from multiwindcalc.tasks.simulation import WindGenerationTask
 class TurbsimSpawner(WindGenerationSpawner):
     """Spawns TurbSim wind generation tasks"""
 
-    def __init__(self, turbsim_input, turbsim_exe, working_dir=None):
+    def __init__(self, turbsim_input):
         self._input = turbsim_input
-        self._executable = turbsim_exe
-        self._working_dir = working_dir if working_dir is not None else getcwd()
 
-    def spawn(self, path_):
+    def spawn(self, path_, metadata):
         if not path.isdir(path_):
             makedirs(path_)
         wind_input_file = path.join(path_, 'wind.ipt')
         self._input.to_file(wind_input_file)
-        wind_task = WindGenerationTask('wind ' + path_, self._executable,
-                                       wind_input_file, _working_dir=self._working_dir)
+        wind_task = WindGenerationTask('wind ' + path_, wind_input_file, _metadata=metadata)
         return wind_task
 
     def branch(self):

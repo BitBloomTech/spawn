@@ -33,8 +33,7 @@ def generate_tasks_from_spec(task_spawner, node, base_path):
         value = _check_type(task_spawner, node.property_name, node.property_value)
         setattr(task_spawner, node.property_name, value)
     if not node.children:   # (leaf)
-        task = task_spawner.spawn(str(PathBuilder(base_path).join(node.path)))
-        task.metadata.update(node.collected_properties)
+        task = task_spawner.spawn(str(PathBuilder(base_path).join(node.path)), node.collected_properties)
         return [task]
     else:   # (branch)
         tasks = []
