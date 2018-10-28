@@ -5,7 +5,7 @@ class TaskSpawner:
     def __init__(self):
         self._metadata = {}
 
-    def spawn(self, path):
+    def spawn(self, path, metadata):
         """Create new derivative of luigi.Task for later execution"""
         raise NotImplementedError()
 

@@ -14,34 +14,29 @@ def quote(strpath):
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
     """Spawns FAST simulation tasks with wind generation dependency if necessary"""
 
-    def __init__(self, fast_input, fast_exe, wind_spawner, working_dir=None):
+    def __init__(self, fast_input, wind_spawner):
         self._input = fast_input
-        self._executable = fast_exe
         self._wind_spawner = wind_spawner
-        self._working_dir = working_dir if working_dir is not None else os.getcwd()
         # non-arguments:
         self._aerodyn_input = AerodynInput.from_file(self._input['ADFile'])
         self._wind_environment_changed = False
         self._wind_task = None
 
-    def spawn(self, path_):
+    def spawn(self, path_, metadata):
+        if not path.isabs(path_):
+            raise ValueError('Must provide an absolute path')
         if not path.isdir(path_):
             os.makedirs(path_)
-        preproc_tasks = self._spawn_preproc_tasks(path_)
+        wind_input_files = self._spawn_preproc_tasks(path_, metadata)
         sim_input_file = path.join(path_, 'simulation.ipt')
         self._input.to_file(sim_input_file)
-        sim_task = FastSimulationTask('run ' + path_,
-                                      self._executable,
-                                      sim_input_file,
-                                      preproc_tasks,
-                                      _working_dir=self._working_dir,
-                                      _metadata=self._metadata)
+        sim_task = FastSimulationTask('run ' + path_, sim_input_file, _dependencies=wind_input_files, _metadata=metadata)
         return sim_task
 
-    def _spawn_preproc_tasks(self, path_):
+    def _spawn_preproc_tasks(self, path_, metadata):
         # Generate new wind file if needed
         if self._wind_environment_changed:
-            self._wind_task = self._wind_spawner.spawn(path_)
+            self._wind_task = self._wind_spawner.spawn(path_, metadata)
             self._aerodyn_input['WindFile'] = quote(self._wind_task.wind_file_path)
             aerodyn_file_path = path.join(path_, 'aerodyn.ipt')
             self._aerodyn_input.to_file(aerodyn_file_path)

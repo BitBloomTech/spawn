@@ -36,6 +36,6 @@ def test_can_create_runs_from_tree_spec(tmpdir):
         assert tmpdir.strpath in t.run_name_with_path
         assert 'wind_speed' in t.metadata
         assert 'turbulence_seed' in t.metadata
-        assert 'wind_direction' in t.metadata
+        assert 'wind_direction' in t.metadata or 'rotor_azimuth' in t.metadata
         seeds.append(t.metadata['turbulence_seed'])
-    assert len(seeds) != len(set(seeds))  # testing uniqueness
+    assert len(seeds) == len(set(seeds))  # testing uniqueness

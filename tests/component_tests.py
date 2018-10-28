@@ -12,11 +12,9 @@ example_data_folder = path.join(__home_dir, pardir, 'example_data')
 
 def create_spawner():
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                                   'TurbSim.inp')),
-                                  path.join(example_data_folder, 'TurbSim.exe'))
+                                                                   'TurbSim.inp')))
     return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                'NRELOffshrBsline5MW_Onshore.fst')),
-                                 path.join(example_data_folder, 'FASTv7.0.2.exe'),
                                  wind_spawner)
 
 
