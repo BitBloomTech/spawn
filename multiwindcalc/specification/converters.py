@@ -1,32 +1,32 @@
+"""Converters for :class:`SpecificationModel`s
+"""
 from .specification import SpecificationModel, SpecificationNode, SpecificationMetadata
 from multiwindcalc.util.validation import validate_type
 
 class SpecificationConverter:
-    """Abstract base class for converting ``SpecificationModel``s
-
-    Methods
-    -------
-    convert(spec)
-        Converts the given spec model
+    """Abstract base class for converting :class:`SpecificationModel`
     """
     def convert(self, spec):
+        """Converts the given spec model
+
+        :param spec: The specification model to convert
+        :type spec: :class:`SpecificationModel`
+        """
         raise NotImplementedError()
 
-class DictSpecificationConverter:
-    """Class for converting ``SpecificationModel``s into ``dict``s
+class DictSpecificationConverter(SpecificationConverter):
+    """Class for converting specification models
 
-    Methods
-    -------
-    convert(spec)
-        Converts the ``SpecificationModel`` provided into a ``dict``
+    Converts :class:`SpecificationModel` into :class:`dict`
     """
     def convert(self, spec):
-        """Converts a ``SpecificationModel`` into a ``dict``
+        """Converts the given spec model into a ``dict``
 
-        Parameters
-        ----------
-        spec : SpecificationModel
-            The specification model
+        :param spec: The specification model to convert
+        :type spec: :class:`SpecificationModel`
+
+        :returns: A ``dict`` represenation of the specification model
+        :rtype: ``dict``
         """
         validate_type(spec, SpecificationModel, 'spec')
         return {

@@ -1,16 +1,23 @@
+"""Generator methods
+"""
 import random
 from multiwindcalc.specification.value_proxy import ValueProxy
 
 
 class Generator(ValueProxy):
+    """Abstract base class for generators
+    """
     def evaluate(self):
+        """Evaluate this generator
+        """
         return NotImplementedError()
 
 
 class RandomInt(Generator):
+    """Generator of random integer values
+    """
     def __init__(self, min=1, max=999, seed=1):
-        """
-        Generator of random integer values
+        """Initialises :class:`RandomInt`
         :param min: Minimum value of variate range (inclusive), default=1
         :param max: Maximum value of variate range (inclusive), default=999
         :param seed: Seed for random number generation, default=1
@@ -21,13 +28,19 @@ class RandomInt(Generator):
         self._max = max
 
     def evaluate(self):
+        """Evaluate this generator
+
+        Generates a random int between ``min`` and ``max``, given the ``seed``
+        """
         return self._generator.randint(self._min, self._max)
 
 
 class IncrementalInt(Generator):
+    """Generator of incremental integers
+    """
     def __init__(self, start=1, step=1):
-        """
-        Generator of incremental integers
+        """Initialises :class:`IncrementalInt`
+
         :param start: Integer value to start at (first generate call will produce this number)
         :param step: Increment between generate calls
         """
@@ -35,6 +48,10 @@ class IncrementalInt(Generator):
         self._step = step
 
     def evaluate(self):
+        """Evaluate this generator
+
+        Adds ``step`` to the previously generated value
+        """
         v = self._next_number
         self._next_number += self._step
         return v

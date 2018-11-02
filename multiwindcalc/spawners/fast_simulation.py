@@ -1,20 +1,24 @@
+"""Implementation of :class:`AeroelasticSimulationSpawner` for FAST
+"""
 import os
 from os import path
 import copy
 from multiwindcalc.simulation_inputs.nrel_simulation_input import AerodynInput
 from multiwindcalc.tasks.simulation import FastSimulationTask
 from multiwindcalc.spawners.aeroelastic_simulation import AeroelasticSimulationSpawner
-
-
-def quote(strpath):
-    if strpath[0] != '"' or strpath[-1] != '"':
-        return '"' + strpath + '"'
-
+from multiwindcalc.util import quote
 
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
     """Spawns FAST simulation tasks with wind generation dependency if necessary"""
 
     def __init__(self, fast_input, wind_spawner):
+        """Initialises :class:`FastSimulationSpawner`
+
+        :param fast_input: The FAST input
+        :type fast_input: :class:`FastInput`
+        :parm wind_spawner: The TurbSim/wind calculation spawner
+        :type wind_spawner: :class:`TurbsimSpawner`
+        """
         self._input = fast_input
         self._wind_spawner = wind_spawner
         # non-arguments:
@@ -23,6 +27,16 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         self._wind_task = None
 
     def spawn(self, path_, metadata):
+        """Spawn a simulation task
+
+        :param path_: The output path for the task
+        :type path_: str
+        :param metadata: Metadata to add to the task
+        :type metadata: dict
+
+        :returns: The simulation task
+        :rtype: :class:`SimulationTask`
+        """
         if not path.isabs(path_):
             raise ValueError('Must provide an absolute path')
         if not path.isdir(path_):
@@ -45,6 +59,11 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         return [self._wind_task] if self._wind_task is not None else []
 
     def branch(self):
+        """Create a copy of this spawner
+
+        :returns: A copy of this spawner with all values equal
+        :rtype: :class:`FastSimulationSpawner`
+        """
         branched_spawner = copy.copy(self)
         branched_spawner._input = copy.deepcopy(self._input)
         branched_spawner._wind_spawner = self._wind_spawner.branch()
@@ -52,28 +71,52 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     # Simulation options
     def get_output_start_time(self):
+        """Get the output start time from the input
+
+        :returns: The ouptut start time
+        :rtype: float
+        """
         return float(self._input['TStart'])
 
     def set_output_start_time(self, time):
+        """Sets the output start time
+
+        :param time: The new output start time
+        :type time: float
+        """
         self._input['TStart'] = time
 
     def get_simulation_time(self):
-        """Total simulation time in seconds"""
+        """Total simulation time in seconds
+        
+        :returns: The simulation time
+        :rtype: float
+        """
         return float(self._input['TMax'])
 
     def set_simulation_time(self, time):
+        """Sets the total simulation time
+
+        :param time: The simulation time
+        :type time: float
+        """
         self._input['TMax'] = time
         self._wind_spawner.simulation_time = time
 
     def get_operation_mode(self):
+        """It is not possible to determine the operation mode"""
         raise NotImplementedError('Incapable of determining operation mode') # this is a tricky one!
 
     def set_operation_mode(self, mode):
-        """
+        """Sets the operation mode
+
+        :param mode: The operation mode (see below)
+        :type mode: str
+        
         Operation mode:
-        'normal' - power production run with generator on and rotor free
-        'idling' - generator off but rotor free
-        'parked' - generator off and rotor fixed
+        normal      power production run with generator on and rotor free
+        idling      generator off but rotor free
+        parked      generator off and rotor fixed
         The operation mode is set here according to recommendation in FASTv7 user manual page 33 and 34
         """
         if mode not in ['normal', 'idling', 'parked']:
@@ -102,10 +145,19 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     # Initial Conditions
     def get_initial_rotor_speed(self):
-        """Rotor speed at start of simulation in rpm"""
+        """Rotor speed at start of simulation in rpm
+        
+        :returns: The rotor speed in rpm
+        :rtype: float
+        """
         return float(self._input['RotSpeed'])
 
     def set_initial_rotor_speed(self, rotor_speed):
+        """Set the rotor speed at the start of the simulation
+
+        :param rotor_speed: The rotor speed in rpm
+        :rtype: float
+        """
         self._input['RotSpeed'] = rotor_speed
 
     def get_initial_azimuth(self):

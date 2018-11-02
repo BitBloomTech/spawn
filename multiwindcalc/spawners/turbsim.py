@@ -1,3 +1,5 @@
+"""Defines the turbsim spawner
+"""
 from os import path, getcwd, makedirs
 import copy
 

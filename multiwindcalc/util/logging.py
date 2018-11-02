@@ -1,3 +1,5 @@
+"""Functions to set up logging
+"""
 import logging
 from logging import handlers
 from enum import Enum
@@ -8,6 +10,8 @@ import appdirs
 from multiwindcalc import __name__ as app_name
 
 class CustomLogLevel(Enum):
+    """Enum to add custom log level TRACE
+    """
     TRACE = 5
 
 TRACE = CustomLogLevel.TRACE.value
@@ -15,6 +19,17 @@ TRACE = CustomLogLevel.TRACE.value
 LOG_DIR = path.join(appdirs.user_log_dir(), app_name)
 
 def configure_logging(log_level, command_name, log_console=True, log_file=True):
+    """Configure logging
+
+    :param log_level: The log level (error, warning, info, debug, trace)
+    :type log_level: str
+    :param command_name: The name of the invoked subcommand
+    :type command_name: str
+    :param log_console: ``True`` if logs should be displayed in the console; otherwise ``False``. Defaults to ``True``.
+    :type log_console: bool
+    :param log_file: ``True`` if logs should be written to file; otherwise ``False``. Defaults to ``True``.
+    :type log_file: bool
+    """
     logging.addLevelName(TRACE, 'TRACE')
 
     numeric_level = getattr(logging, log_level.upper(), None)

@@ -1,3 +1,5 @@
+"""Methods to assist with parameter validation
+"""
 from os import path
 
 def validate_type(value, expected, name):
