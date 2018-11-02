@@ -1,6 +1,7 @@
 import pytest
 
 from os import path, getcwd
+import json
 
 from multiwindcalc.runners.process_runner import ProcessRunner
 
@@ -53,14 +54,22 @@ def test_correct_output_files_written(runner, subprocess, tmpdir):
     assert path.isfile(err_file)
     with open(err_file, 'r') as fp:
         assert fp.read() == 'error'
-    success_file = path.join(tmpdir, 'input_file' + '.success')
+    success_file = path.join(tmpdir, 'input_file' + '.state.json')
     assert path.isfile(success_file)
+    with open(success_file) as fp:
+        state = json.load(fp)
+    assert state['result'] == 'success'
+    assert state['returncode'] == 0
 
-def test_exception_raised_and_success_not_written_on_non_zero_error_code(runner, subprocess, output, tmpdir):
+def test_exception_raised_and_state_failure_written_on_non_zero_error_code(runner, subprocess, output, tmpdir):
     output.returncode = 1
     with pytest.raises(ChildProcessError):
         runner.run()
-    assert not path.isfile(path.join(tmpdir, 'input_file' + '.success'))
+    assert path.isfile(path.join(tmpdir, 'input_file' + '.state.json'))
+    with open(path.join(tmpdir, 'input_file' + '.state.json')) as fp:
+        state = json.load(fp)
+    assert state['result'] == 'failure'
+    assert state['returncode'] == 1
 
 def test_ouptut_path_base_defaults_to_input_file_no_extension(runner, tmpdir):
     assert runner.output_file_base == path.join(tmpdir, 'input_file')
