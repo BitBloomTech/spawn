@@ -14,7 +14,7 @@ import example_data
 def run_and_get_results(spawner, path_):
     task = spawner.spawn(str(path_))
     luigi.build([task], local_scheduler=True, log_level='WARNING')
-    data, info = fast_io.load_output(task.output().path)
+    data, info = fast_io.load_output(task.output()[0].path)
     return pd.DataFrame(data, columns=info['attribute_names'])
 
 
@@ -91,7 +91,7 @@ def test_operating_mode(spawner, tmpdir):
     res2 = run_and_get_results(spawner, path.join(tmpdir, 'b'))
     assert np.all(res2['BldPitch1'] == 90.0)
     assert np.all(res2['GenPwr'] <= 0.0)
-    assert np.all(abs(res2['RotSpeed']) <= 0.01)    # rotor speed is slightly non-zero due to drive-train flexibility
+    assert np.all(abs(res2['RotSpeed']) <= 0.011)    # rotor speed is slightly non-zero due to drive-train flexibility
     spawner.operation_mode = 'normal'
     spawner.initial_pitch_angle = 0.0
     res3 = run_and_get_results(spawner, path.join(tmpdir, 'c'))

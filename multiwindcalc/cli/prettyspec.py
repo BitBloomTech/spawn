@@ -4,6 +4,8 @@ import sys
 
 from multiwindcalc.util.validation import validate_type
 
+INDENT = '  '
+
 def _prettyspec_impl(spec, indent, outstream):
     if spec.get('base_file'):
         outstream.write('base_file: {}\n'.format(spec['base_file']))
@@ -17,7 +19,7 @@ def _prettyspec_impl(spec, indent, outstream):
         for node in spec['spec']:
             _prettyspec_impl(node, indent, outstream)
     if 'name' in spec and 'value' in spec:
-        outstream.write('{}{}: {}'.format('\t' * indent, spec['name'], spec['value']))
+        outstream.write('{}{}: {}'.format(INDENT * indent, spec['name'], spec['value']))
     if spec.get('path'):
         outstream.write(' | path: {}'.format(spec['path']))
     outstream.write('\n')
