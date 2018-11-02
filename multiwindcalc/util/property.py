@@ -123,7 +123,7 @@ class TypedProperty:
 
 class NumericProperty(TypedProperty):
     def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
-        super(NumericProperty, self).__init__(type_, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
+        super().__init__(type_, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
         if min is not None and not isinstance(min, type_):
             raise TypeError('min')
         if max is not None and not isinstance(max, type_):
@@ -132,7 +132,7 @@ class NumericProperty(TypedProperty):
         self._max = max
     
     def _validate(self, obj, value):
-        super(NumericProperty, self)._validate(obj, value)
+        super()._validate(obj, value)
         if self._min is not None and value < self._min:
             raise ValueError('{} < {}'.format(value, self._min))
         if self._max is not None and value > self._max:
@@ -140,20 +140,20 @@ class NumericProperty(TypedProperty):
 
 class IntProperty(NumericProperty):
     def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
-        super(IntProperty, self).__init__(int, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
+        super().__init__(int, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
 
 class FloatProperty(NumericProperty):
     def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
-        super(FloatProperty, self).__init__(float, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
+        super().__init__(float, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
 
 class StringProperty(TypedProperty):
     def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, possible_values=None, regex=None):
-        super(StringProperty, self).__init__(str, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
+        super().__init__(str, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
         self._possible_values = possible_values
         self._regex = regex
     
     def _validate(self, obj, value):
-        super(StringProperty, self)._validate(obj, value)
+        super()._validate(obj, value)
         if self._possible_values is not None and value not in self._possible_values:
             raise ValueError('"{}" not in {}'.format(value, self._possible_values))
         if self._regex is not None and not re.search(self._regex, value):
