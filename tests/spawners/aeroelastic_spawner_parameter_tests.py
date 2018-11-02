@@ -12,18 +12,18 @@ import example_data
 
 
 def run_and_get_results(spawner, path_):
-    task = spawner.spawn(str(path_))
+    task = spawner.spawn(str(path_), {})
     luigi.build([task], local_scheduler=True, log_level='WARNING')
-    data, info = fast_io.load_output(task.output()[0].path)
+    data, info = fast_io.load_output(task.output().path)
     return pd.DataFrame(data, columns=info['attribute_names'])
 
 
 @pytest.fixture()
 def spawner():
     turbsim_input = TurbsimInput.from_file(example_data.turbsim_input_file)
-    wind_spawner = TurbsimSpawner(turbsim_input, example_data.turbsim_exe)
+    wind_spawner = TurbsimSpawner(turbsim_input)
     fast_input = FastInput.from_file(example_data.fast_input_file)
-    spawner = FastSimulationSpawner(fast_input, example_data.fast_exe, wind_spawner)
+    spawner = FastSimulationSpawner(fast_input, wind_spawner)
     spawner.wind_speed = 8.0
     spawner.output_start_time = 0.0
     spawner.simulation_time = 1.0

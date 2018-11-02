@@ -3,45 +3,33 @@ import os
 from os import path
 import logging
 import luigi
+import json
+
+from multiwindcalc.runners import RunnerFactory
 
 LOGGER = logging.getLogger(__name__)
 
+class TaskListParameter(luigi.Parameter):
+    def parse(self, input):
+        input_strings = json.loads(input)
+        return [luigi.task_register.Register.get_task_cls(i) for i in input_strings]
+    
+    def serialize(self, clss):
+        return json.dumps([cls.get_task_family() for cls in clss])
+
 class SimulationTask(luigi.Task):
     _id = luigi.Parameter()
-    _executable_path = luigi.Parameter()
     _input_file_path = luigi.Parameter()
-    _dependencies = luigi.Parameter(default=[])
-    _working_dir = luigi.Parameter(default=os.getcwd())
-    _metadata = luigi.Parameter(default={})
-
-    def requires(self):
-        return self._dependencies
+    _runner_type = luigi.Parameter()
+    _metadata = luigi.DictParameter(default={})
+    _runner_type = luigi.Parameter()
+    _exe_path = luigi.Parameter()
 
     def run(self):
-        args = [self._executable_path, self._input_file_path]
-        LOGGER.info('Executing \'{}\': {}'.format(self._id, args))
-        output = subprocess.run(args=args, cwd=self._working_dir,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self._write_logs(output)
-        if output.returncode != 0:
-            raise ChildProcessError('process exited with {}'.format(output.returncode))
-        else:
-            # Write a .success file to indicate success
-            with open(self.run_name_with_path + '.success', 'w') as fp:
-                fp.write('')
-
-    def _write_logs(self, output):
-        with open(self.run_name_with_path + '.log', 'wb') as fp:
-            fp.write(output.stdout)
-        if output.stderr:
-            with open(self.run_name_with_path + '.err', 'wb') as fp:
-                fp.write(output.stderr)
-        elif output.returncode != 0:
-            with open(self.run_name_with_path + '.err', 'w') as fp:
-                fp.write(str(output.returncode))
+        self._create_runner().run()
     
-    def output(self):
-        return [luigi.LocalTarget(self.run_name_with_path + '.success')]
+    def complete(self):
+        return self._create_runner().complete()
 
     @property
     def run_name_with_path(self):
@@ -51,19 +39,26 @@ class SimulationTask(luigi.Task):
     def metadata(self):
         return self._metadata
 
+    def _create_runner(self):
+        return RunnerFactory().create(self._runner_type, self._id, self._input_file_path, exe_path=self._exe_path)
 
 class WindGenerationTask(SimulationTask):
     def output(self):
         run_name_with_path = path.splitext(super().run_name_with_path)[0]
         output = run_name_with_path + '.wnd'
-        return [luigi.LocalTarget(output)] + super(WindGenerationTask, self).output()
+        return luigi.LocalTarget(output)
 
     @property
     def wind_file_path(self):
         return super().run_name_with_path + '.wnd'
 
 class FastSimulationTask(SimulationTask):
+    _dependencies = TaskListParameter(default=[])
+
     def output(self):
         run_name_with_path = path.splitext(super().run_name_with_path)[0]
         output = run_name_with_path + '.outb'
-        return [luigi.LocalTarget(output)] + super(FastSimulationTask, self).output()
+        return luigi.LocalTarget(output)
+
+    def requires(self):
+        return self._dependencies

@@ -3,6 +3,7 @@ from pprint import pprint
 from os import path
 from luigi import build, server
 import luigi.interface
+import luigi.configuration
 
 # Prevent luigi from setting up it's own logging
 luigi.interface.setup_interface_logging.has_run = True
@@ -14,9 +15,12 @@ from multiwindcalc.parsers import SpecificationFileReader, SpecificationParser, 
 from multiwindcalc.specification import DictSpecificationConverter
 from multiwindcalc.spawners import TurbsimSpawner, FastSimulationSpawner
 from multiwindcalc.simulation_inputs import TurbsimInput, FastInput
-from multiwindcalc.generate_tasks import generate_tasks_from_spec
+from multiwindcalc.schedulers import LuigiScheduler
 
 DEFAULT_PORT = 8082
+
+import logging
+LOGGER = logging.getLogger()
 
 @click.group()
 @click.pass_context
@@ -50,8 +54,16 @@ def run(specfile, outdir, local, workers, port):
     reader = SpecificationFileReader(specfile)
     parser = SpecificationParser(reader)
     spec = parser.parse()
-    tasks = generate_tasks_from_spec(spawner, spec.root_node, outdir)
-    build(tasks, local_scheduler=local, workers=workers, scheduler_port=port)
+    scheduler = LuigiScheduler(
+        outdir=outdir,
+        local=local,
+        workers=workers,
+        port=port,
+        runner_type='process',
+        turbsim_exe_path=EXE_PATHS['turbsim'],
+        fast_exe_path=EXE_PATHS['fast']
+    )
+    scheduler.run(spawner, spec)
 
 @cli.command()
 @click.argument('port', type=click.IntRange(1000, 9999), default=DEFAULT_PORT)
@@ -62,11 +74,14 @@ def serve(port):
 
 example_data_folder = path.realpath('example_data')
 
+EXE_PATHS = {
+    'turbsim': path.join(example_data_folder, 'TurbSim.exe'),
+    'fast': path.join(example_data_folder, 'FASTv7.0.2.exe')
+}
+
 def create_spawner():
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                                   'TurbSim.inp')),
-                                  path.join(example_data_folder, 'TurbSim.exe'))
+                                                                   'TurbSim.inp')))
     return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                'NRELOffshrBsline5MW_Onshore.fst')),
-                                 path.join(example_data_folder, 'FASTv7.0.2.exe'),
                                  wind_spawner)

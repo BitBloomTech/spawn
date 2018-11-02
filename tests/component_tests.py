@@ -12,11 +12,9 @@ example_data_folder = path.join(__home_dir, pardir, 'example_data')
 
 def create_spawner():
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                                   'TurbSim.inp')),
-                                  path.join(example_data_folder, 'TurbSim.exe'))
+                                                                   'TurbSim.inp')))
     return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                'NRELOffshrBsline5MW_Onshore.fst')),
-                                 path.join(example_data_folder, 'FASTv7.0.2.exe'),
                                  wind_spawner)
 
 
@@ -36,4 +34,4 @@ def test_can_run_one_turbsim_and_fast_run(tmpdir):
     root_node = SpecificationNodeParser().parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     luigi.build(tasks, local_scheduler=True, log_level='WARNING')
-    assert tasks[0].output()[0].exists()
+    assert tasks[0].output().exists()
