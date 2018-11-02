@@ -1,7 +1,8 @@
 import random
+from multiwindcalc.specification.value_proxy import ValueProxy
 
 
-class Generator:
+class Generator(ValueProxy):
     def evaluate(self):
         return NotImplementedError()
 

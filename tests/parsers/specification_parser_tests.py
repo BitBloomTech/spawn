@@ -146,6 +146,54 @@ def test_generator_persists(parser_with_incremental_int_generator):
     assert collected_properties[1]['seed1'] == 6
     assert collected_properties[1]['seed2'] == 8
 
+
+def test_emplaces_list_macro_correctly():
+    parser = SpecificationNodeParser(value_libraries={'macro': {'3directions': Macro([-8.0, 0.0, 8.0])}})
+    root_node = parser.parse({
+        'wind_speed': [6.0, 8.0],
+        'yaw_angle': '$3directions'
+    })
+    collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
+    assert len(collected_properties) == 6
+    assert collected_properties[0]['wind_speed'] == 6.0
+    assert collected_properties[0]['yaw_angle'] == -8.0
+    assert collected_properties[1]['wind_speed'] == 6.0
+    assert collected_properties[1]['yaw_angle'] == 0.0
+
+
+def test_emplaces_dict_macro_correctly():
+    macro = Macro({
+        'rotor_speed': 0.0,
+        'simulation_mode': 'idling'
+    })
+    parser = SpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    root_node = parser.parse({
+        'wind_speed': [6.0, 8.0],
+        'irrelevant': 'macro:idling'
+    })
+    collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
+    assert len(collected_properties) == 2
+    assert collected_properties[0]['wind_speed'] == 6.0
+    assert collected_properties[1]['wind_speed'] == 8.0
+    for p in collected_properties:
+        assert p['simulation_mode'] == 'idling'
+        assert p['rotor_speed'] == 0.0
+
+
+def test_raises_lookup_error_if_macro_not_found():
+    macro = Macro({
+        'rotor_speed': 0.0,
+        'simulation_mode': 'idling'
+    })
+    parser = SpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    with pytest.raises(LookupError):
+        parser.parse({
+            'wind_speed': [6.0, 8.0],
+            'irrelevant': 'macro:parked'
+        })
+
+
+
 def test_specification_node_parser_has_correct_path():
     root_node = DefaultSpecificationNodeParser().parse({
         'policy:path': 'WS{wind_speed}/WD{wind_direction}/TI{turbulence_intensity}',

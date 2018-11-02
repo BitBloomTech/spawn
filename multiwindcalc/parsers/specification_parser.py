@@ -4,19 +4,22 @@ from os import path
 from json import load
 
 from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode
+from ..specification import Macro
 from ..specification.combinators import zip_properties, product
 from .generators import GeneratorsParser
 from ..util.validation import validate_type, validate_file
 
 COMBINATOR = 'combine'
 GENERATOR = 'gen'
+MACRO = 'macro'
 ZIP = 'zip'
 PRODUCT = 'product'
 POLICY = 'policy'
 PATH = 'path'
 
 SHORT_FORM_EXPANSION = {
-    '@': GENERATOR
+    '@': GENERATOR,
+    '$': MACRO
 }
 
 DEFAULT_COMBINATORS = {
@@ -147,8 +150,10 @@ class SpecificationParser:
     @staticmethod
     def _get_value_libraries(description):
         generator_lib = GeneratorsParser().parse(description.get('generators'))
+        macro_lib = {k: Macro(v) for k, v in description.get('macros', default={}).items()}
         return {
-            GENERATOR: generator_lib
+            GENERATOR: generator_lib,
+            MACRO: macro_lib
         }
 
     @staticmethod
@@ -226,16 +231,16 @@ class SpecificationNodeParser:
         elif isinstance(value, dict):
             self.parse(value, parent)
             self.parse(next_node_spec, parent)
-        # rhs prefixed evaluation - short form and long form
-        elif isinstance(value, str) and self._is_evaluator(value):
-            type_str, lookup_str = self._get_evaluator(value)
-            self._parse_evaluator(next_node_spec, parent, name, type_str, lookup_str, node_policies)
+        # rhs prefixed proxies (evaluators and co.) - short form and long form
+        elif isinstance(value, str) and self._is_value_proxy(value):
+            type_str, lookup_str = self._get_value_proxy(value)
+            self._parse_value_proxy(next_node_spec, parent, name, type_str, lookup_str, node_policies)
         # simple single value
         else:
             next_parent = SpecificationNode(parent, name, value, node_policies.pop(PATH, None))
             self.parse(next_node_spec, next_parent)
 
-    def _is_evaluator(self, value):
+    def _is_value_proxy(self, value):
         if value[0] in SHORT_FORM_EXPANSION:
             prefix = SHORT_FORM_EXPANSION[value[0]]
         else:
@@ -246,7 +251,7 @@ class SpecificationNodeParser:
         is_equal = lambda f: value == '{}{}'.format(self._prefix(COMBINATOR), f)
         return any(map(is_equal, self._combinators.keys()))
 
-    def _get_evaluator(self, value_str):
+    def _get_value_proxy(self, value_str):
         if value_str[0] in SHORT_FORM_EXPANSION:
             return SHORT_FORM_EXPANSION[value_str[0]], value_str[1:]
         lib, name = self._parts(value_str)
@@ -255,12 +260,11 @@ class SpecificationNodeParser:
             raise KeyError('Library identifier "{}" not found when parsing RHS value string "{}"'.format(lib, value_str))
         return lib, name
 
-    def _parse_evaluator(self, next_node_spec, parent, name, type_str, lookup_str, node_policies):
+    def _parse_value_proxy(self, next_node_spec, parent, name, type_str, lookup_str, node_policies):
         if lookup_str not in self._value_libraries[type_str]:
             raise LookupError('Look-up string "{}" not found in "{}" library'.format(lookup_str, type_str))
         value = self._value_libraries[type_str][lookup_str].evaluate()
-        next_parent = SpecificationNode(parent, name, value, node_policies.get(PATH))
-        self.parse(next_node_spec, next_parent)
+        self._parse_value(parent, name, value, next_node_spec, node_policies)
 
     def _get_combinator(self, name):
         prefix, combinator = self._parts(name)
