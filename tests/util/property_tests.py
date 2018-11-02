@@ -42,7 +42,7 @@ class Dummy:
 
 class DummyDerived(Dummy):
     def __init__(self):
-        super(Dummy, self).__init__()
+        super().__init__()
         self._overridden_int = 0
         self._overridden_string = 'hello, override'
 

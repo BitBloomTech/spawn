@@ -6,7 +6,7 @@ from multiwindcalc.parsers.specification_parser import *
 
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):
-        super(DefaultSpecificationNodeParser, self).__init__(combinators={'zip': zip_properties, 'product': product}, default_combinator='product', **kwargs)
+        super().__init__(combinators={'zip': zip_properties, 'product': product}, default_combinator='product', **kwargs)
 
 def test_parse_null_node_returns_root_node_no_children():
     node = DefaultSpecificationNodeParser().parse(None)
