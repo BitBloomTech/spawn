@@ -31,6 +31,30 @@ class ProcessRunner:
             json.dump(state, fp)
         if output.returncode != 0:
             raise ChildProcessError('process exited with {}'.format(output.returncode))
+    
+    def error_logs(self):
+        """Error logs produced by the process, if any
+
+        :returns: The output written to stderr, if any, otherwise ``None``
+        :rtype: str
+        """
+        error_file = self.output_file_base + '.err'
+        if path.isfile(error_file):
+            with open(error_file) as fp:
+                return fp.read()
+        return None
+    
+    def logs(self):
+        """Stdout logs produced by the process, if any
+
+        :returns: The output written to stdout, if any, otherwise ``None``
+        :rtype: str
+        """
+        log_file = self.output_file_base + '.log'
+        if path.isfile(log_file):
+            with open(log_file) as fp:
+                return fp.read()
+        return None
         
     def complete(self):
         if path.isfile(self.output_file_base + '.state.json'):
