@@ -40,16 +40,25 @@ class SpecificationModel:
 class SpecificationMetadata:
     """Container class for the :class:`SpecificationModel` metadata
     """
-    def __init__(self, creation_time, notes):
+    def __init__(self, type, creation_time, notes):
         """Initialises :class:`SpecificationMetadata`
 
+        :param type: The type of specification
+        :type type: str
         :param creation_time: The creation time of the specification model
         :type creation_time: :class:`datetime`
         :param notes: Any notes related to the specification model
         :type notes: str
         """
+        self._type = type
         self._creation_time = creation_time
         self._notes = notes
+
+    @property
+    def type(self):
+        """The type of this specification
+        """
+        return self._type
     
     @property
     def creation_time(self):

@@ -1,5 +1,6 @@
 """multiwindcalc.cli module
 """
+import configparser
 import click
 from pprint import pprint
 from os import path
@@ -10,14 +11,14 @@ import luigi.configuration
 # Prevent luigi from setting up it's own logging
 luigi.interface.setup_interface_logging.has_run = True
 
+from multiwindcalc import __name__ as APP_NAME
 from multiwindcalc.util import configure_logging, prettyspec
 from multiwindcalc.parsers import SpecificationFileReader, SpecificationParser, SpecificationNodeParser
 from multiwindcalc.specification import DictSpecificationConverter
-from multiwindcalc.spawners import TurbsimSpawner, FastSimulationSpawner
-from multiwindcalc.simulation_inputs import TurbsimInput, FastInput
+from multiwindcalc.plugins.wind.nrel import TurbsimSpawner, FastSimulationSpawner, TurbsimInput, FastInput
 from multiwindcalc.schedulers import LuigiScheduler
-
-DEFAULT_PORT = 8082
+from multiwindcalc.config import CommandLineConfiguration, IniFileConfiguration, DefaultConfiguration, CompositeConfiguration
+from multiwindcalc.plugins import PluginLoader
 
 import logging
 LOGGER = logging.getLogger()
@@ -46,44 +47,34 @@ def inspect(specfile):
 @cli.command()
 @click.argument('specfile', type=click.Path(exists=True))
 @click.argument('outdir', type=click.Path(file_okay=False, resolve_path=True))
+@click.option('--type', type=str, default=None, help='The type of runs to create. Must have a corresponding plugin.')
 @click.option('--local/--remote', is_flag=True, default=True, help='Run local or remote. Remote running requires a luigi server to be running')
-@click.option('--workers', type=click.IntRange(1, 100), default=4, help='The number of workers')
-@click.option('--port', type=click.IntRange(1000, 9999), default=DEFAULT_PORT, help='The port on which the remote scheduler is running')
-def run(specfile, outdir, local, workers, port):
+@click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
+@click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
+def run(**kwargs):
     """Runs the SPECFILE contents and write output to OUTDIR
     """
-    spawner = _create_spawner()
-    reader = SpecificationFileReader(specfile)
-    parser = SpecificationParser(reader)
-    spec = parser.parse()
-    scheduler = LuigiScheduler(
-        outdir=outdir,
-        local=local,
-        workers=workers,
-        port=port,
-        runner_type='process',
-        turbsim_exe_path=EXE_PATHS['turbsim'],
-        fast_exe_path=EXE_PATHS['fast']
-    )
+    config = _get_config(**kwargs)
+    spec = SpecificationParser(SpecificationFileReader(config.get(APP_NAME, 'specfile'))).parse()
+    plugin_type = config.get(APP_NAME, 'type') or spec.metadata.type
+    if not plugin_type:
+        raise ValueError('No plugin type defined - please specify the --type argument or add a type property in the spec file')
+    plugin_loader = PluginLoader(config)
+    spawner = plugin_loader.create_spawner(plugin_type)
+    scheduler = LuigiScheduler(config)
     scheduler.run(spawner, spec)
 
 @cli.command()
-@click.argument('port', type=click.IntRange(1000, 9999), default=DEFAULT_PORT)
-def serve(port):
+@click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
+@click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
+def serve(**kwargs):
     """Runs the luigi server, for running using the centralised scheduler and viewing the UI
     """
-    server.run(api_port=port)
+    config = _get_config(**kwargs)
+    server.run(api_port=config.get('server', 'port'))
 
-example_data_folder = path.realpath('example_data')
-
-EXE_PATHS = {
-    'turbsim': path.join(example_data_folder, 'TurbSim.exe'),
-    'fast': path.join(example_data_folder, 'FASTv7.0.2.exe')
-}
-
-def _create_spawner():
-    wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                                   'TurbSim.inp')))
-    return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                               'NRELOffshrBsline5MW_Onshore.fst')),
-                                 wind_spawner)
+def _get_config(**kwargs):
+    command_line_config = CommandLineConfiguration(**kwargs)
+    ini_file_config = IniFileConfiguration(command_line_config.get(APP_NAME, 'config_file'))
+    default_config = DefaultConfiguration()
+    return CompositeConfiguration(command_line_config, ini_file_config, default_config)

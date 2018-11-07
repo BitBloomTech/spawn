@@ -109,7 +109,7 @@ class SpecificationParser:
         :rtype: :class:`SpecificationModel`
         """
         description = self._provider.get()
-        metadata = SpecificationMetadata(description.get('creation_time'), description.get('notes'))
+        metadata = SpecificationMetadata(description.get('type'), description.get('creation_time'), description.get('notes'))
         value_libraries = self._get_value_libraries(description)
         node_parser = SpecificationNodeParser(value_libraries, self._get_combinators(), default_combinator=PRODUCT)
         root_node = node_parser.parse(description.get('spec'))
@@ -118,7 +118,7 @@ class SpecificationParser:
     @staticmethod
     def _get_value_libraries(description):
         generator_lib = GeneratorsParser().parse(description.get('generators'))
-        macro_lib = {k: Macro(v) for k, v in description.get('macros', default={}).items()}
+        macro_lib = {k: Macro(v) for k, v in description.get('macros', {}).items()}
         return {
             GENERATOR: generator_lib,
             MACRO: macro_lib

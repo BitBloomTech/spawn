@@ -1,10 +1,7 @@
 from os import path
 import pytest
 import tempfile
-from multiwindcalc.simulation_inputs.nrel_simulation_input import TurbsimInput, AerodynInput, FastInput
-from ..component_tests import example_data_folder
-
-__examples_folder = path.join(example_data_folder, 'fast_input_files')
+from multiwindcalc.plugins.wind.nrel import TurbsimInput, AerodynInput, FastInput
 
 
 @pytest.mark.parametrize('cls,file,key', [
@@ -12,8 +9,8 @@ __examples_folder = path.join(example_data_folder, 'fast_input_files')
     (AerodynInput, 'NRELOffshrBsline5MW_AeroDyn.ipt', 'BldNodes'),
     (FastInput, 'NRELOffshrBsline5MW_Onshore.fst', 'NBlGages')
 ])
-def test_read_write_round_trip(cls, file, key):
-    _input = cls.from_file(path.join(__examples_folder, file))
+def test_read_write_round_trip(examples_folder, cls, file, key):
+    _input = cls.from_file(path.join(examples_folder, file))
     with tempfile.TemporaryDirectory() as outfile:
         name = path.join(outfile, 'temp.txt')
         _input.to_file(name)
@@ -26,8 +23,8 @@ def test_read_write_round_trip(cls, file, key):
     (AerodynInput, 'NRELOffshrBsline5MW_AeroDyn.ipt', 'WindFile', 'Other.wnd'),
     (FastInput, 'NRELOffshrBsline5MW_Onshore.fst', 'TMax', 300.0)
 ])
-def test_writes_edited_Specification(cls, file, key, value):
-    _input = cls.from_file(path.join(__examples_folder, file))
+def test_writes_edited_Specification(examples_folder, cls, file, key, value):
+    _input = cls.from_file(path.join(examples_folder, file))
     _input[key] = value
     with tempfile.TemporaryDirectory() as outfile:
         name = path.join(outfile, 'temp.txt')
@@ -40,8 +37,8 @@ def test_writes_edited_Specification(cls, file, key, value):
     (AerodynInput, 'NRELOffshrBsline5MW_AeroDyn.ipt', ['FoilNm']),
     (FastInput, 'NRELOffshrBsline5MW_Onshore.fst', ['BldFile(1)', 'BldFile(3)', 'TwrFile'])
 ])
-def test_paths_are_absolute(cls, file, keys):
-    _input = cls.from_file(path.join(__examples_folder, file))
+def test_paths_are_absolute(examples_folder, cls, file, keys):
+    _input = cls.from_file(path.join(examples_folder, file))
     for k in keys:
         f = _input[k]
         assert path.isfile(f)
@@ -51,8 +48,8 @@ def test_paths_are_absolute(cls, file, keys):
     (AerodynInput, 'NRELOffshrBsline5MW_AeroDyn.ipt', 'WindFile'),
     (FastInput, 'NRELOffshrBsline5MW_Onshore.fst', 'TwrFile')
 ])
-def test_can_handle_spaces_in_paths(cls, file, key):
-    _input = cls.from_file(path.join(__examples_folder, file))
+def test_can_handle_spaces_in_paths(examples_folder, cls, file, key):
+    _input = cls.from_file(path.join(examples_folder, file))
     spacey_path = '"C:/this is a spacey/path.ipt"'
     _input[key] = spacey_path
     assert spacey_path.strip('"') == _input[key].strip('"')

@@ -8,7 +8,7 @@ import logging
 import luigi
 import json
 
-from multiwindcalc.runners import RunnerFactory
+from multiwindcalc.runners import ProcessRunner
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ class SimulationTask(luigi.Task):
     _metadata = luigi.DictParameter(default={})
     _runner_type = luigi.Parameter()
     _exe_path = luigi.Parameter()
+    _dependencies = TaskListParameter(default=[])
 
     def run(self):
         """Run this task
@@ -66,6 +67,11 @@ class SimulationTask(luigi.Task):
         error_string = traceback.format_exception(type(exception), exception, exception.__traceback__)
         return 'Unhandled exception running task:\n\n{}'.format(''.join(error_string))
 
+    def requires(self):
+        """The prerequisites for this task
+        """
+        return self._dependencies
+
     @property
     def run_name_with_path(self):
         """Return the run name of this task
@@ -79,43 +85,16 @@ class SimulationTask(luigi.Task):
         return self._metadata
 
     def _create_runner(self):
-        return RunnerFactory().create(self._runner_type, self._id, self._input_file_path, exe_path=self._exe_path)
-
-class WindGenerationTask(SimulationTask):
-    """Implementation of :class:`SimulationTask` for TurbSim
-    """
-    def output(self):
-        """The output of this task
-
-        :returns: Target to the .wnd path
-        :rtype: :class:`luigi.LocalTarget`
-        """
-        run_name_with_path = path.splitext(super().run_name_with_path)[0]
-        output = run_name_with_path + '.wnd'
-        return luigi.LocalTarget(output)
+        if self._runner_type not in self.available_runners:
+            raise ValueError('could not find runner for runner_type {} and task type {}'.format(self._runner_type, type(self)))
+        return self.available_runners[self._runner_type](self._id, self._input_file_path, exe_path=self._exe_path)
 
     @property
-    def wind_file_path(self):
-        """The path to the wind file
+    def available_runners(self):
+        """Runners available for this task.
+
+        Can be overridden by derived tasks
         """
-        return super().run_name_with_path + '.wnd'
-
-class FastSimulationTask(SimulationTask):
-    """Implementation of :class:`SimulationTask` for FAST
-    """
-    _dependencies = TaskListParameter(default=[])
-
-    def output(self):
-        """The output of this task
-
-        :returns: Target to the .outb path
-        :rtype: :class:`luigi.LocalTarget`
-        """
-        run_name_with_path = path.splitext(super().run_name_with_path)[0]
-        output = run_name_with_path + '.outb'
-        return luigi.LocalTarget(output)
-
-    def requires(self):
-        """The prerequisites for this task
-        """
-        return self._dependencies
+        return {
+            'process': ProcessRunner
+        }

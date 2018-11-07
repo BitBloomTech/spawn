@@ -27,5 +27,7 @@ def validate_file(value, name):
     name : str
         The name of the value
     """
+    if value is None:
+        raise ValueError('File not defined for {}'.format(name))
     if not path.isfile(value):
         raise FileNotFoundError('File {} not found or not accessible at {}'.format(name, value))

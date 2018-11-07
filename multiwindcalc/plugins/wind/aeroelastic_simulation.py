@@ -1,9 +1,7 @@
 """Implementation of :class:`TaskSpawner` for aeroelastic simulations
 """
-from .task_spawner import TaskSpawner
-
 from multiwindcalc.util import StringProperty, IntProperty, FloatProperty
-
+from multiwindcalc.spawners import TaskSpawner
 
 class AeroelasticSimulationSpawner(TaskSpawner):
     """Spawner of aeroelastic simulations of wind turbines including pre-processing dependencies"""
@@ -13,7 +11,7 @@ class AeroelasticSimulationSpawner(TaskSpawner):
     simulation_time = FloatProperty(doc='Total simulation time in seconds', abstract=True)
     operation_mode = StringProperty(
         possible_values=['normal', 'idling', 'parked'],
-        doc="""Operation mode:
+        doc="""Operation mode:  
         'normal' - power production run with generator on and rotor free
         'idling' - generator off but rotor free
         'parked' - generator off and rotor fixed

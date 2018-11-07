@@ -1,9 +1,7 @@
 """Defines the wind generation spawners
 """
 from multiwindcalc.util import FloatProperty, IntProperty
-
-from .task_spawner import TaskSpawner
-
+from multiwindcalc.spawners import TaskSpawner
 
 class WindGenerationSpawner(TaskSpawner):
     """Base class for spawning wind generation tasks"""

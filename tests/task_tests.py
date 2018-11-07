@@ -1,7 +1,6 @@
 from os import path
 import tempfile
-from multiwindcalc.tasks.simulation import FastSimulationTask, WindGenerationTask
-from tests.component_tests import example_data_folder
+from multiwindcalc.plugins.wind.nrel import FastSimulationTask, WindGenerationTask
 
 
 def _check_run_fails(task, error_file):

@@ -3,8 +3,8 @@
 from os import path, getcwd, makedirs
 import copy
 
-from multiwindcalc.spawners.wind_generation import WindGenerationSpawner
-from multiwindcalc.tasks.simulation import WindGenerationTask
+from multiwindcalc.plugins.wind import WindGenerationSpawner
+from .tasks import WindGenerationTask
 
 
 class TurbsimSpawner(WindGenerationSpawner):
