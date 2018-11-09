@@ -94,6 +94,6 @@ class FastSimulationTask(SimulationTask):
         return luigi.LocalTarget(output)
 
     def requires(self):
-        """The pre-requisites for this task
+        """The prerequisites for this task
         """
         return self._dependencies
