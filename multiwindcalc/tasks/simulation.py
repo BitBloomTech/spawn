@@ -33,7 +33,7 @@ class SimulationTask(luigi.Task):
         return self._create_runner().complete()
 
     def on_failure(self, exception):
-        """Inteprets any exceptions raised by the run method.
+        """Interprets any exceptions raised by the run method.
         
         Attempts to find any logs associated with the runner.
 
