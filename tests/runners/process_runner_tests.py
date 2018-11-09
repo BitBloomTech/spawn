@@ -73,3 +73,8 @@ def test_exception_raised_and_state_failure_written_on_non_zero_error_code(runne
 
 def test_ouptut_path_base_defaults_to_input_file_no_extension(runner, tmpdir):
     assert runner.output_file_base == path.join(tmpdir, 'input_file')
+
+def test_logs_returns_output(runner, subprocess, tmpdir):
+    runner.run()
+    assert runner.logs() == 'output'
+    assert runner.error_logs() == 'error'

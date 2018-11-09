@@ -1,6 +1,7 @@
 """luigi Tasks
 """
 import subprocess
+import traceback
 import os
 from os import path
 import logging
@@ -43,6 +44,27 @@ class SimulationTask(luigi.Task):
         :rtype: bool
         """
         return self._create_runner().complete()
+
+    def on_failure(self, exception):
+        """Interprets any exceptions raised by the run method.
+        
+        Attempts to find any logs associated with the runner.
+
+        :returns: A string representation of the error.
+        :rtype: str
+        """
+        runner = self._create_runner()
+        all_logs = []
+        error_logs = runner.error_logs()
+        if error_logs:
+            all_logs.append('Error logs:\n\n{}'.format(error_logs))
+        logs = runner.logs()
+        if logs:
+            all_logs.append('Logs:\n\n{}'.format(logs))
+        if all_logs:
+            return '\n\n'.join(all_logs)
+        error_string = traceback.format_exception(type(exception), exception, exception.__traceback__)
+        return 'Unhandled exception running task:\n\n{}'.format(''.join(error_string))
 
     @property
     def run_name_with_path(self):
