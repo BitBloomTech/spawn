@@ -70,7 +70,7 @@ class ProcessRunner:
 
     @property
     def process_args(self):
-        """The arguments to be provided to the suprocess.
+        """The arguments to be provided to the subprocess.
 
         Can be overridden in derived classes.
 

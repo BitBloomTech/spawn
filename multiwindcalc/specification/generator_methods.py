@@ -14,7 +14,9 @@ class Generator(ValueProxy):
 
 
 class RandomInt(Generator):
-    """Generator of random integer values
+    """Generator of pseudo-random integer values
+
+    Uses :class:`random.Random` with the parameters provided
     """
     def __init__(self, min=1, max=999, seed=1):
         """Initialises :class:`RandomInt`
