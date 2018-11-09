@@ -13,11 +13,13 @@ install_requires = [
 tests_require = [
     'pytest',
     'pytest-mock',
+    'pylint',
     'tox'
 ]
 
 extras_require = {
-    'test': tests_require
+    'test': tests_require,
+    'docs': ['sphinx', 'sphinx-click']
 }
 
 setup(

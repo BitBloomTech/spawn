@@ -5,7 +5,18 @@ from ..specification import generator_methods
 from ..util.validation import validate_type
 
 class GeneratorsParser:
+    """Parser for the generators section of the spec file
+    """
+
     def parse(self, generators):
+        """Parse the generators section of the spec file.
+
+        :param generators: The generators dict. Keys are the names of the generators, values are a dict specifying the generator.
+        :type generators: dict
+
+        :returns: An expanding dict containing the values for the specified generators.
+        :rtype: dict
+        """
         if generators is None:
             return {}
         validate_type(generators, dict, 'generators')

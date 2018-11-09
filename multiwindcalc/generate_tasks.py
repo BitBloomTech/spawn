@@ -1,3 +1,5 @@
+"""Methods to generate tasks from spec
+"""
 from multiwindcalc.util import PathBuilder
 
 from multiwindcalc.specification.specification import SpecificationNode

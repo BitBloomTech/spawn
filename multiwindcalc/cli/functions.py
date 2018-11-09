@@ -1,3 +1,5 @@
+"""multiwindcalc.cli module
+"""
 import click
 from pprint import pprint
 from os import path
@@ -8,9 +10,7 @@ import luigi.configuration
 # Prevent luigi from setting up it's own logging
 luigi.interface.setup_interface_logging.has_run = True
 
-from .logging import configure_logging
-from .prettyspec import prettyspec
-
+from multiwindcalc.util import configure_logging, prettyspec
 from multiwindcalc.parsers import SpecificationFileReader, SpecificationParser, SpecificationNodeParser
 from multiwindcalc.specification import DictSpecificationConverter
 from multiwindcalc.spawners import TurbsimSpawner, FastSimulationSpawner
@@ -27,6 +27,8 @@ LOGGER = logging.getLogger()
 @click.option('--log-level', type=click.Choice(['error', 'warning', 'info', 'debug']), default='info', help='The log level')
 @click.option('--log-console', is_flag=True, help='Write logs to the console')
 def cli(ctx, log_level, log_console):
+    """Command Line Interface
+    """
     configure_logging(log_level, ctx.invoked_subcommand, log_console)
 
 @cli.command()
@@ -50,7 +52,7 @@ def inspect(specfile):
 def run(specfile, outdir, local, workers, port):
     """Runs the SPECFILE contents and write output to OUTDIR
     """
-    spawner = create_spawner()
+    spawner = _create_spawner()
     reader = SpecificationFileReader(specfile)
     parser = SpecificationParser(reader)
     spec = parser.parse()
@@ -79,7 +81,7 @@ EXE_PATHS = {
     'fast': path.join(example_data_folder, 'FASTv7.0.2.exe')
 }
 
-def create_spawner():
+def _create_spawner():
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                    'TurbSim.inp')))
     return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',

@@ -1,4 +1,5 @@
-
+"""Abstract base class for task spawners
+"""
 
 class TaskSpawner:
     """Base class task spawner"""
