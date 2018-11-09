@@ -1,3 +1,5 @@
+"""Implementation of :class:`TaskSpawner` for aeroelastic simulations
+"""
 from .task_spawner import TaskSpawner
 
 from multiwindcalc.util import StringProperty, IntProperty, FloatProperty

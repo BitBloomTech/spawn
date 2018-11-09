@@ -1,3 +1,5 @@
+"""Contains definitions for NREL :class:`SimulationInput`
+"""
 from os import path
 import csv
 from multiwindcalc.simulation_inputs.simulation_input import SimulationInput
@@ -14,17 +16,37 @@ class NRELSimulationInput(SimulationInput):
     These tend to be of a whitespace separated {value|key} format with newlines separating key:value pairs
     """
     def __init__(self, input_lines, root_folder):
+        """Initialises :class:`NRELSimulationInput`
+
+        :param input_lines: The lines of the input file
+        :type input_lines: list
+        :param root_folder: The root folder containing the input file
+        :type root_folder: path-like
+        """
         self._input_lines = input_lines
         self._absolutise_paths(root_folder, self._lines_with_paths())
 
     @classmethod
     def from_file(cls, file_path):
+        """Creates a :class:`NRELSimulationInput` by loading a file
+
+        :param file_path: The file path to load
+        :type file_path: path-like
+
+        :returns: The simulation input object
+        :rtype: An instance of :class:`NRELSimulationInput`
+        """
         with open(file_path, 'r') as fp:
             input_lines = fp.readlines()
         root_folder = path.abspath(path.split(file_path)[0])
         return cls(input_lines, root_folder)
 
     def to_file(self, file_path):
+        """Writes the contents of the input file to disk
+
+        :param file_path: The path of the file to write
+        :type file_path: path-like
+        """
         with open(file_path, 'w') as fw:
             for line in self._input_lines:
                 fw.write(line)

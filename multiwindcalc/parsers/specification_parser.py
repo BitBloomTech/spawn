@@ -29,39 +29,25 @@ DEFAULT_COMBINATORS = {
 
 class SpecificationDescriptionProvider:
     """Abstract base class for implementations that provide the specification description.
-
-    Methods
-    -------
-    get()
-        Gets the specification description as a dict
     """
     def get(self):
         """Gets the specification description
 
-        Returns
-        -------
-        description: dict
-            A dict representation of the description
+        :returns: A dict representation of the description
+        :rtype: dict
         """
         raise NotImplementedError()
 
 
 class SpecificationFileReader(SpecificationDescriptionProvider):
-    """Implementation of ``SpecificationDescriptionProvider`` that reads
+    """Implementation of :class:`SpecificationDescriptionProvider` that reads
     the specification from a file
-
-    Methods
-    -------
-    get()
-        Gets the specification description
     """
     def __init__(self, input_file):
-        """Initialises the ``SpecificationFileReader``
+        """Initialises the :class:`SpecificationFileReader`
 
-        Parameters
-        ----------
-        input_file : str
-            The file containing the specification
+        :param input_file: The input file
+        :type input_file: path-like
         """
         validate_file(input_file, 'input_file')
         self._input_file = input_file
@@ -69,29 +55,21 @@ class SpecificationFileReader(SpecificationDescriptionProvider):
     def get(self):
         """Reads the specification description from a file
 
-        Returns
-        -------
-        description: dict
-            A dict representation of the description
+        :returns: A dict representation of the description
+        :rtype: dict
         """
         with open(self._input_file) as input_fp:
             return load(input_fp)
 
 class DictSpecificationProvider(SpecificationDescriptionProvider):
-    """Class to provide a specification as a dict
-
-    Methods
-    ---------
-    get()
-        Gets the dict representation of the specification
+    """Implementation of :class:`SpecificationDescriptionProvider` that reads
+    the specification from a provided dict
     """
     def __init__(self, spec):
-        """Initialises the ``DictSpecificationProvider
+        """Initialises the :class:`DictSpecificationProvider`
 
-        Parameters
-        ----------
-        spec : dict
-            The specification
+        :param spec: The specification
+        :type spec: dict
         """
         validate_type(spec, dict, 'spec')
         self._spec = spec
@@ -99,31 +77,23 @@ class DictSpecificationProvider(SpecificationDescriptionProvider):
     def get(self):
         """Gets the specification
 
-        Returns
-        description : dict
-            A dict representation of the description
+        :returns: A dict representation of the description
+        :rtype: dict
         """
         return self._spec
 
 class SpecificationParser:
     """Class for parsing specifications
 
-    Given a specification provider, the ``SpecificationParser`` will get the specification and
+    Given a specification provider, the :class:`SpecificationParser` will get the specification and
     produce a tree representation of the nodes.
-
-    Methods
-    -------
-    parse()
-        Parse the specification.
     """
 
     def __init__(self, provider):
-        """Initialises the ``SpecificationParser``
+        """Initialises the :class:`SpecificationParser`
 
-        Parameters
-        ----------
-        provider : ``SpecificationDescriptionProvider``
-            The source of the specification description
+        :param provider: The source of the specification description
+        :type provider: :class:`SpecificationDescriptionProvider`
         """
         validate_type(provider, SpecificationDescriptionProvider, 'provider')
         self._provider = provider
@@ -132,13 +102,11 @@ class SpecificationParser:
         """Parse the specification description
 
         Reads the metadata from the file and creates any required value libraries,
-        before initialising a ``SpecificationNodeParser`` to expand the nodes defined
+        before initialising a :class:`SpecificationNodeParser` to expand the nodes defined
         in the description.
 
-        Returns
-        -------
-        spec : ``SpecificationModel``
-            An object representing the expanded specification tree.
+        :returns: An object representing the expanded specification tree.
+        :rtype: :class:`SpecificationModel`
         """
         description = self._provider.get()
         metadata = SpecificationMetadata(description.get('creation_time'), description.get('notes'))
@@ -162,29 +130,22 @@ class SpecificationParser:
 
 
 class SpecificationNodeParser:
-    """Expands the specification nodes, starting at the `node_spec` provided
+    """Expands the specification nodes, starting at the ``node_spec`` provided
 
-    Given a starting `node_spec`, the specification `node_spec` parser assesses
+    Given a starting `node_spec`, the specification ``node_spec`` parser assesses
     child nodes and expands them according to their values.
-
-    Methods
-    -------
-    parse(node_spec, parent=None)
-        Parse a `node_spec` and expand it's children.
     """
 
     def __init__(self, value_libraries=None, combinators=None, default_combinator=None):
         """Initialises the node parser
 
-        Parameters
-        ----------
-        value_libraries : dict
-            A mapping between value library names (e.g. generators, evaluators, macros)
-            and value libraries.
-            The default is {}
-        combinators : dict
-            A mapping between combinator names (e.g. zip, product) and combinators.
-            The default is {}
+        :param value_libraries: A mapping between value library names (e.g. generators, evaluators, macros)
+                                and value libraries.
+                                The default is {}.
+        :type value_libraries: dict
+        :param combinators: A mapping between combinator names (e.g. zip, product) and combinators.
+                           The default is {}
+        :type combinators: dict
         """
         self._value_libraries = value_libraries or {}
         self._combinators = combinators or {}
@@ -195,17 +156,13 @@ class SpecificationNodeParser:
 
         This iterates through a `node_spec` and expands it's children.
 
-        Parameters
-        ----------
-        node_spec : dict
-            A node specification
-        parent : ``SpecificationNode``
-            A specification node to add the new nodes to
+        :param node_spec: A node specification
+        :type node_spec: dict
+        :param parent: A specification node to add the new nodes to
+        :type parent: :class:`SpecificationNode`
 
-        Returns
-        -------
-        node : ``SpecificationNode``
-            The expanded `node_spec`
+        :returns: The expanded `node_spec`
+        :rtype: :class:`SpecificationNode`
         """
         node_policies, node_spec = self._get_policies(node_spec)
 
