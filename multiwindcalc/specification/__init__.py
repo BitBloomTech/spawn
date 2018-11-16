@@ -5,3 +5,4 @@ The :class:`SpecificationModel` contains the definition of the tasks to be spawn
 from .specification import SpecificationModel, SpecificationMetadata, SpecificationNode
 from .converters import DictSpecificationConverter
 from .value_proxy import ValueProxy, Macro
+from .evaluators import Evaluator
