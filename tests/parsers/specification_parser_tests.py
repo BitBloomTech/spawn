@@ -339,3 +339,56 @@ def test_can_produce_range_of_items_stopped_at_property():
     ]
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
+
+def test_can_produce_range_of_items_stopped_at_ghost():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        '_top_speed': 4.5,
+        'wind_speed': 'range(0, !top_speed, 1.5)',
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 0.0},
+        {'wind_speed': 1.5},
+        {'wind_speed': 3.0},
+        {'wind_speed': 4.5},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_ghost_parameters_appear_on_leaf_nodes():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
+        'wind_speed': 8.0,
+        'wind_direction': [13.0, 15.0],
+        '_greeting': 'hello turbine'
+    })
+
+    assert all(l.ghosts == {'greeting': 'hello turbine'} for l in root_node.leaves)
+
+def test_ghost_parameters_are_overwritten_lower_down():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
+        'wind_speed': 8.0,
+        '_greeting': 'hello turbine',
+        '_wind_speed': 'breezy',
+        'dlc1.1': {
+            'wind_direction': 3.0,
+        },
+        'dlc1.2': {
+            '_wind_speed': 'gusty',
+            'wind_direction': 13.0,
+        }
+    })
+
+    expected_ghosts = [
+        {
+            'greeting': 'hello turbine',
+            'wind_speed': 'breezy'
+        },
+        {
+            'greeting': 'hello turbine',
+            'wind_speed': 'gusty'
+        }
+    ]
+
+    assert [l.ghosts for l in root_node.leaves] == expected_ghosts

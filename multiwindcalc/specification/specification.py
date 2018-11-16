@@ -80,7 +80,7 @@ class SpecificationMetadata:
 class SpecificationNode:
     """Tree node representation of the nodes of the specification
     """
-    def __init__(self, parent, property_name, property_value, path):
+    def __init__(self, parent, property_name, property_value, path, ghosts):
         """Initialses :class:`SpecificationNode`
 
         :param parent: The parent of this specification node.
@@ -91,6 +91,8 @@ class SpecificationNode:
         :type property_value: object
         :param path: The path to this specification node
         :type path: str
+        :param ghosts: Ghost (non-spawner) parameters for this node
+        :type ghosts: dict
         """
         self._parent = parent
         self._property_name = property_name
@@ -99,7 +101,8 @@ class SpecificationNode:
         if self._parent is not None:
             self._parent.add_child(self)
         self._path_part = path
-        self._collected_properties = self._collected_indices = None
+        self._ghosts = ghosts
+        self._collected_properties = self._collected_indices = self._collected_ghosts = None
         self._derived_path = None
         self._leaves = None
         self._root = None
@@ -115,7 +118,7 @@ class SpecificationNode:
         :returns: A root specification node (without parents)
         :rtype: :class:`SpecificationNode`
         """
-        return SpecificationNode(None, None, None, path)
+        return SpecificationNode(None, None, None, path, {})
     
     @property
     def parent(self):
@@ -205,6 +208,23 @@ class SpecificationNode:
         :rtype: object
         """
         return self._property_value
+    
+    @property
+    def ghosts(self):
+        """Returns the collected ghost parameters
+
+        :returns: The ghost parameters for this node
+        :rtype: dict
+        """
+        if self._collected_ghosts is None:
+            ghosts = {}
+            current_node = self
+            while not current_node.is_root:
+                # Ghosts lower down the tree supercede those higher up
+                ghosts = {**current_node._ghosts, **ghosts}
+                current_node = current_node.parent
+            self._collected_ghosts = ghosts
+        return self._collected_ghosts
     
     @property
     def index(self):
@@ -299,8 +319,8 @@ class SpecificationNode:
         return '{}({})'.format(type(self).__name__, properties)
 
 class ValueProxyNode(SpecificationNode):
-    def __init__(self, parent, name, value_proxy, path):
-        super().__init__(parent, name, value_proxy, path)
+    def __init__(self, parent, name, value_proxy, path, ghosts):
+        super().__init__(parent, name, value_proxy, path, ghosts)
         validate_type(value_proxy, ValueProxy, 'value_proxy')
     
     def evaluate(self):
@@ -310,18 +330,17 @@ class ValueProxyNode(SpecificationNode):
         Subsequently evaluates all children.
         """
         old_children = list(self.children)
-        # TODO: add ghost properties
-        property_values = self.collected_properties
+        property_values = {**self.ghosts, **self.collected_properties}
         values = evaluate(self._property_value, **property_values)
         self._children = [SpecificationNodeFactory().create(
-            self, self.property_name, values, self._path_part, old_children
+            self, self.property_name, values, self._path_part, self._ghosts, old_children
         )]
         for child in self.children:
             child.evaluate()
 
 class DictNode(SpecificationNode):
-    def __init__(self, parent, name, value, path):
-        super().__init__(parent, name, value, path)
+    def __init__(self, parent, name, value, path, ghosts):
+        super().__init__(parent, name, value, path, ghosts)
         validate_type(value, dict, 'value')
     
     def evaluate(self):
@@ -332,18 +351,18 @@ class DictNode(SpecificationNode):
         next_name = list(dict_value.keys())[0]
         next_value = dict_value.pop(next_name)
         if dict_value:
-            next_children = [node_factory.create(None, self.property_name, dict_value, self._path_part)]
+            next_children = [node_factory.create(None, self.property_name, dict_value, self._path_part, self._ghosts)]
         else:
             next_children = []
-        new_children = [node_factory.create(self, next_name, next_value, self._path_part, next_children)]
+        new_children = [node_factory.create(self, next_name, next_value, self._path_part, self._ghosts, next_children)]
         self._children = new_children
         for child in self.children:
             child.evaluate()
         self._property_value = None
 
 class ListNode(SpecificationNode):
-    def __init__(self, parent, name, value, path):
-        super().__init__(parent, name, value, path)
+    def __init__(self, parent, name, value, path, ghosts):
+        super().__init__(parent, name, value, path, ghosts)
         validate_type(value, list, 'value')
 
     def evaluate(self):
@@ -351,22 +370,24 @@ class ListNode(SpecificationNode):
         old_children = list(self.children)
         new_children = []
         for value in self.property_value:
-            new_children.append(node_factory.create(self, self.property_name, value, self._path_part, old_children))
+            new_children.append(node_factory.create(self, self.property_name, value, self._path_part, self._ghosts, old_children))
         self._children = new_children
         for child in self.children:
             child.evaluate()
         self._property_value = None
 
 class SpecificationNodeFactory:
-    def create(self, parent, name, value, path, children=[]):
+    def create(self, parent, name, value, path, ghosts, children=[]):
+        validate_type(ghosts, dict, 'ghosts')
+        validate_type(children, list, 'children')
         if isinstance(value, dict):
-            node = DictNode(parent, name, value, path)
+            node = DictNode(parent, name, value, path, ghosts)
         elif isinstance(value, list):
-            node = ListNode(parent, name, value, path)
+            node = ListNode(parent, name, value, path, ghosts)
         elif isinstance(value, ValueProxy):
-            node = ValueProxyNode(parent, name, value, path)
+            node = ValueProxyNode(parent, name, value, path, ghosts)
         else:
-            node = SpecificationNode(parent, name, value, path)
+            node = SpecificationNode(parent, name, value, path, ghosts)
         for child in children:
-            node.add_child(type(child)(node, child.property_name, child.property_value, child._path_part))
+            node.add_child(type(child)(node, child.property_name, child.property_value, child._path_part, ghosts))
         return node

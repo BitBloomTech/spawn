@@ -170,6 +170,7 @@ class SpecificationNodeParser:
         :rtype: :class:`SpecificationNode`
         """
         node_policies, node_spec = self._get_policies(node_spec)
+        ghost_parameters, node_spec = self._get_ghost_parameters(node_spec)
 
         parent = parent or SpecificationNode.create_root(node_policies.pop(PATH, None))
         if node_spec is None or node_spec == {}:
@@ -178,28 +179,28 @@ class SpecificationNodeParser:
         validate_type(node_spec, dict, 'node_spec')
 
         (name, value), next_node_spec = self._get_next_node(node_spec)
-        self._parse_value(parent, name, value, next_node_spec, node_policies)
+        self._parse_value(parent, name, value, next_node_spec, node_policies, ghost_parameters)
         return parent
 
-    def _parse_value(self, parent, name, value, next_node_spec, node_policies):
+    def _parse_value(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
         # combinator lookup
         if self._is_combinator(name):
-            self._parse_combinator(parent, name, value, next_node_spec, node_policies)
+            self._parse_combinator(parent, name, value, next_node_spec, node_policies, ghost_parameters)
         # list expansion
         elif isinstance(value, list):
             for val in value:
-                self._parse_value(parent, name, val, next_node_spec, node_policies)
+                self._parse_value(parent, name, val, next_node_spec, node_policies, ghost_parameters)
         # burrow into object
         elif isinstance(value, dict):
             self.parse(value, parent)
             self.parse(next_node_spec, parent)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
         elif isinstance(value, str) and self._is_value_proxy(value):
-            next_parent = ValueProxyNode(parent, name, self._evaluator_parser.parse(value), node_policies.pop(PATH, None))
+            next_parent = ValueProxyNode(parent, name, self._evaluator_parser.parse(value), node_policies.pop(PATH, None), ghost_parameters)
             self.parse(next_node_spec, next_parent)
         # simple single value
         else:
-            next_parent = self._node_factory.create(parent, name, value, node_policies.pop(PATH, None))
+            next_parent = self._node_factory.create(parent, name, value, node_policies.pop(PATH, None), ghost_parameters)
             self.parse(next_node_spec, next_parent)
 
     def _is_value_proxy(self, value):
@@ -215,12 +216,12 @@ class SpecificationNodeParser:
             #pylint: disable=line-too-long
             raise ValueError('prefix "{}" does not match combinator prefix "{}"'.format(prefix, COMBINATOR))
         if combinator not in self._combinators:
-            raise ValueError('combinator "{}" not found'.format(f))
+            raise ValueError('combinator "{}" not found'.format(combinator))
         return self._combinators[combinator]
 
-    def _parse_combinator(self, parent, name, value, next_node_spec, node_policies):
+    def _parse_combinator(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
         for node_spec in self._get_combinator(name)(value):
-            self._parse_value(parent, None, node_spec, next_node_spec, node_policies)
+            self._parse_value(parent, None, node_spec, next_node_spec, node_policies, ghost_parameters)
 
     def _get_next_node(self, node_spec):
         next_key = list(node_spec.keys())[0]
@@ -236,6 +237,22 @@ class SpecificationNodeParser:
         prefix = self._prefix(POLICY)
         policies = {k.replace(prefix, ''): v for k, v in node_spec.items() if k.startswith(prefix)}
         return policies, {k: v for k, v in node_spec.items() if not k.startswith(prefix)}
+    
+    def _get_ghost_parameters(self, node_spec):
+        if not node_spec:
+            return {}, {}
+        ghost_parameters = {self._deghost(k): v for k, v in node_spec.items() if self._is_ghost(k)}
+        return ghost_parameters, {k: v for k, v in node_spec.items() if not self._is_ghost(k)}
+    
+    @staticmethod
+    def _is_ghost(prop):
+        return prop.startswith(GHOST)
+
+    @staticmethod
+    def _deghost(prop):
+        if not SpecificationNodeParser._is_ghost(prop):
+            raise ValueError('Cannot deghost a non-ghost property')
+        return prop[1:]
 
     @staticmethod
     def _prefix(name):

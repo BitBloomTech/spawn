@@ -10,6 +10,7 @@ ZIP = 'zip'
 PRODUCT = 'product'
 POLICY = 'policy'
 PATH = 'path'
+GHOST = '_'
 
 GENERATOR_SHORT = '@'
 MACRO_SHORT = '$'
