@@ -120,6 +120,7 @@ def parser_with_incremental_int_generator():
 
 def test_can_use_generator_once(parser_with_incremental_int_generator):
     root_node = parser_with_incremental_int_generator.parse({'seed': '@MyGen'})
+    root_node.evaluate()
     collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
     assert collected_properties[0]['seed'] == 4
 
@@ -130,6 +131,7 @@ def test_can_use_generator_with_other_params(parser_with_incremental_int_generat
         'yaw_angle': [0.0, 10.0],
         'seed': 'gen:MyGen'
     })
+    root_node.evaluate()
     collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
     assert len(collected_properties) == 4
     for i in range(4):
@@ -141,6 +143,7 @@ def test_generator_persists(parser_with_incremental_int_generator):
         'a': {'wind_speed': 4.0, 'seed1': '@MyGen'},
         'b': {'wind_speed': 6.0, 'seed1': '@MyGen', 'seed2': 'gen:MyGen'}
     })
+    root_node.evaluate()
     collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
     assert collected_properties[0]['seed1'] == 4
     assert collected_properties[1]['seed1'] == 6
@@ -153,6 +156,7 @@ def test_emplaces_list_macro_correctly():
         'wind_speed': [6.0, 8.0],
         'yaw_angle': '$3directions'
     })
+    root_node.evaluate()
     collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
     assert len(collected_properties) == 6
     assert collected_properties[0]['wind_speed'] == 6.0
@@ -171,6 +175,7 @@ def test_emplaces_dict_macro_correctly():
         'wind_speed': [6.0, 8.0],
         'irrelevant': 'macro:idling'
     })
+    root_node.evaluate()
     collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
     assert len(collected_properties) == 2
     assert collected_properties[0]['wind_speed'] == 6.0
@@ -266,4 +271,71 @@ def test_node_with_overridden_properties_has_correct_path():
         'WS10.0/WD180.0',
         'WS12.0/WD180.0',
     }
+    root_node.evaluate()
     assert {leaf.path for leaf in root_node.leaves} == expected_paths
+
+def test_can_produce_range_of_items():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
+        'wind_speed': 'range(1, 3, 1)'
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 1},
+        {'wind_speed': 2},
+        {'wind_speed': 3},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_produce_range_of_items_combined_with_list():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
+        'wind_speed': 'range(1, 3, 1)',
+        'wind_direction': [0.0, 180.0]
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 1, 'wind_direction': 0.0},
+        {'wind_speed': 1, 'wind_direction': 180.0},
+        {'wind_speed': 2, 'wind_direction': 0.0},
+        {'wind_speed': 2, 'wind_direction': 180.0},
+        {'wind_speed': 3, 'wind_direction': 0.0},
+        {'wind_speed': 3, 'wind_direction': 180.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_produce_range_of_items_stopped_at_macro():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'wind_speed': 'range(1, $vref, 1.5)',
+        'wind_direction': [0.0, 180.0]
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 1, 'wind_direction': 0.0},
+        {'wind_speed': 1, 'wind_direction': 180.0},
+        {'wind_speed': 2.5, 'wind_direction': 0.0},
+        {'wind_speed': 2.5, 'wind_direction': 180.0},
+        {'wind_speed': 4, 'wind_direction': 0.0},
+        {'wind_speed': 4, 'wind_direction': 180.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_produce_range_of_items_stopped_at_property():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'top_speed': [1.5, 3.0, '$vref'],
+        'wind_speed': 'range(0, !top_speed, 1.5)',
+    })
+    root_node.evaluate()
+    expected = [
+        {'top_speed': 1.5, 'wind_speed': 0.0},
+        {'top_speed': 1.5, 'wind_speed': 1.5},
+        {'top_speed': 3.0, 'wind_speed': 0.0},
+        {'top_speed': 3.0, 'wind_speed': 1.5},
+        {'top_speed': 3.0, 'wind_speed': 3.0},
+        {'top_speed': 4.0, 'wind_speed': 0.0},
+        {'top_speed': 4.0, 'wind_speed': 1.5},
+        {'top_speed': 4.0, 'wind_speed': 3.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties

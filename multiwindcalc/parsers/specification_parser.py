@@ -3,28 +3,29 @@
 from os import path
 from json import load
 
-from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode
-from ..specification import Macro
+from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode, Macro, ValueProxyNode, SpecificationNodeFactory
 from ..specification.combinators import zip_properties, product
+from ..specification.evaluators import (
+    RangeEvaluator, RepeatEvaluator, MultiplyEvaluator,
+    DivideEvaluator, AddEvaluator, SubtractEvaluator
+)
+from .evaluators import EvaluatorParser
 from .generators import GeneratorsParser
+from .constants import *
 from ..util.validation import validate_type, validate_file
-
-COMBINATOR = 'combine'
-GENERATOR = 'gen'
-MACRO = 'macro'
-ZIP = 'zip'
-PRODUCT = 'product'
-POLICY = 'policy'
-PATH = 'path'
-
-SHORT_FORM_EXPANSION = {
-    '@': GENERATOR,
-    '$': MACRO
-}
 
 DEFAULT_COMBINATORS = {
     ZIP: zip_properties,
     PRODUCT: product
+}
+
+EVALUATOR_LIB = {
+    RANGE: RangeEvaluator,
+    REPEAT: RepeatEvaluator,
+    MULTIPLY: MultiplyEvaluator,
+    DIVIDE: DivideEvaluator,
+    ADD: AddEvaluator,
+    SUBTRACT: SubtractEvaluator
 }
 
 class SpecificationDescriptionProvider:
@@ -113,6 +114,7 @@ class SpecificationParser:
         value_libraries = self._get_value_libraries(description)
         node_parser = SpecificationNodeParser(value_libraries, self._get_combinators(), default_combinator=PRODUCT)
         root_node = node_parser.parse(description.get('spec'))
+        root_node.evaluate()
         return SpecificationModel(description.get('base_file'), root_node, metadata)
 
     @staticmethod
@@ -121,7 +123,8 @@ class SpecificationParser:
         macro_lib = {k: Macro(v) for k, v in description.get('macros', {}).items()}
         return {
             GENERATOR: generator_lib,
-            MACRO: macro_lib
+            MACRO: macro_lib,
+            EVALUATOR: EVALUATOR_LIB
         }
 
     @staticmethod
@@ -150,6 +153,8 @@ class SpecificationNodeParser:
         self._value_libraries = value_libraries or {}
         self._combinators = combinators or {}
         self._default_combinator = default_combinator
+        self._evaluator_parser = EvaluatorParser(self._value_libraries)
+        self._node_factory = SpecificationNodeFactory()
 
     def parse(self, node_spec, parent=None):
         """Parse the `node_spec`, and expand its children.
@@ -180,7 +185,7 @@ class SpecificationNodeParser:
         # combinator lookup
         if self._is_combinator(name):
             self._parse_combinator(parent, name, value, next_node_spec, node_policies)
-        # # list expansion
+        # list expansion
         elif isinstance(value, list):
             for val in value:
                 self._parse_value(parent, name, val, next_node_spec, node_policies)
@@ -190,38 +195,19 @@ class SpecificationNodeParser:
             self.parse(next_node_spec, parent)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
         elif isinstance(value, str) and self._is_value_proxy(value):
-            type_str, lookup_str = self._get_value_proxy(value)
-            self._parse_value_proxy(next_node_spec, parent, name, type_str, lookup_str, node_policies)
+            next_parent = ValueProxyNode(parent, name, self._evaluator_parser.parse(value), node_policies.pop(PATH, None))
+            self.parse(next_node_spec, next_parent)
         # simple single value
         else:
-            next_parent = SpecificationNode(parent, name, value, node_policies.pop(PATH, None))
+            next_parent = self._node_factory.create(parent, name, value, node_policies.pop(PATH, None))
             self.parse(next_node_spec, next_parent)
 
     def _is_value_proxy(self, value):
-        if value[0] in SHORT_FORM_EXPANSION:
-            prefix = SHORT_FORM_EXPANSION[value[0]]
-        else:
-            prefix, _ = self._parts(value)
-        return prefix in self._value_libraries
+        return self._evaluator_parser.is_evaluator(value)
 
     def _is_combinator(self, value):
         is_equal = lambda f: value == '{}{}'.format(self._prefix(COMBINATOR), f)
         return any(map(is_equal, self._combinators.keys()))
-
-    def _get_value_proxy(self, value_str):
-        if value_str[0] in SHORT_FORM_EXPANSION:
-            return SHORT_FORM_EXPANSION[value_str[0]], value_str[1:]
-        lib, name = self._parts(value_str)
-        if lib not in self._value_libraries:
-            #pylint:disable=line-too-long
-            raise KeyError('Library identifier "{}" not found when parsing RHS value string "{}"'.format(lib, value_str))
-        return lib, name
-
-    def _parse_value_proxy(self, next_node_spec, parent, name, type_str, lookup_str, node_policies):
-        if lookup_str not in self._value_libraries[type_str]:
-            raise LookupError('Look-up string "{}" not found in "{}" library'.format(lookup_str, type_str))
-        value = self._value_libraries[type_str][lookup_str].evaluate()
-        self._parse_value(parent, name, value, next_node_spec, node_policies)
 
     def _get_combinator(self, name):
         prefix, combinator = self._parts(name)

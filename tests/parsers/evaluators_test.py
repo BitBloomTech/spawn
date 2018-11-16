@@ -4,6 +4,7 @@ from multiwindcalc.parsers.evaluators import *
 from multiwindcalc.specification.evaluators import *
 from multiwindcalc.specification.value_proxy import *
 from multiwindcalc.specification.generator_methods import *
+from multiwindcalc.parsers.constants import EVALUATOR, GENERATOR, MACRO
 
 @pytest.fixture
 def parser():
@@ -21,7 +22,12 @@ def parser():
     generator_library = {
         'seed': IncrementalInt()
     }
-    return EvaluatorParser(evaluator_library, macro_library, generator_library)
+    libraries = {
+        EVALUATOR: evaluator_library,
+        MACRO: macro_library,
+        GENERATOR: generator_library
+    }
+    return EvaluatorParser(libraries)
 
 def test_parser_returns_evaluator_for_valid_string(parser):
     assert isinstance(parser.parse('range(1, 10, 1)'), RangeEvaluator)

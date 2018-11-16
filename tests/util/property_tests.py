@@ -170,7 +170,6 @@ def test_custom_deleter_resets_value_to_default(obj):
     assert obj.decorated_int == 0
 
 def test_getter_and_setter_can_be_overridden(obj, derived_obj):
-    print(Dummy.basic_int._fget)
     assert obj.basic_int is None
     assert derived_obj.basic_int == 0
     derived_obj.basic_int = 42

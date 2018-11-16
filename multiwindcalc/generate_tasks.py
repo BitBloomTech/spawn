@@ -31,7 +31,7 @@ def generate_tasks_from_spec(task_spawner, node, base_path):
     """Generate list of luigi.Task for a multiwindcalc.SpecificationNode"""
     if not isinstance(node, SpecificationNode):
         raise ValueError('node must be of type ' + SpecificationNode.__name__)
-    if not node.is_root:
+    if node.has_property:
         value = _check_type(task_spawner, node.property_name, node.property_value)
         setattr(task_spawner, node.property_name, value)
     if not node.children:   # (leaf)

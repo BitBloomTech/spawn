@@ -3,7 +3,9 @@
 from abc import abstractmethod
 import inspect
 
-from multiwindcalc.specification import ValueProxy
+import numpy as np
+
+from multiwindcalc.specification import ValueProxy, evaluate
 
 class Evaluator(ValueProxy):
     """Evaluator base class implementation of :class:`ValueProxy`
@@ -32,7 +34,7 @@ class Evaluator(ValueProxy):
             return self._evaluate(*args)
     
     def _evaluate_arg(self, arg, **kwargs):
-        return arg.evaluate(**kwargs) if isinstance(arg, ValueProxy) else arg
+        return evaluate(arg, **kwargs) if isinstance(arg, ValueProxy) else arg
 
     @abstractmethod
     def _evaluate(self, *args):
@@ -42,7 +44,9 @@ class RangeEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that returns a range from range_min up to and including range_max, in steps of range_step
     """
     def _evaluate(self, range_min, range_max, range_step):
-        return list(range(range_min, range_max + range_step, range_step))
+        values = np.arange(range_min, range_max + range_step, range_step)
+        values = values[values <= range_max]
+        return list(values)
 
 class MultiplyEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that multiplies two numbers
