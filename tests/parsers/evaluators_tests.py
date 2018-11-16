@@ -42,10 +42,10 @@ def test_parser_returns_correct_result_containing_macros(parser):
     assert parser.parse('range(1, $VRef, 1)').evaluate() == list(range(1, 6, 1))
 
 def test_evaluation_of_parameters(parser):
-    assert parser.parse('value').evaluate(value=42) == 42
+    assert parser.parse('!value').evaluate(value=42) == 42
 
 def test_evaluation_of_parameters_as_argumnts(parser):
-    assert parser.parse('range(1, upper, step)').evaluate(upper=4, step=1) == list(range(1, 5, 1))
+    assert parser.parse('range(1, !upper, !step)').evaluate(upper=4, step=1) == list(range(1, 5, 1))
 
 def test_evaluation_of_generator(parser):
     evaluator = parser.parse('@seed')
