@@ -66,7 +66,7 @@ class SpecificationMetadata:
 class SpecificationNode:
     """Tree node representation of the nodes of the specification
     """
-    def __init__(self, parent, property_name, property_value, path):
+    def __init__(self, parent, property_name, property_value, path, ghosts):
         """Initialses :class:`SpecificationNode`
 
         :param parent: The parent of this specification node.
@@ -77,6 +77,8 @@ class SpecificationNode:
         :type property_value: object
         :param path: The path to this specification node
         :type path: str
+        :param ghosts: Ghost (non-spawner) parameters for this node
+        :type ghosts: dict
         """
         self._parent = parent
         self._property_name = property_name
@@ -85,7 +87,8 @@ class SpecificationNode:
         if self._parent is not None:
             self._parent.add_child(self)
         self._path_part = path
-        self._collected_properties = self._collected_indices = None
+        self._ghosts = ghosts
+        self._collected_properties = self._collected_indices = self._collected_ghosts = None
         self._derived_path = None
         self._leaves = None
         self._root = None
@@ -101,7 +104,7 @@ class SpecificationNode:
         :returns: A root specification node (without parents)
         :rtype: :class:`SpecificationNode`
         """
-        return SpecificationNode(None, None, None, path)
+        return SpecificationNode(None, None, None, path, {})
     
     @property
     def parent(self):
@@ -181,6 +184,23 @@ class SpecificationNode:
         :rtype: object
         """
         return self._property_value
+    
+    @property
+    def ghosts(self):
+        """Returns the collected ghost parameters
+
+        :returns: The ghost parameters for this node
+        :rtype: dict
+        """
+        if self._collected_ghosts is None:
+            ghosts = {}
+            current_node = self
+            while not current_node.is_root:
+                # Ghosts lower down the tree supercede those higher up
+                ghosts = {**current_node._ghosts, **ghosts}
+                current_node = current_node.parent
+            self._collected_ghosts = ghosts
+        return self._collected_ghosts
     
     @property
     def index(self):
