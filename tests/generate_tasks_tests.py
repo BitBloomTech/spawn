@@ -1,13 +1,12 @@
 from os import path
 import numpy as np
-from tests.component_tests import example_data_folder, create_spawner
 from multiwindcalc.generate_tasks import generate_tasks_from_spec
-from multiwindcalc.tasks.simulation import SimulationTask, WindGenerationTask
+from multiwindcalc.tasks.simulation import SimulationTask
+from multiwindcalc.plugins.wind.nrel import WindGenerationTask, FastSimulationSpawner
 from multiwindcalc.parsers import *
 
 
-def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir):
-    spawner = create_spawner()
+def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir, spawner):
     run_spec = {'wind_speed': list(np.arange(4.0, 15.0, 2.0))}
     root_node = SpecificationNodeParser().parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
@@ -21,8 +20,7 @@ def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir):
         assert 'wind_speed' in t.metadata
 
 
-def test_can_create_runs_from_tree_spec(tmpdir):
-    spawner = create_spawner()
+def test_can_create_runs_from_tree_spec(tmpdir, spawner, example_data_folder):
     input_path = path.join(example_data_folder, 'iec_fatigue_spec.json')
     spec_model = SpecificationParser(SpecificationFileReader(input_path)).parse()
     runs = generate_tasks_from_spec(spawner, spec_model.root_node, tmpdir.strpath)

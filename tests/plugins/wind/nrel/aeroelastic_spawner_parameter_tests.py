@@ -6,8 +6,7 @@ import numpy as np
 import math
 import luigi
 from wetb.fast import fast_io
-from multiwindcalc.simulation_inputs.nrel_simulation_input import FastInput, TurbsimInput
-from multiwindcalc.spawners import FastSimulationSpawner, TurbsimSpawner
+from multiwindcalc.plugins.wind.nrel import FastInput, TurbsimInput, FastSimulationSpawner, TurbsimSpawner
 import example_data
 
 

@@ -2,7 +2,7 @@
 """
 from os import path
 import csv
-from multiwindcalc.simulation_inputs.simulation_input import SimulationInput
+from multiwindcalc.simulation_inputs import SimulationInput
 
 
 def _absolutise_path(line, root_dir, local_path):

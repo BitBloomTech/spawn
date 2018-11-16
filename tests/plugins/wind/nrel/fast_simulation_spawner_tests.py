@@ -1,24 +1,17 @@
 from os import path, makedirs
 import tempfile
 import pytest
-from multiwindcalc.tasks.simulation import WindGenerationTask
-from multiwindcalc.spawners import TurbsimSpawner, FastSimulationSpawner
-from multiwindcalc.simulation_inputs.nrel_simulation_input import FastInput, TurbsimInput
-from ..component_tests import example_data_folder
-
-__examples_folder = path.join(example_data_folder, 'fast_input_files')
-__turbsim_exe = path.join(example_data_folder, 'TurbSim.exe')
-__fast_exe = path.join(example_data_folder, 'FASTv7.0.2.exe')
+from multiwindcalc.plugins.wind.nrel import TurbsimSpawner, FastSimulationSpawner, FastInput, TurbsimInput, WindGenerationTask
 
 
 @pytest.fixture(scope='function')
-def turbsim_input():
-    return TurbsimInput.from_file(path.join(__examples_folder, 'TurbSim.inp'))
+def turbsim_input(examples_folder):
+    return TurbsimInput.from_file(path.join(examples_folder, 'TurbSim.inp'))
 
 
 @pytest.fixture(scope='function')
-def fast_input():
-    return FastInput.from_file(path.join(__examples_folder, 'NRELOffshrBsline5MW_Onshore.fst'))
+def fast_input(examples_folder):
+    return FastInput.from_file(path.join(examples_folder, 'NRELOffshrBsline5MW_Onshore.fst'))
 
 
 def test_can_spawn_turbsim_task(turbsim_input):

@@ -110,7 +110,7 @@ class SpecificationParser:
         :rtype: :class:`SpecificationModel`
         """
         description = self._provider.get()
-        metadata = SpecificationMetadata(description.get('creation_time'), description.get('notes'))
+        metadata = SpecificationMetadata(description.get('type'), description.get('creation_time'), description.get('notes'))
         value_libraries = self._get_value_libraries(description)
         node_parser = SpecificationNodeParser(value_libraries, self._get_combinators(), default_combinator=PRODUCT)
         root_node = node_parser.parse(description.get('spec'))

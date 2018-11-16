@@ -3,10 +3,12 @@
 import os
 from os import path
 import copy
-from multiwindcalc.simulation_inputs.nrel_simulation_input import AerodynInput
-from multiwindcalc.tasks.simulation import FastSimulationTask
-from multiwindcalc.spawners.aeroelastic_simulation import AeroelasticSimulationSpawner
+
+from multiwindcalc.plugins.wind import AeroelasticSimulationSpawner
 from multiwindcalc.util import quote
+
+from .simulation_input import AerodynInput
+from .tasks import FastSimulationTask
 
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
     """Spawns FAST simulation tasks with wind generation dependency if necessary"""
