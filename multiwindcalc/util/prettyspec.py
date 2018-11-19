@@ -19,7 +19,11 @@ def _prettyspec_impl(spec, indent, outstream):
         for node in spec['spec']:
             _prettyspec_impl(node, indent, outstream)
     if 'name' in spec and 'value' in spec:
-        outstream.write('{}{}: {}'.format(INDENT * indent, spec['name'], spec['value']))
+        if 'index' in spec:
+            name = '{}[{}]'.format(spec['name'], spec['index'])
+        else:
+            name = spec['name']
+        outstream.write('{}{}: {}'.format(INDENT * indent, name, spec['value']))
     if spec.get('path'):
         outstream.write(' | path: {}'.format(spec['path']))
     outstream.write('\n')

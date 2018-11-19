@@ -1,6 +1,6 @@
 """Converters for :class:`SpecificationModel`s
 """
-from .specification import SpecificationModel, SpecificationNode, SpecificationMetadata
+from .specification import SpecificationModel, SpecificationNode, SpecificationMetadata, IndexedNode
 from multiwindcalc.util.validation import validate_type
 
 class SpecificationConverter:
@@ -50,6 +50,8 @@ class DictSpecificationConverter(SpecificationConverter):
             'name': node.property_name,
             'value': node.property_value
         }
+        if isinstance(node, IndexedNode):
+            node_dict['index'] = node.index
         if node.children:
             children = []
             for child_node in node.children:

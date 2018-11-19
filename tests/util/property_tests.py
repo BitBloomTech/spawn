@@ -5,6 +5,8 @@ from multiwindcalc.util.property import *
 class Dummy:
     def __init__(self):
         self._decorated_int = 42
+        self._decorated_array = [None, None, None]
+        self._validated_array = [None, None, None]
 
     basic_int = IntProperty()
     basic_float = FloatProperty()
@@ -17,6 +19,8 @@ class Dummy:
     regex_string = StringProperty(regex='[a-z]+')
 
     abstract_int = IntProperty(abstract=True)
+
+    float_list = ArrayProperty(float)
 
     @StringProperty(readonly=True)
     def readonly_string(self):
@@ -39,6 +43,27 @@ class Dummy:
     @decorated_int.deleter
     def decorated_int(self):
         self._decorated_int = 0
+
+    @ArrayProperty(float)
+    def decorated_array(self, index):
+        return self._decorated_array[index]
+    
+    @decorated_array.setter
+    def decorated_array(self, index, value):
+        self._decorated_array[index] = value
+
+    @ArrayProperty(int)
+    def validated_array(self, index):
+        return self._validated_array[index]
+    
+    @validated_array.setter
+    def validated_array(self, index, value):
+        self._validated_array[index] = value
+    
+    @validated_array.validator
+    def validated_array(self, index, value):
+        if value % 2 != 0:
+            raise ValueError('Must be even!')
 
 class DummyDerived(Dummy):
     def __init__(self):
@@ -156,7 +181,7 @@ def test_custom_validation_method_raises_if_invalid(obj):
         obj.decorated_int = 13
 
 def test_can_set_valid_value_on_decorated_int(obj):
-    obj.decorated_int = 12
+    obj.decorated_int = 12  
     assert obj.decorated_int == 12
 
 def test_deleting_a_set_object_sets_value_to_none(obj):
@@ -216,3 +241,36 @@ def test_cannot_set_readonly_property(obj):
 
 def test_can_get_readonly_property(obj):
     assert obj.readonly_string == 'I am readonly'
+
+def test_can_set_float_list_index(obj):
+    obj.float_list[0] = 42.0
+    assert obj.float_list[0] == 42.0
+
+def test_can_set_non_zero_index_on_float_list(obj):
+    obj.float_list[1] = 42.0
+    assert obj.float_list[0] is None
+    assert obj.float_list[1] == 42.0
+
+def test_can_initialise_to_list(obj):
+    obj.float_list = [0.0, 1.0, 2.0]
+    assert obj.float_list[2] == 2.0
+
+def test_raises_error_for_incorrect_type(obj):
+    with pytest.raises(TypeError):
+        obj.float_list[2] = 'hello'
+
+def test_can_set_decorated_array(obj):
+    obj.decorated_array[2] = 3.0
+    assert obj._decorated_array == [None, None, 3.0]
+    assert obj.decorated_array[0] is None
+    assert obj.decorated_array[1] is None
+    assert obj.decorated_array[2] == 3.0
+
+def test_value_error_for_non_even_value_in_validated_array(obj):
+    with pytest.raises(ValueError):
+        obj.validated_array[0] = 1
+    
+def test_van_set_even_value_on_validated_array(obj):
+    obj.validated_array[1] = 42
+    assert obj.validated_array[1] == 42
+    assert obj.validated_array[2] is None
