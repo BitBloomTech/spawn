@@ -11,7 +11,7 @@
       "policy:path": "WS_{wind_speed}/WD_{wind_direction}",
       "operation_mode": "normal",
       "wind_speed": [4.0, 5.0, 6.0],
-      "wind_direction": -10.0,
+      "wind_direction": [-10.0, 0.0, 10.0],
       "turbulence_seed": "@TurbulenceSeed"
     }
   }
