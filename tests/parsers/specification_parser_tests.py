@@ -276,7 +276,7 @@ def test_node_with_overridden_properties_has_correct_path():
 
 def test_can_produce_range_of_items():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
-        'wind_speed': 'range(1, 3, 1)'
+        'wind_speed': '#range(1, 3, 1)'
     })
     root_node.evaluate()
     expected = [
@@ -289,7 +289,7 @@ def test_can_produce_range_of_items():
 
 def test_can_produce_range_of_items_combined_with_list():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
-        'wind_speed': 'range(1, 3, 1)',
+        'wind_speed': '#range(1, 3, 1)',
         'wind_direction': [0.0, 180.0]
     })
     root_node.evaluate()
@@ -306,7 +306,7 @@ def test_can_produce_range_of_items_combined_with_list():
 
 def test_can_produce_range_of_items_stopped_at_macro():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
-        'wind_speed': 'range(1, $vref, 1.5)',
+        'wind_speed': '#range(1, $vref, 1.5)',
         'wind_direction': [0.0, 180.0]
     })
     root_node.evaluate()
@@ -321,10 +321,49 @@ def test_can_produce_range_of_items_stopped_at_macro():
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
 
+def test_can_do_multiplication_with_evaluator():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'wind_speed': '#5 * 3',
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 15.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_multiply_property():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'wind_speed': [0.0, 10.0, 20.0],
+        'wind_direction': '!wind_speed * 18'
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 0.0, 'wind_direction': 0.0},
+        {'wind_speed': 10.0, 'wind_direction': 180.0},
+        {'wind_speed': 20.0, 'wind_direction': 360.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_multiply_macro():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'wind_speed': [0.0, 10.0, 20.0],
+        'wind_direction': '$vref * 1.5'
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 0.0, 'wind_direction': 6.0},
+        {'wind_speed': 10.0, 'wind_direction': 6.0},
+        {'wind_speed': 20.0, 'wind_direction': 6.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
 def test_can_produce_range_of_items_stopped_at_property():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
         'top_speed': [1.5, 3.0, '$vref'],
-        'wind_speed': 'range(0, !top_speed, 1.5)',
+        'wind_speed': '#range(0, !top_speed, 1.5)',
     })
     root_node.evaluate()
     expected = [
@@ -343,7 +382,7 @@ def test_can_produce_range_of_items_stopped_at_property():
 def test_can_produce_range_of_items_stopped_at_ghost():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
         '_top_speed': 4.5,
-        'wind_speed': 'range(0, !top_speed, 1.5)',
+        'wind_speed': '#range(0, !top_speed, 1.5)',
     })
     root_node.evaluate()
     expected = [
