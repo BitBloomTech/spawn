@@ -1,6 +1,6 @@
 """Converters for :class:`SpecificationModel`s
 """
-from .specification import SpecificationModel, SpecificationNode, SpecificationMetadata
+from .specification import SpecificationModel, SpecificationNode, SpecificationMetadata, IndexedNode
 from multiwindcalc.util.validation import validate_type
 
 class SpecificationConverter:
@@ -32,7 +32,7 @@ class DictSpecificationConverter(SpecificationConverter):
         return {
             'base_file': spec.base_file,
             'metadata': self._convert_metadata(spec.metadata),
-            'spec': [self._convert_node(c) for c in spec.root_node.children]
+            'spec': sum([self._convert_node(c) for c in spec.root_node.children], [])
         }
     
     def _convert_metadata(self, metadata):
@@ -44,12 +44,20 @@ class DictSpecificationConverter(SpecificationConverter):
     
     def _convert_node(self, node):
         validate_type(node, SpecificationNode, 'node')
+        if not node.has_property:
+            return sum([self._convert_node(c) for c in node.children], [])
         node_dict = {
             'name': node.property_name,
             'value': node.property_value
         }
+        if isinstance(node, IndexedNode):
+            node_dict['index'] = node.index
         if node.children:
-            node_dict['children'] = [self._convert_node(c) for c in node.children]
+            children = []
+            for child_node in node.children:
+                next_children = self._convert_node(child_node)
+                children += next_children
+            node_dict['children'] = children
         else:
             node_dict['path'] = node.path
-        return node_dict
+        return [node_dict]
