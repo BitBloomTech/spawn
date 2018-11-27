@@ -9,7 +9,7 @@ from ..specification.evaluators import (
     RangeEvaluator, RepeatEvaluator, MultiplyEvaluator,
     DivideEvaluator, AddEvaluator, SubtractEvaluator
 )
-from .evaluators import EvaluatorParser
+from .value_proxy import ValueProxyParser
 from .generators import GeneratorsParser
 from .constants import *
 from ..util.validation import validate_type, validate_file
@@ -153,7 +153,7 @@ class SpecificationNodeParser:
         self._value_libraries = value_libraries or {}
         self._combinators = combinators or {}
         self._default_combinator = default_combinator
-        self._evaluator_parser = EvaluatorParser(self._value_libraries)
+        self._value_proxy_parser = ValueProxyParser(self._value_libraries)
         self._node_factory = SpecificationNodeFactory()
 
     def parse(self, node_spec, parent=None):
@@ -196,7 +196,7 @@ class SpecificationNodeParser:
             self.parse(next_node_spec, parent)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
         elif isinstance(value, str) and self._is_value_proxy(value):
-            next_parent = ValueProxyNode(parent, name, self._evaluator_parser.parse(value), node_policies.pop(PATH, None), ghost_parameters)
+            next_parent = ValueProxyNode(parent, name, self._value_proxy_parser.parse(value), node_policies.pop(PATH, None), ghost_parameters)
             self.parse(next_node_spec, next_parent)
         # simple single value
         else:
@@ -204,7 +204,7 @@ class SpecificationNodeParser:
             self.parse(next_node_spec, next_parent)
 
     def _is_value_proxy(self, value):
-        return self._evaluator_parser.is_evaluator(value)
+        return self._value_proxy_parser.is_value_proxy(value)
 
     def _is_combinator(self, value):
         is_equal = lambda f: value == '{}{}'.format(self._prefix(COMBINATOR), f)
