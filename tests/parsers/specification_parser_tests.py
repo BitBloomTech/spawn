@@ -3,6 +3,7 @@ import pytest
 from multiwindcalc.specification.generator_methods import *
 from multiwindcalc.specification.combinators import *
 from multiwindcalc.parsers.specification_parser import *
+from multiwindcalc.specification.specification import *
 
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):
@@ -444,3 +445,13 @@ def test_can_use_macro_list_elements_in_addition():
     ]
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
+
+def test_adding_index_property_produces_index_node():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'pitch[1]': 2.3
+    })
+
+    assert isinstance(root_node.leaves[0], IndexedNode)
+    assert root_node.leaves[0].index == 1
+    assert root_node.leaves[0].property_name == 'pitch'
+    assert root_node.leaves[0].property_value == 2.3

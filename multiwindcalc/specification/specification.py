@@ -1,6 +1,7 @@
 """Classes describing the specification
 """
 from copy import deepcopy
+import re
 
 from multiwindcalc.util import PathBuilder
 from multiwindcalc.util.validation import validate_type
@@ -318,6 +319,27 @@ class SpecificationNode:
         properties = ', '.join('{}={}'.format(k, getattr(self, k)) for k in ['property_name', 'property_value', 'children'])
         return '{}({})'.format(type(self).__name__, properties)
 
+class IndexedNode(SpecificationNode):
+    def __init__(self, parent, name, index, value, path, ghosts):
+        super().__init__(parent, name, value, path, ghosts)
+        validate_type(index, int, 'index')
+        self._index = index
+    
+    @property
+    def index(self):
+        """Returns the index for this indexed property
+        """
+        return self._index
+    
+    @property
+    def has_property(self):
+        """Returns ``True`` if this instance has a property
+        
+        Override the base class behaviour for :method:`has_property` to show that
+        this node has a property
+        """
+        return True
+
 class ValueProxyNode(SpecificationNode):
     def __init__(self, parent, name, value_proxy, path, ghosts):
         super().__init__(parent, name, value_proxy, path, ghosts)
@@ -387,7 +409,23 @@ class SpecificationNodeFactory:
         elif isinstance(value, ValueProxy):
             node = ValueProxyNode(parent, name, value, path, ghosts)
         else:
-            node = SpecificationNode(parent, name, value, path, ghosts)
+            name_index = self._index(name)
+            if name_index is not None:
+                name, index = name_index
+                node = IndexedNode(parent, name, index, value, path, ghosts)
+            else:
+                node = SpecificationNode(parent, name, value, path, ghosts)
         for child in children:
             node.add_child(type(child)(node, child.property_name, child.property_value, child._path_part, ghosts))
         return node
+    
+    @staticmethod
+    def _index(name):
+        match = re.search(r'(?P<name>.*)\[(?P<index>\d+)\]', name)
+        if match:
+            index_str = match.group('index')
+            try:
+                return match.group('name'), int(index_str)
+            except:
+                pass
+        return None

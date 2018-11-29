@@ -2,6 +2,9 @@
 """
 import re
 import copy
+import functools
+
+from multiwindcalc.util.validation import validate_type
 
 def typed_property(type_):
     """Function decorator for :class:`TypedProperty`
@@ -25,11 +28,9 @@ def string_property(fget):
     """
     return StringProperty(fget)
 
-class TypedProperty:
-    """Base class for typed properties
-    """
+class PropertyBase:
     def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
-        """Initialises :class:`TypedProperty`
+        """Initialises :class:`PropertyBase`
 
         :param fget: Getter function for property
         :type fget: func
@@ -56,6 +57,9 @@ class TypedProperty:
         self._name = None
         self._abstract = abstract
         self._readonly = readonly
+
+    def __set_name__(self, _obj, name):
+        self._name = name
     
     @property
     def type(self):
@@ -66,59 +70,7 @@ class TypedProperty:
         """
         return self._type
 
-    def __set_name__(self, _obj, name):
-        self._name = name
 
-    def __get__(self, obj, _type=None):
-        if obj is None:
-            return self
-        if self._name is None:
-            raise ValueError('Cannot get property, name has not been set')
-        if hasattr(obj, self._get_fname('get')):
-            return getattr(obj, self._get_fname('get'))()
-        if self._fget:
-            return self._fget(obj)
-        if self._abstract:
-            raise NotImplementedError()
-        return obj.__dict__.get(self._name, self._default)
-    
-    def __set__(self, obj, value):
-        if obj is None:
-            return
-        if self._name is None:
-            raise ValueError('Cannot set property, name has not been set')
-        if self._readonly:
-            raise NotImplementedError()
-        self._validate(obj, value)
-        if hasattr(obj, self._get_fname('validate')):
-            getattr(obj, self._get_fname('validate'))(value)
-        elif self._fvalidate:
-            self._fvalidate(obj, value)
-        if hasattr(obj, self._get_fname('set')):
-            getattr(obj, self._get_fname('set'))(value)
-        elif self._fset:
-            self._fset(obj, value)
-        elif self._abstract:
-            raise NotImplementedError()
-        else:
-            obj.__dict__[self._name] = value
-    
-    def __delete__(self, obj):
-        if self._name is None:
-            raise ValueError('Cannot delete property, name has not been set')
-        if hasattr(obj, self._get_fname('delete')):
-            getattr(obj, self._get_fname('delete'))()
-        elif self._fdel:
-            self._fdel(obj)
-        elif self._abstract:
-            raise NotImplementedError()
-        else:
-            del obj.__dict__[self._name]
-    
-    def _validate(self, obj, value):
-        if not isinstance(value, self._type):
-            raise TypeError('value')
-    
     def getter(self, fget):
         """Acts as a function decorator to provide a :class:`TypedProperty` with a getter
 
@@ -174,6 +126,79 @@ class TypedProperty:
 
     def __call__(self, fget):
         return self.getter(fget)
+
+class TypedProperty(PropertyBase):
+    """Base class for typed properties
+    """
+    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
+        """Initialises :class:`TypedProperty`
+
+        :param fget: Getter function for property
+        :type fget: func
+        :param fset: Setter function for property
+        :type fset: func
+        :param fdel: Deleter function for property
+        :type fdel: func
+        :param fvalidate: Validation function for property
+        :type fvalidate: func
+        :param default: The default value for this property
+        :type default: object
+        :parm doc: The docstring for this property
+        :type doc: str
+        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :type abstract: bool
+        """
+        super().__init__(type_, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
+
+    def __get__(self, obj, _type=None):
+        if obj is None:
+            return self
+        if self._name is None:
+            raise ValueError('Cannot get property, name has not been set')
+        if hasattr(obj, self._get_fname('get')):
+            return getattr(obj, self._get_fname('get'))()
+        if self._fget:
+            return self._fget(obj)
+        if self._abstract:
+            raise NotImplementedError()
+        return obj.__dict__.get(self._name, self._default)
+    
+    def __set__(self, obj, value):
+        if obj is None:
+            return
+        if self._name is None:
+            raise ValueError('Cannot set property, name has not been set')
+        if self._readonly:
+            raise NotImplementedError()
+        self._validate(obj, value)
+        if hasattr(obj, self._get_fname('validate')):
+            getattr(obj, self._get_fname('validate'))(value)
+        elif self._fvalidate:
+            self._fvalidate(obj, value)
+        if hasattr(obj, self._get_fname('set')):
+            getattr(obj, self._get_fname('set'))(value)
+        elif self._fset:
+            self._fset(obj, value)
+        elif self._abstract:
+            raise NotImplementedError()
+        else:
+            obj.__dict__[self._name] = value
+    
+    def __delete__(self, obj):
+        if self._name is None:
+            raise ValueError('Cannot delete property, name has not been set')
+        if hasattr(obj, self._get_fname('delete')):
+            getattr(obj, self._get_fname('delete'))()
+        elif self._fdel:
+            self._fdel(obj)
+        elif self._abstract:
+            raise NotImplementedError()
+        else:
+            del obj.__dict__[self._name]
+    
+    def _validate(self, obj, value):
+        if not isinstance(value, self._type):
+            raise TypeError('value')
 
 class NumericProperty(TypedProperty):
     """Implementation of :class:`TypedProperty` for numeric (int or float) properties
@@ -306,3 +331,139 @@ class StringProperty(TypedProperty):
             raise ValueError('"{}" not in {}'.format(value, self._possible_values))
         if self._regex is not None and not re.search(self._regex, value):
             raise ValueError('"{}" does not match pattern "{}"'.format(value, self._regex))
+
+class ArrayProperty(PropertyBase):
+    """Implementation of :class:`PropertyBase` for array properties
+
+    :method:`__get__`, :method:`__set__` and :method:`__delete__` return array wrappers that allow indexes to be used
+    """
+    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
+        """Initialises :class:`ArrayProperty`
+
+        :param fget: Getter function for property
+        :type fget: func
+        :param fset: Setter function for property
+        :type fset: func
+        :param fdel: Deleter function for property
+        :type fdel: func
+        :param fvalidate: Validation function for property
+        :type fvalidate: func
+        :param default: The default value for this property
+        :type default: object
+        :parm doc: The docstring for this property
+        :type doc: str
+        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :type abstract: bool
+        """
+        super().__init__(fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
+        self._type = type_
+    
+    def __get__(self, obj, _type=None):
+        if obj is None:
+            return self
+        if self._name is None:
+            raise ValueError('Cannot get property, name has not been set')
+        if self._abstract:
+            raise NotImplementedError()
+        return self._wrapper(obj)
+    
+    def __set__(self, obj, value):
+        if obj is None:
+            return
+        if self._name is None:
+            raise ValueError('Cannot set property, name has not been set')
+        if self._readonly or self._abstract:
+            raise NotImplementedError()
+        validate_type(value, list, 'value')
+        wrapper = self._wrapper(obj)
+        for i, v in enumerate(value):
+            wrapper[i] = v
+
+    def __delete__(self, obj):
+        if self._name is None:
+            raise ValueError('Cannot delete property, name has not been set')
+        if hasattr(obj, self._get_fname('delete')):
+            getattr(obj, self._get_fname('delete'))()
+        if self._abstract:
+            raise NotImplementedError()
+        if self._fget or self._fset or self._fdel:
+            raise ValueError('Cannot delete array with custom getters and setters')
+        del obj.__dict__[self._name]
+    
+    def _wrapper(self, obj):
+        fget = functools.partial(self._fget, obj) if self._fget else self._get_method(obj, 'get')
+        fset = functools.partial(self._fset, obj) if self._fset else self._get_method(obj, 'set')
+        fdel = functools.partial(self._fdel, obj) if self._fdel else self._get_method(obj, 'delete')
+        fvalidate = functools.partial(self._fvalidate, obj) if self._fvalidate else self._get_method(obj, 'validate')
+        obj.__dict__.setdefault(self._name, [])
+        return ArrayWrapper(self._type, fget, fset, fdel, fvalidate, obj.__dict__[self._name])
+
+    def _get_method(self, obj, name):
+        if hasattr(obj, self._get_fname(name)):
+            return getattr(obj, self._get_fname(name))
+        return None
+
+class ArrayWrapper:
+    """Wrapper for arrays that allows custom getters, setters, deleters and validators to be used
+    """
+    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, store=None):
+        """Initialises :class:`ArrayWrapper`
+
+        :param type_: The type of array
+        :type type_: type
+        :param fget: The getter for the array
+        :type fget: func
+        :param fset: The setter for the array
+        :type fset: func
+        :param fdel: The deleter for the array
+        :type fdel: func
+        :param fvalidate: The validator for the array
+        :type fvalidate: func
+        :param store: The store for the array
+        :type store: list
+        """
+        validate_type(store, list, 'store')
+        self._type = type_
+        self._fget = fget
+        self._fset = fset
+        self._fdel = fdel
+        self._fvalidate = fvalidate
+        self._store = store
+
+    def __getitem__(self, index):
+        validate_type(index, int, 'index')
+        if self._fget:
+            return self._fget(index)
+        if self._store is not None:
+            self._extend(index + 1)
+            return self._store[index]
+        raise ValueError('Could not get value for property, no store and no getter specified')
+
+    def __setitem__(self, index, value):
+        validate_type(index, int, 'index')
+        validate_type(value, self._type, 'value')
+        if self._fvalidate:
+            self._fvalidate(index, value)
+        if self._fset:
+            self._fset(index, value)
+        elif self._store is not None:
+            self._extend(index + 1)
+            self._store[index] = value
+        else:
+            raise ValueError('Could not set value for property, no store and no setter specified')
+
+    def __delitem__(self, index):
+        validate_type(index, int, 'index')
+        if self._fdel:
+            self._fdel(index)
+        elif self._store is not None:
+            self._extend(index + 1)
+            del self._store[index]
+        else:
+            raise ValueError('Could not deleted index for property, no store and no setter specified')
+
+    def _extend(self, length):
+        if self._store is None:
+            raise ValueError('store not defined for array')
+        while len(self._store) < length:
+            self._store.append(None)

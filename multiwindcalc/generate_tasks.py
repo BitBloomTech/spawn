@@ -2,7 +2,7 @@
 """
 from multiwindcalc.util import PathBuilder
 
-from multiwindcalc.specification.specification import SpecificationNode
+from multiwindcalc.specification.specification import SpecificationNode, IndexedNode
 
 from multiwindcalc.util import TypedProperty
 
@@ -33,7 +33,11 @@ def generate_tasks_from_spec(task_spawner, node, base_path):
         raise ValueError('node must be of type ' + SpecificationNode.__name__)
     if node.has_property:
         value = _check_type(task_spawner, node.property_name, node.property_value)
-        setattr(task_spawner, node.property_name, value)
+        if isinstance(node, IndexedNode):
+            array = getattr(task_spawner, node.property_name)
+            array[node.index] = value
+        else:
+            setattr(task_spawner, node.property_name, value)
     if not node.children:   # (leaf)
         task = task_spawner.spawn(str(PathBuilder(base_path).join(node.path)), {**node.ghosts, **node.collected_properties})
         return [task]
