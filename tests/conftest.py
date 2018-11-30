@@ -38,9 +38,9 @@ def configure_luigi():
     luigi.configuration.get_config().set('FastSimulationTask', '_exe_path', EXE_PATHS['fast'])
 
 @pytest.fixture
-def spawner(example_data_folder):
+def spawner(example_data_folder, tmpdir):
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                                   'TurbSim.inp')))
+                                                                   'TurbSim.inp')), tmpdir)
     return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                'NRELOffshrBsline5MW_Onshore.fst')),
                                  wind_spawner)

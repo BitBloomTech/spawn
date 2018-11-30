@@ -2,7 +2,7 @@ from os import path
 
 import pytest
 
-from multiwindcalc.util.hash import file_hash
+from multiwindcalc.util.hash import *
 
 def create_file(tmpdir, contents, name):
     filename = path.join(tmpdir, name)
@@ -33,3 +33,15 @@ def test_same_content_different_files_returns_same_hash(file_a, file_a_copy):
 
 def test_same_file_returns_same_hash(file_a):
     assert file_hash(file_a) == file_hash(file_a)
+
+def test_same_strings_same_hashes():
+    assert string_hash('hello world') == string_hash('hello world')
+
+def test_different_strings_different_hashes():
+    assert string_hash('foo') != string_hash('bar')
+
+def test_same_bytes_same_hashes():
+    assert bytes_hash(b'hello world') == bytes_hash(b'hello world')
+
+def test_different_bytes_different_hashes():
+    assert bytes_hash(b'foo') != bytes_hash(b'bar')

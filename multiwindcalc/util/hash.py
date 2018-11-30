@@ -2,11 +2,19 @@
 """
 import hashlib
 
-from multiwindcalc.util.validation import validate_file
+from multiwindcalc.util.validation import validate_file, validate_type
 
 def file_hash(filename):
     validate_file(filename, 'filename')
-    h = hashlib.new('md5')
     with open(filename, 'rb') as fp:
-        h.update(fp.read())
-    return h.digest()
+        return bytes_hash(fp.read())
+
+def bytes_hash(value):
+    validate_type(value, bytes, 'value')
+    h = hashlib.new('md5')
+    h.update(value)
+    return h.hexdigest()
+
+def string_hash(string):
+    validate_type(string, str, 'string')
+    return bytes_hash(string.encode('utf8'))

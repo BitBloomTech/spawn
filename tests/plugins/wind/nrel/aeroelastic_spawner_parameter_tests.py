@@ -18,9 +18,9 @@ def run_and_get_results(spawner, path_):
 
 
 @pytest.fixture()
-def spawner():
+def spawner(tmpdir):
     turbsim_input = TurbsimInput.from_file(example_data.turbsim_input_file)
-    wind_spawner = TurbsimSpawner(turbsim_input)
+    wind_spawner = TurbsimSpawner(turbsim_input, tmpdir)
     fast_input = FastInput.from_file(example_data.fast_input_file)
     spawner = FastSimulationSpawner(fast_input, wind_spawner)
     spawner.wind_speed = 8.0
@@ -32,7 +32,7 @@ def spawner():
 @pytest.fixture(scope='module')
 def baseline():
     with tempfile.TemporaryDirectory() as tmpdir:
-        s = spawner()
+        s = spawner(tmpdir)
         return run_and_get_results(s, tmpdir)
 
 

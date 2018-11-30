@@ -4,6 +4,7 @@ import configparser
 import click
 from pprint import pprint
 from os import path
+from sys import stdout
 from luigi import build, server
 import luigi.interface
 import luigi.configuration
@@ -51,10 +52,14 @@ def inspect(specfile):
 @click.option('--local/--remote', is_flag=True, default=True, help='Run local or remote. Remote running requires a luigi server to be running')
 @click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
 @click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
+@click.option('--check-config', is_flag=True, default=False, help='Print the configuration for the current run and exit')
 def run(**kwargs):
     """Runs the SPECFILE contents and write output to OUTDIR
     """
     config = _get_config(**kwargs)
+    if kwargs['check_config']:
+        _print_config(config)
+        return
     spec = SpecificationParser(SpecificationFileReader(config.get(APP_NAME, 'specfile'))).parse()
     plugin_type = config.get(APP_NAME, 'type') or spec.metadata.type
     if not plugin_type:
@@ -78,3 +83,16 @@ def _get_config(**kwargs):
     ini_file_config = IniFileConfiguration(command_line_config.get(APP_NAME, 'config_file'))
     default_config = DefaultConfiguration()
     return CompositeConfiguration(command_line_config, ini_file_config, default_config)
+
+def _print_config(config, ):
+    name_col_width = 0
+    names_values = []
+    for category in config.categories:
+        for key in config.keys(category):
+            name = '{}.{}'.format(category, key)
+            value = config.get(category, key)
+            names_values.append((name, value))
+            name_col_width = max(name_col_width, len(name))
+        
+    for name, value in names_values:
+        click.echo('{name: <{width}}{value}'.format(name=name, value=value, width=name_col_width + 4))

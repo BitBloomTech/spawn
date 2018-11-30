@@ -46,5 +46,5 @@ class PluginLoader:
             raise ValueError('Could not find plugin for plugin type {}'.format(plugin_type))
         plugin = self._plugins[plugin_type]
         arg_names = signature(plugin.create_spawner).parameters
-        arg_values = {n: self._config.get(plugin_type, n) for n in arg_names}
+        arg_values = {n: self._config.get(plugin_type, n) or self._config.get(APP_NAME, n) for n in arg_names}
         return plugin.create_spawner(**arg_values)
