@@ -6,7 +6,7 @@ Spawn is a declarative language based on JSON. The JSON standard is defined at <
 
 ## Getting Started
 
-The specification is defined in an object named `"spec"`. Each name/value pair within this object is a parameter name and its value. The following generates a single specification node with one parameter, named "alpha" with a vlue of 4:
+The specification is defined in an object named `"spec"`. Each name/value pair within this object is a parameter name and its value. The following generates a single specification node with one parameter, named `"alpha"` with a vlue of 4:
 
 ```JSON
 {
@@ -16,7 +16,7 @@ The specification is defined in an object named `"spec"`. Each name/value pair w
 }
 ```
 
- Sister name/value pairs are simultaneous (i.e. orccur on the same node). The following generates a single node with *two* simulataneous parameters - "alpha" with a vlue of 4, and "beta" with a value of "tadpole":
+ Sister name/value pairs are simultaneous (i.e. orccur on the same node). The following generates a single node with *two* simulataneous parameters - `"alpha"` with a vlue of 4, and "beta" with a value of "tadpole":
 
 ```JSON
 {
@@ -27,7 +27,7 @@ The specification is defined in an object named `"spec"`. Each name/value pair w
 }
 ```
 
-Separate nodes can be created by separating parameters into different JSON nodes. Parameters defined outside of the object are also applied on each node. The following creates two nodes, both with parameters named "alpha" and "beta", where the first node has parameter values of 4 and "tadpole" respectively and the second has values of 6 and "tadpole" respectively. The names of the sub-objects (`"blah"` and `"blo"`) are not used but must be present to conform to the JSON standard:
+Separate nodes can be created by separating parameters into different JSON nodes. Parameters defined outside of the object are also applied on each node. The following creates two nodes, both with parameters named `"alpha"` and `"beta"`, where the first node has parameter values of 4 and "tadpole" respectively and the second has values of 6 and "tadpole" respectively. The names of the sub-objects (`"blah"` and `"blo"`) are not used but must be present to conform to the JSON standard:
 
 ```JSON
 {
@@ -179,3 +179,28 @@ Evaluators can also take other parameters simultaneously present in the specific
     }
 }
 ```
+
+### Resolution Order
+
+work in progress
+
+## Policies
+
+Policies do not generate parameters but provide additional information for the spawner to work with. The use of the end policy is determined by the spawner. The only policy at current is the path policy
+
+### Path
+
+This may generally be interpreted as a file path but could also be for example a URL endpoint or any other kind of path. All specification nodes have a path associated with them, whether specified by the user or not. In the case of simulations, this path can be used to determine where the output of the simulation is saved. The following produces one specification node with the path `my_path`
+
+```JSON
+{
+    "spec": {
+        "policy:path": "my_path",
+        "alpha": "tadpole"
+    }
+}
+```
+
+## Indexing
+
+Spawners may define certain parameters as arrays. In order to set the values of elements in an array parameter, the specification allows indexing with use of square brackets suffixing the name parameter pair. For example, `"alpha[1]": 3` sets the first element of the `"alpha"` parameter array to 3. Whether the index is 0-based or 1-based is ultimately the decision of the spawner (which gets passed the index) but by convention is generally 1-based.
