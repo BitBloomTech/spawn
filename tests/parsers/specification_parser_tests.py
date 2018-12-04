@@ -151,6 +151,30 @@ def test_generator_persists(parser_with_incremental_int_generator):
     assert collected_properties[1]['seed2'] == 8
 
 
+def test_generator_does_not_duplicate(parser_with_incremental_int_generator):
+    provider = DictSpecificationProvider({
+        'generators': {
+            'MyGen': {
+                'method': 'IncrementalInt'
+            }
+        },
+        'spec': {
+            'a': {'alpha': '@MyGen'},
+            'b': {'alpha': '@MyGen', 'beta': '@MyGen'},
+            'c': {'alpha': '#repeat(@MyGen, 3)'}
+        }
+    })
+    parser = SpecificationParser(provider)
+    root_node = parser.parse().root_node
+    collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
+    assert collected_properties[0]['alpha'] == 1
+    assert collected_properties[1]['alpha'] == 2
+    assert collected_properties[1]['beta'] == 3
+    assert collected_properties[2]['alpha'] == 4
+    assert collected_properties[3]['alpha'] == 5
+    assert collected_properties[4]['alpha'] == 6
+
+
 def test_emplaces_list_macro_correctly():
     parser = SpecificationNodeParser(value_libraries={'macro': {'3directions': Macro([-8.0, 0.0, 8.0])}})
     root_node = parser.parse({
@@ -275,6 +299,26 @@ def test_node_with_overridden_properties_has_correct_path():
     root_node.evaluate()
     assert {leaf.path for leaf in root_node.leaves} == expected_paths
 
+def test_concatenates_paths_in_child_dict():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'section1': {
+            'policy:path': 'section1',
+            'blah': {
+                'policy:path': '{alpha}',
+                'alpha': ['egg', 'tadpole', 'frog']
+            }
+        }
+    })
+    expected_paths = {
+        'section1/egg',
+        'section1/tadpole',
+        'section1/frog'
+    }
+    root_node.evaluate()
+    paths = {leaf.path for leaf in root_node.leaves}
+    assert paths == expected_paths
+
+
 def test_can_produce_range_of_items():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
         'wind_speed': '#range(1, 3, 1)'
@@ -337,6 +381,32 @@ def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator():
     expected = [
         {'alpha': 2, 'beta': 6},
         {'alpha': 4, 'beta': 8}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_combine_macro_list_with_two_other_lists():
+    provider = DictSpecificationProvider({
+        'macros': {
+            'MyRange': [2, 4]
+        },
+        'spec': {
+            'alpha': '$MyRange',
+            'beta': [9, 10],
+            'gamma': ['tadpole', 'frog']
+        }
+    })
+    parser = SpecificationParser(provider)
+    root_node = parser.parse().root_node
+    expected = [
+        {'alpha': 2, 'beta': 9, 'gamma': 'tadpole'},
+        {'alpha': 2, 'beta': 9, 'gamma': 'frog'},
+        {'alpha': 2, 'beta': 10, 'gamma': 'tadpole'},
+        {'alpha': 2, 'beta': 10, 'gamma': 'frog'},
+        {'alpha': 4, 'beta': 9, 'gamma': 'tadpole'},
+        {'alpha': 4, 'beta': 9, 'gamma': 'frog'},
+        {'alpha': 4, 'beta': 10, 'gamma': 'tadpole'},
+        {'alpha': 4, 'beta': 10, 'gamma': 'frog'}
     ]
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties

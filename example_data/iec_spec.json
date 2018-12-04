@@ -43,7 +43,7 @@
         "policy:path": "dlc1.2/WS_{wind_speed}",
         "simulation_time": 600,
         "wind_speed": "$WindRangeOperating",
-        "turbulence_intensity": "#NTM($Iref, wind_speed)",
+        "turbulence_intensity": "#NTM($Iref, !wind_speed)",
         "turbulence_seed": "#repeat(@TurbulenceSeed, 6)",
         "initial_yaw": "$YawRange"
       },
@@ -52,7 +52,7 @@
         "simulation_time": 600,
         "wind_speed": "$WindRangeOperating",
         "initial_yaw": [-20, 20],
-        "turbulence_intensity": "#NTM($Iref, wind_speed)",
+        "turbulence_intensity": "#NTM($Iref, !wind_speed)",
         "turbulence_seed": "#repeat(@TurbulenceSeed, 3)"
       },
       "dlc3.1": {
@@ -84,7 +84,7 @@
         "policy:path": "dlc6.4/WS_{wind_speed}",
         "operation_mode": "parked",
         "wind_speed": "$WindRangeParked",
-        "turbulence_intensity": "#NTM($Iref, wind_speed)",
+        "turbulence_intensity": "#NTM($Iref, !wind_speed)",
         "initial_yaw": "$YawRange"
       }
     },
@@ -100,11 +100,11 @@
           "initial_yaw": "$YawRange",
           "dlc1.1": {
             "policy:path": "dlc1.1/WS_{wind_speed}",
-            "turbulence_intensity": "#NTM($Iref, wind_speed)"
+            "turbulence_intensity": "#NTM($Iref, !wind_speed)"
           },
           "dlc1.3": {
             "policy:path": "dlc1.3/WS_{wind_speed}",
-            "turbulence_intensity": "#ETM($Iref, $Vmean, wind_speed)"
+            "turbulence_intensity": "#ETM($Iref, $Vmean, !wind_speed)"
           }
         },
         "dlc1.4": {
@@ -220,7 +220,7 @@
         "policy:path": "dlc5.1/WS_{wind_speed}",
         "simulation_time": 100,
         "wind_speed": ["$Vrated_m2", "$Vrated_p2", "$Vout"],
-        "turbulence_intensity": "#NTM($Iref, wind_speed)",
+        "turbulence_intensity": "#NTM($Iref, !wind_speed)",
         "turbulence_seed": "#repeat(@TurbulenceSeed, 12)",
         "_safety_factor": "$Normal"
       },
@@ -268,7 +268,7 @@
         "simulation_time": 600,
         "operation_mode": "parked",
         "wind_speed": "$Vmaint",
-        "turbulence_intensity": "#NTM($Iref, wind_speed)",
+        "turbulence_intensity": "#NTM($Iref, !wind_speed)",
         "turbulence_seed": "#repeat(@TurbulenceSeed, 6)",
         "initial_azimuth": 0,
         "initial_yaw": [-8, 8],
