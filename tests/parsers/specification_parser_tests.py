@@ -322,6 +322,25 @@ def test_can_produce_range_of_items_stopped_at_macro():
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
 
+def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator():
+    provider = DictSpecificationProvider({
+        'macros': {
+            'MyRange': '#range(2, 5, 2)'
+        },
+        'spec': {
+            'alpha': '$MyRange',
+            'beta': '#4 + !alpha'
+        }
+    })
+    parser = SpecificationParser(provider)
+    root_node = parser.parse().root_node
+    expected = [
+        {'alpha': 2, 'beta': 6},
+        {'alpha': 4, 'beta': 8}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
 def test_can_do_multiplication_with_evaluator():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
         'wind_speed': '#5 * 3',
