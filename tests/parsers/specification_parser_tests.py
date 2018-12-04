@@ -433,6 +433,19 @@ def test_ghost_parameters_are_overwritten_lower_down():
 
     assert [l.ghosts for l in root_node.leaves] == expected_ghosts
 
+def test_can_use_macro_list_elements_in_addition():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'add': AddEvaluator}, 'macro': {'List': Macro([3, 5])}}).parse({
+        'base_value': '$List',
+        'total_value': '!base_value + 4'
+    })
+    root_node.evaluate()
+    expected = [
+        {'base_value': 3, 'total_value': 7},
+        {'base_value': 5, 'total_value': 9}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
 def test_adding_index_property_produces_index_node():
     root_node = DefaultSpecificationNodeParser().parse({
         'pitch[1]': 2.3
