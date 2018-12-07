@@ -25,6 +25,25 @@ class CommandLineConfiguration(ConfigurationBase):
                     self._args[category][key] = value
             else:
                 self._args[DEFAULT_CATEGORY][k] = v
+    @property
+    def categories(self):
+        """The categories in this configuration
+
+        :returns: The categories
+        :rtype: list
+        """
+        return list(self._args.keys())
+    
+    def keys(self, category):
+        """The keys for the specified category in this configuration
+        
+        :param category: The category to retrieve keys for
+        :type category: str
+
+        :returns: The keys in the specified category
+        :rtype: list
+        """
+        return list(self._args.get(category, {}).keys())
     
     def _get_value(self, category, key):
         return self._args.get(category, {}).get(key)

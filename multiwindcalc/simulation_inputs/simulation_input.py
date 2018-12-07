@@ -26,6 +26,15 @@ class SimulationInput:
         :type file_path: path-like
         """
         raise NotImplementedError()
+    
+    @abstractmethod
+    def hash(self):
+        """Returns a hash of the contents of the file
+
+        :returns: The hash
+        :rtype: str
+        """
+        raise NotImplementedError()
 
     @abstractmethod
     def __setitem__(self, key, value):

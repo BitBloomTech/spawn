@@ -3,7 +3,7 @@
 from os import path
 import csv
 from multiwindcalc.simulation_inputs import SimulationInput
-
+from multiwindcalc.util.hash import string_hash
 
 def _absolutise_path(line, root_dir, local_path):
     local_path = local_path.strip('"')
@@ -50,6 +50,14 @@ class NRELSimulationInput(SimulationInput):
         with open(file_path, 'w') as fw:
             for line in self._input_lines:
                 fw.write(line)
+    
+    def hash(self):
+        """Returns a hash of the contents of the file
+
+        :returns: The hash
+        :rtype: str
+        """
+        return string_hash('\n'.join(self._input_lines))
 
     def __setitem__(self, key, value):
         i, parts = self._get_index_and_parts(key)

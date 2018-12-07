@@ -4,6 +4,7 @@ from os import path, getcwd, makedirs
 import copy
 
 from multiwindcalc.plugins.wind import WindGenerationSpawner
+
 from .tasks import WindGenerationTask
 
 
@@ -14,9 +15,9 @@ class TurbsimSpawner(WindGenerationSpawner):
         self._input = turbsim_input
 
     def spawn(self, path_, metadata):
-        if not path.isdir(path_):
-            makedirs(path_)
         wind_input_file = path.join(path_, 'wind.ipt')
+        if not path.isdir(path.dirname(wind_input_file)):
+            makedirs(path.dirname(wind_input_file))
         self._input.to_file(wind_input_file)
         wind_task = WindGenerationTask('wind ' + path_, wind_input_file, _metadata=metadata)
         return wind_task
@@ -25,6 +26,14 @@ class TurbsimSpawner(WindGenerationSpawner):
         branched_spawner = copy.copy(self)
         branched_spawner._input = copy.deepcopy(self._input)
         return branched_spawner
+    
+    def input_hash(self):
+        """Get the hash of the input
+
+        :returns: A hash of the input
+        :rtype: str
+        """
+        return self._input.hash()
 
     def get_duration(self):
         return float(self._input['UsableTime'])

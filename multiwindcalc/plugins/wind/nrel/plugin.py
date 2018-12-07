@@ -1,5 +1,7 @@
 """Defines the :mod:`mutliwindcalc` plugin for nrel
 """
+from os import path
+
 from luigi import configuration
 
 from multiwindcalc.util.validation import validate_file
@@ -9,7 +11,7 @@ from .turbsim_spawner import TurbsimSpawner
 from .fast_spawner import FastSimulationSpawner
 from .tasks import WindGenerationTask, FastSimulationTask
 
-def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, runner_type):
+def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, runner_type, outdir, prereq_outdir):
     """Creates an nrel spawner
     """
     validate_file(turbsim_exe, 'turbsim_exe')
@@ -25,4 +27,4 @@ def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, run
     luigi_config.set(FastSimulationTask.__name__, '_runner_type', runner_type)
 
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(turbsim_base_file))
-    return FastSimulationSpawner(FastInput.from_file(fast_base_file), wind_spawner)
+    return FastSimulationSpawner(FastInput.from_file(fast_base_file), wind_spawner, path.join(outdir, prereq_outdir))
