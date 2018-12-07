@@ -13,20 +13,22 @@ from .tasks import FastSimulationTask
 class FastSimulationSpawner(AeroelasticSimulationSpawner):
     """Spawns FAST simulation tasks with wind generation dependency if necessary"""
 
-    def __init__(self, fast_input, wind_spawner):
+    def __init__(self, fast_input, wind_spawner, prereq_outdir):
         """Initialises :class:`FastSimulationSpawner`
 
         :param fast_input: The FAST input
         :type fast_input: :class:`FastInput`
-        :parm wind_spawner: The TurbSim/wind calculation spawner
+        :param wind_spawner: The TurbSim/wind calculation spawner
         :type wind_spawner: :class:`TurbsimSpawner`
+        :param prereq_outdir: The output directory for prerequisites
+        :type prereq_outdir: path-like
         """
         self._input = fast_input
         self._wind_spawner = wind_spawner
         # non-arguments:
         self._aerodyn_input = AerodynInput.from_file(self._input['ADFile'])
-        self._wind_environment_changed = False
         self._wind_task = None
+        self._prereq_outdir = prereq_outdir
 
     def spawn(self, path_, metadata):
         """Spawn a simulation task
@@ -43,21 +45,20 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
             raise ValueError('Must provide an absolute path')
         if not path.isdir(path_):
             os.makedirs(path_)
-        wind_input_files = self._spawn_preproc_tasks(path_, metadata)
+        wind_input_files = self._spawn_preproc_tasks(metadata)
         sim_input_file = path.join(path_, 'simulation.ipt')
         self._input.to_file(sim_input_file)
         sim_task = FastSimulationTask('run ' + path_, sim_input_file, _dependencies=wind_input_files, _metadata=metadata)
         return sim_task
 
-    def _spawn_preproc_tasks(self, path_, metadata):
+    def _spawn_preproc_tasks(self, metadata):
         # Generate new wind file if needed
-        if self._wind_environment_changed:
-            self._wind_task = self._wind_spawner.spawn(path_, metadata)
-            self._aerodyn_input['WindFile'] = quote(self._wind_task.wind_file_path)
-            aerodyn_file_path = path.join(path_, 'aerodyn.ipt')
-            self._aerodyn_input.to_file(aerodyn_file_path)
-            self._input['ADFile'] = quote(aerodyn_file_path)
-            self._wind_environment_changed = False
+        outdir = path.join(self._prereq_outdir, self._wind_spawner.input_hash())
+        self._wind_task = self._wind_spawner.spawn(outdir, metadata)
+        self._aerodyn_input['WindFile'] = quote(self._wind_task.wind_file_path)
+        aerodyn_file_path = path.join(outdir, 'aerodyn.ipt')
+        self._aerodyn_input.to_file(aerodyn_file_path)
+        self._input['ADFile'] = quote(aerodyn_file_path)
         return [self._wind_task] if self._wind_task is not None else []
 
     def branch(self):
@@ -195,7 +196,6 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def set_wind_speed(self, speed):
         self._wind_spawner.wind_speed = speed
-        self._wind_environment_changed = True
 
     def get_turbulence_intensity(self):
         """Turbulence intensity as a fraction (not %): ratio of wind speed standard deviation to mean wind speed"""
@@ -203,7 +203,6 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def set_turbulence_intensity(self, turbulence_intensity):
         self._wind_spawner.turbulence_intensity = turbulence_intensity
-        self._wind_environment_changed = True
 
     def get_turbulence_seed(self):
         """Random number seed for turbulence generation"""
@@ -211,7 +210,6 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def set_turbulence_seed(self, seed):
         self._wind_spawner.turbulence_seed = seed
-        self._wind_environment_changed = True
 
     def get_wind_shear(self):
         """Vertical wind shear exponent"""
@@ -219,7 +217,6 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def set_wind_shear(self, exponent):
         self._wind_spawner.wind_shear = exponent
-        self._wind_environment_changed = True
 
     def get_upflow(self):
         """Wind inclination in degrees from the horizontal"""
@@ -227,7 +224,6 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def set_upflow(self, angle):
         self._wind_spawner.upflow = angle
-        self._wind_environment_changed = True
 
     # Properties of turbine, for which setting is not supported
     def get_number_of_blades(self):

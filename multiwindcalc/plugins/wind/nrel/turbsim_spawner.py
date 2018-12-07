@@ -11,23 +11,29 @@ from .tasks import WindGenerationTask
 class TurbsimSpawner(WindGenerationSpawner):
     """Spawns TurbSim wind generation tasks"""
 
-    def __init__(self, turbsim_input, outdir):
+    def __init__(self, turbsim_input):
         self._input = turbsim_input
-        self._outdir = outdir
 
-    def spawn(self, _path_, metadata):
-        input_hash = self._input.hash()
-        wind_input_file = path.join(path.join(self._outdir, input_hash), 'wind.ipt')
+    def spawn(self, path_, metadata):
+        wind_input_file = path.join(path_, 'wind.ipt')
         if not path.isdir(path.dirname(wind_input_file)):
             makedirs(path.dirname(wind_input_file))
         self._input.to_file(wind_input_file)
-        wind_task = WindGenerationTask('wind ' + input_hash, wind_input_file, _metadata=metadata)
+        wind_task = WindGenerationTask('wind ' + path_, wind_input_file, _metadata=metadata)
         return wind_task
 
     def branch(self):
         branched_spawner = copy.copy(self)
         branched_spawner._input = copy.deepcopy(self._input)
         return branched_spawner
+    
+    def input_hash(self):
+        """Get the hash of the input
+
+        :returns: A hash of the input
+        :rtype: str
+        """
+        return self._input.hash()
 
     def get_simulation_time(self):
         return self._input['AnalysisTime']

@@ -26,5 +26,5 @@ def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, run
     luigi_config.set(FastSimulationTask.__name__, '_exe_path', fast_exe)
     luigi_config.set(FastSimulationTask.__name__, '_runner_type', runner_type)
 
-    wind_spawner = TurbsimSpawner(TurbsimInput.from_file(turbsim_base_file), path.join(outdir, prereq_outdir))
-    return FastSimulationSpawner(FastInput.from_file(fast_base_file), wind_spawner)
+    wind_spawner = TurbsimSpawner(TurbsimInput.from_file(turbsim_base_file))
+    return FastSimulationSpawner(FastInput.from_file(fast_base_file), wind_spawner, path.join(outdir, prereq_outdir))

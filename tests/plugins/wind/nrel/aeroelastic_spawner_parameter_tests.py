@@ -20,9 +20,9 @@ def run_and_get_results(spawner, path_):
 @pytest.fixture()
 def spawner(tmpdir):
     turbsim_input = TurbsimInput.from_file(example_data.turbsim_input_file)
-    wind_spawner = TurbsimSpawner(turbsim_input, tmpdir)
+    wind_spawner = TurbsimSpawner(turbsim_input)
     fast_input = FastInput.from_file(example_data.fast_input_file)
-    spawner = FastSimulationSpawner(fast_input, wind_spawner)
+    spawner = FastSimulationSpawner(fast_input, wind_spawner, tmpdir)
     spawner.wind_speed = 8.0
     spawner.output_start_time = 0.0
     spawner.simulation_time = 1.0
