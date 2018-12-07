@@ -35,12 +35,17 @@ class TurbsimSpawner(WindGenerationSpawner):
         """
         return self._input.hash()
 
-    def get_simulation_time(self):
+    def get_duration(self):
+        return float(self._input['UsableTime'])
+
+    def set_duration(self, duration):
+        self._input['UsableTime'] = duration
+
+    def get_analysis_time(self):
         return self._input['AnalysisTime']
 
-    def set_simulation_time(self, time):
+    def set_analysis_time(self, time):
         self._input['AnalysisTime'] = time
-        self._input['UsableTime'] = time
 
     def get_wind_speed(self):
         return float(self._input['URef'])
@@ -49,21 +54,18 @@ class TurbsimSpawner(WindGenerationSpawner):
         self._input['URef'] = value
 
     def get_turbulence_intensity(self):
-        """Turbulence intensity as a fraction (not %): ratio of wind speed standard deviation to mean wind speed"""
-        return float(self._input['IECturbc']) / 100
+        return float(self._input['IECturbc'])
 
     def set_turbulence_intensity(self, turbulence_intensity):
-        self._input['IECturbc'] = turbulence_intensity * 100
+        self._input['IECturbc'] = turbulence_intensity
 
     def get_turbulence_seed(self):
-        """Random number seed for turbulence generation"""
         return int(self._input['RandSeed1'])
 
     def set_turbulence_seed(self, seed):
         self._input['RandSeed1'] = seed
 
     def get_wind_shear(self):
-        """Vertical wind shear exponent"""
         exponent = self._input['PLExp']
         return float('NaN') if exponent == 'default' else float(exponent)
 
@@ -71,7 +73,6 @@ class TurbsimSpawner(WindGenerationSpawner):
         self._input['PLExp'] = exponent
 
     def get_upflow(self):
-        """Wind inclination in degrees from the horizontal"""
         return float(self._input['VFlowAng'])
 
     def set_upflow(self, angle):
