@@ -156,8 +156,11 @@ class ValueProxyParser:
         :type value_libraries: dict
         """
         self._evaluator_library = value_libraries.get(EVALUATOR, {})
-        self._macro_library = value_libraries.get(MACRO, {})
         self._generator_library = value_libraries.get(GENERATOR, {})
+        # resolve macros that are evaluators or generators into ValueProxies
+        self._macro_library = {}
+        for k, v in value_libraries.get(MACRO, {}).items():
+            self._macro_library[k] = self.parse(v.evaluate()) if self.is_value_proxy(v.evaluate()) else v
 
     def parse(self, value):
         """Parse the value string
