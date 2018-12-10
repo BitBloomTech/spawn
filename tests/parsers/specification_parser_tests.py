@@ -152,7 +152,7 @@ def test_generator_persists(parser_with_incremental_int_generator):
     assert collected_properties[1]['seed2'] == 8
 
 
-def test_generator_does_not_duplicate(parser_with_incremental_int_generator):
+def test_generator_does_not_duplicate():
     provider = DictSpecificationProvider({
         'generators': {
             'MyGen': {
@@ -432,6 +432,57 @@ def test_can_combine_macro_list_with_two_other_lists():
     ]
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
+
+
+def test_path_is_right_when_using_object_in_macro():
+    provider = DictSpecificationProvider({
+        'macros': {
+            'DoSomething': {
+                'firstly': 'this',
+                'secondly': 2
+            }
+        },
+        'spec': {
+            'blah': {
+                'policy:path': 'my_path',
+                'blo': '$DoSomething'
+            }
+        }
+    })
+    parser = SpecificationParser(provider)
+    root_node = parser.parse().root_node
+    leaves = root_node.leaves
+    assert len(leaves) == 1
+    assert leaves[0].path == 'my_path'
+
+
+def test_uses_object_in_macro_successfully():
+    provider = DictSpecificationProvider({
+        'macros': {
+            'DoSomething': {
+                'firstly': 'this',
+                'secondly': 2
+            }
+        },
+        'spec': {
+            'blah': {
+                'blo': '$DoSomething',
+                'gamma': [1, 2, 3],
+                'delta': ['a', 'b']
+            }
+        }
+    })
+    parser = SpecificationParser(provider)
+    root_node = parser.parse().root_node
+    leaves = root_node.leaves
+    assert len(leaves) == 6
+    for l in leaves:
+        collected_properties = l.collected_properties
+        assert collected_properties['firstly'] == 'this'
+        assert collected_properties['secondly'] == 2
+        assert 'gamma' in collected_properties
+        assert 'delta' in collected_properties
+
 
 def test_can_do_multiplication_with_evaluator():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
