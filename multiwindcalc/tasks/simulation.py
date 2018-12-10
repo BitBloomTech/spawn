@@ -16,8 +16,8 @@ LOGGER = logging.getLogger(__name__)
 class _TaskEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Mapping):
-            return super().encode(dict(obj.items()))
-        super().default(obj)
+            return dict(obj.items())
+        return super().default(obj)
 
 class TaskListParameter(luigi.Parameter):
     """Implementation of :class:`luigi.Parameter` to allow definitions of multiple tasks as dependencies
@@ -48,7 +48,6 @@ class SimulationTask(luigi.Task):
     _input_file_path = luigi.Parameter()
     _runner_type = luigi.Parameter()
     _metadata = luigi.DictParameter(default={})
-    _runner_type = luigi.Parameter()
     _exe_path = luigi.Parameter()
     _dependencies = TaskListParameter(default=[])
 
