@@ -416,8 +416,15 @@ class SpecificationNodeFactory:
             else:
                 node = SpecificationNode(parent, name, value, path, ghosts)
         for child in children:
-            node.add_child(type(child)(node, child.property_name, child.property_value, child._path_part, ghosts))
+            node.add_child(self._copy_tree(node, child))
         return node
+    
+    def _copy_tree(self, parent, node):
+        new_node = type(node)(parent, node.property_name, node.property_value, node._path_part, node._ghosts)
+        for child in node.children:
+            new_child = self._copy_tree(new_node, child)
+            new_node.add_child(new_child)
+        return new_node
     
     @staticmethod
     def _index(name):

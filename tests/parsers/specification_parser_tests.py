@@ -45,6 +45,7 @@ def test_parse_multiple_properties_returns_multiple_levels():
 
 def test_parse_multiple_properties_returns_correct_leaf_nodes():
     root_node = DefaultSpecificationNodeParser().parse({'wind_speed': [8.0, 12.0], 'turbulence_intensity': ['10%', '20%']})
+    print(root_node.children)
     assert len(root_node.leaves) == 4
     expected_args = [
         {'wind_speed': 8.0, 'turbulence_intensity': '10%'},
@@ -313,6 +314,27 @@ def test_concatenates_paths_in_child_dict():
         'section1/egg',
         'section1/tadpole',
         'section1/frog'
+    }
+    root_node.evaluate()
+    paths = {leaf.path for leaf in root_node.leaves}
+    assert paths == expected_paths
+
+
+def test_concatenates_paths_in_child_dict_parent_has_properties():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'section1': {
+            'policy:path': '{beta}',
+            'beta': 42.0,
+            'blah': {
+                'policy:path': '{alpha}',
+                'alpha': ['egg', 'tadpole', 'frog']
+            }
+        }
+    })
+    expected_paths = {
+        '42.0/egg',
+        '42.0/tadpole',
+        '42.0/frog'
     }
     root_node.evaluate()
     paths = {leaf.path for leaf in root_node.leaves}
