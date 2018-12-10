@@ -355,7 +355,7 @@ class ValueProxyNode(SpecificationNode):
         property_values = {**self.ghosts, **self.collected_properties}
         values = evaluate(self._property_value, **property_values)
         self._children = [SpecificationNodeFactory().create(
-            self, self.property_name, values, self._path_part, self._ghosts, old_children
+            self, self.property_name, values, None, self._ghosts, old_children
         )]
         for child in self.children:
             child.evaluate()
@@ -373,11 +373,12 @@ class DictNode(SpecificationNode):
         next_name = list(dict_value.keys())[0]
         next_value = dict_value.pop(next_name)
         if dict_value:
-            next_children = [node_factory.create(None, self.property_name, dict_value, self._path_part, self._ghosts)]
+            next_children = [node_factory.create(None, self.property_name, dict_value, None, self._ghosts, list(self._children))]
         else:
-            next_children = []
+            next_children = list(self._children)
         new_children = [node_factory.create(self, next_name, next_value, self._path_part, self._ghosts, next_children)]
         self._children = new_children
+        self._path_part = None
         for child in self.children:
             child.evaluate()
         self._property_value = None
@@ -392,7 +393,7 @@ class ListNode(SpecificationNode):
         old_children = list(self.children)
         new_children = []
         for value in self.property_value:
-            new_children.append(node_factory.create(self, self.property_name, value, self._path_part, self._ghosts, old_children))
+            new_children.append(node_factory.create(self, self.property_name, value, None, self._ghosts, old_children))
         self._children = new_children
         for child in self.children:
             child.evaluate()
