@@ -9,6 +9,13 @@ class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):
         super().__init__(combinators={'zip': zip_properties, 'product': product}, default_combinator='product', **kwargs)
 
+
+def _parse_spec_into_node(spec):
+    provider = DictSpecificationProvider(spec)
+    parser = SpecificationParser(provider)
+    return parser.parse().root_node
+
+
 def test_parse_null_node_returns_root_node_no_children():
     node = DefaultSpecificationNodeParser().parse(None)
     assert node.is_root
@@ -482,6 +489,23 @@ def test_uses_object_in_macro_successfully():
         assert collected_properties['secondly'] == 2
         assert 'gamma' in collected_properties
         assert 'delta' in collected_properties
+
+
+def test_macros_are_recursively_evaluated():
+    root_node = _parse_spec_into_node({
+        'macros': {
+            'Ref': 1,
+            'Something': {
+                'alpha': '$Ref'
+            }
+        },
+        'spec': {
+            'blah': '$Something'
+        }
+    })
+    leaves = root_node.leaves
+    assert len(leaves) == 1
+    assert leaves[0].collected_properties == {'alpha': 1}
 
 
 def test_can_do_multiplication_with_evaluator():
