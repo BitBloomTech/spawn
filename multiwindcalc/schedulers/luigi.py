@@ -2,7 +2,7 @@
 """
 import logging
 
-from luigi import build, configuration, worker, rpc, scheduler
+from luigi import build, configuration, worker, rpc, scheduler, execution_summary
 
 from multiwindcalc import __name__ as APP_NAME
 from multiwindcalc.generate_tasks import generate_tasks_from_spec
@@ -75,5 +75,6 @@ class LuigiScheduler:
         assistant_worker = self._worker_scheduler_factory.create_worker(scheduler, self._workers, True)
         with assistant_worker:
             success = assistant_worker.run()
+        LOGGER.info(execution_summary.summary(assistant_worker))
         if not success:
             LOGGER.error('Error running spawn tasks - see logs for details')
