@@ -1,5 +1,6 @@
 """luigi Tasks
 """
+from collections import Mapping
 import subprocess
 import traceback
 import os
@@ -12,15 +13,33 @@ from multiwindcalc.runners import ProcessRunner
 
 LOGGER = logging.getLogger(__name__)
 
+class _TaskEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Mapping):
+            return super().encode(dict(obj.items()))
+        super().default(obj)
+
 class TaskListParameter(luigi.Parameter):
     """Implementation of :class:`luigi.Parameter` to allow definitions of multiple tasks as dependencies
     """
     def parse(self, input):
-        input_strings = json.loads(input)
-        return [luigi.task_register.Register.get_task_cls(i) for i in input_strings]
+        input_dicts = json.loads(input)
+        return [luigi.task_register.Register.get_task_cls(i['family'])(**i['params']) for i in input_dicts]
     
     def serialize(self, clss):
-        return json.dumps([cls.get_task_family() for cls in clss])
+        tasks = []
+        for c in clss:
+            if not isinstance(c, luigi.Task):
+                continue
+            task = {
+                'family': c.get_task_family(),
+                'params': {}
+            }
+            for param_name, _param_obj in c.get_params():
+                if hasattr(c, param_name):
+                    task['params'][param_name] = getattr(c, param_name)
+            tasks.append(task)
+        return json.dumps(tasks, cls=_TaskEncoder)
 
 class SimulationTask(luigi.Task):
     """Implementation of :class:`luigi.Task`

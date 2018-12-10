@@ -12,7 +12,8 @@ DEFAULT_CONFIGURATION = {
         'prereq_outdir': 'prerequisites'
     },
     'server': {
-        'port': 8082
+        'port': 8082,
+        'host': 'localhost'
     }
 }
 

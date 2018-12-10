@@ -5,4 +5,4 @@
     :show-nested:
 
 """
-from .functions import cli, inspect, run, serve
+from .functions import cli, inspect, run
