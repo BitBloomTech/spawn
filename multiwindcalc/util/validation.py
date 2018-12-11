@@ -33,6 +33,7 @@ def validate_type(value, expected, name):
     if not isinstance(value, expected):
         raise TypeError('{} must be of type {}; was {}'.format(name, expected.__name__, type(value).__name__))
 
+
 def validate_file(value, name):
     """Validates that the given file exists and is accessible. Raises ``FileNotFoundError`` if not.
 
@@ -47,3 +48,19 @@ def validate_file(value, name):
         raise ValueError('File not defined for {}'.format(name))
     if not path.isfile(value):
         raise FileNotFoundError('File {} not found or not accessible at {}'.format(name, value))
+
+
+def validate_folder(value, name):
+    """Validates that the given folder exists and is accessible. Raises ``FileNotFoundError`` if not.
+
+    Parameters
+    ----------
+    value : str or path-like
+        Path to the folder to validate
+    name : str
+        The name of the value
+    """
+    if value is None:
+        raise ValueError('Folder not defined for {}'.format(name))
+    if not path.isdir(value):
+        raise FileNotFoundError('Folder {} not found or not accessible at {}'.format(name, value))

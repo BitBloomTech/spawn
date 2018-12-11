@@ -20,27 +20,31 @@ from os import path
 
 from luigi import configuration
 
-from multiwindcalc.util.validation import validate_file
+from multiwindcalc.util.validation import validate_file, validate_folder
 
 from .simulation_input import TurbsimInput, FastInput
 from .turbsim_spawner import TurbsimSpawner
 from .fast_spawner import FastSimulationSpawner
 from .tasks import WindGenerationTask, FastSimulationTask
 
-def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, runner_type, outdir, prereq_outdir):
+def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, runner_type, turbsim_working_dir, fast_working_dir, outdir, prereq_outdir):
     """Creates an nrel spawner
     """
     validate_file(turbsim_exe, 'turbsim_exe')
     validate_file(fast_exe, 'fast_exe')
     validate_file(turbsim_base_file, 'turbsim_base_file')
     validate_file(fast_base_file, 'fast_base_file')
+    validate_folder(turbsim_working_dir, 'turbsim_working_dir')
+    validate_folder(fast_working_dir, 'fast_working_dir')
 
     luigi_config = configuration.get_config()
 
     luigi_config.set(WindGenerationTask.__name__, '_exe_path', turbsim_exe)
     luigi_config.set(WindGenerationTask.__name__, '_runner_type', runner_type)
+    luigi_config.set(WindGenerationTask.__name__, '_working_dir', turbsim_working_dir)
     luigi_config.set(FastSimulationTask.__name__, '_exe_path', fast_exe)
     luigi_config.set(FastSimulationTask.__name__, '_runner_type', runner_type)
+    luigi_config.set(FastSimulationTask.__name__, '_working_dir', fast_working_dir)
 
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(turbsim_base_file))
     return FastSimulationSpawner(FastInput.from_file(fast_base_file), wind_spawner, path.join(outdir, prereq_outdir))

@@ -27,7 +27,7 @@ def test_validate_type_raises_for_invalid_type():
 def test_validate_type_does_not_raise_for_valid_type():
     validate_type(42, int, 'value')
 
-def test_validate_file_raises_for_non_existant_file(tmpdir):
+def test_validate_file_raises_for_non_existent_file(tmpdir):
     with pytest.raises(FileNotFoundError):
         validate_file(path.join(tmpdir, 'idonotexist'), 'file')
 
@@ -36,3 +36,11 @@ def test_validate_file_does_not_raise_for_existing_file(tmpdir):
     with open(existing_file, 'w'):
         pass
     validate_file(existing_file, 'file')
+
+def test_validate_folder_raises_for_non_existent_folder():
+    with pytest.raises(FileNotFoundError):
+        validate_folder('CDE:/I/do/not/exist', 'folder')
+
+def test_validate_folder_does_not_raise_for_existent_folder(tmpdir):
+    validate_folder(tmpdir, 'folder')
+
