@@ -2,6 +2,7 @@
 """
 import configparser
 import click
+import json
 from pprint import pprint
 from os import path
 from luigi import build, server
@@ -34,7 +35,9 @@ def cli(ctx, log_level, log_console):
 
 @cli.command()
 @click.argument('specfile', type=click.Path(exists=True))
-def inspect(specfile):
+@click.option('-o', '--outfile', type=click.Path(), help='write inspection output to file rather than to console')
+@click.option('-f', '--format', type=click.Choice(['txt', 'json', 'csv']), default='txt', help='format of specification inspection')
+def inspect(specfile, outfile, format):
     """Expand and write to console the contents of the SPECFILE
     """
     click.echo('Inspecing input file "{}":'.format(click.format_filename(specfile)))
@@ -42,7 +45,15 @@ def inspect(specfile):
     parser = SpecificationParser(reader)
     spec = parser.parse()
     spec_dict = DictSpecificationConverter().convert(spec)
-    prettyspec(spec_dict)
+    print('Number of leaves: ', len(spec.root_node.leaves))
+    if outfile is not None:
+        with open(outfile, 'w') as f:
+            if format == 'txt':
+                prettyspec(spec_dict, f)
+            elif format == 'json':
+                json.dump(spec_dict, f, indent=2)
+    else:
+        prettyspec(spec_dict)
 
 @cli.command()
 @click.argument('specfile', type=click.Path(exists=True))
