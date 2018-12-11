@@ -11,6 +11,7 @@ from ..specification.evaluators import (
 )
 from .value_proxy import ValueProxyParser
 from .generators import GeneratorsParser
+from .macros import MacrosParser
 from .constants import *
 from ..util.validation import validate_type, validate_file
 from ..util.path_builder import PathBuilder
@@ -99,6 +100,12 @@ class SpecificationParser:
         """
         validate_type(provider, SpecificationDescriptionProvider, 'provider')
         self._provider = provider
+        self._value_libraries = {
+            GENERATOR: {},
+            MACRO: {},
+            EVALUATOR: EVALUATOR_LIB
+        }
+        self._value_proxy_parser = ValueProxyParser(self._value_libraries)
 
     def parse(self):
         """Parse the specification description
@@ -112,21 +119,17 @@ class SpecificationParser:
         """
         description = self._provider.get()
         metadata = SpecificationMetadata(description.get('type'), description.get('creation_time'), description.get('notes'))
-        value_libraries = self._get_value_libraries(description)
-        node_parser = SpecificationNodeParser(value_libraries, self._get_combinators(), default_combinator=PRODUCT)
+        self._parse_value_libraries(description)
+        node_parser = SpecificationNodeParser(self._value_proxy_parser, self._get_combinators(), default_combinator=PRODUCT)
         root_node = node_parser.parse(description.get('spec'))
         root_node.evaluate()
         return SpecificationModel(description.get('base_file'), root_node, metadata)
 
-    @staticmethod
-    def _get_value_libraries(description):
+    def _parse_value_libraries(self, description):
         generator_lib = GeneratorsParser().parse(description.get('generators'))
-        macro_lib = {k: Macro(v) for k, v in description.get('macros', {}).items()}
-        return {
-            GENERATOR: generator_lib,
-            MACRO: macro_lib,
-            EVALUATOR: EVALUATOR_LIB
-        }
+        self._value_libraries[GENERATOR].update(generator_lib)
+        macros_lib = MacrosParser(self._value_libraries, self._value_proxy_parser).parse(description.get('macros'))
+        self._value_libraries[MACRO].update(macros_lib)
 
     @staticmethod
     def _get_combinators():
@@ -140,22 +143,19 @@ class SpecificationNodeParser:
     child nodes and expands them according to their values.
     """
 
-    def __init__(self, value_libraries=None, combinators=None, default_combinator=None):
+    def __init__(self, value_proxy_parser, combinators=None, default_combinator=None):
         """Initialises the node parser
 
-        :param value_libraries: A mapping between value library names (e.g. generators, evaluators, macros)
-                                and value libraries.
-                                The default is {}.
-        :type value_libraries: dict
+        :param value_proxy_parser: The value proxy parser
+        :type value_proxy_parser: :class:`ValueProxyParser`
         :param combinators: A mapping between combinator names (e.g. zip, product) and combinators.
                            The default is {}
         :type combinators: dict
         """
-        self._value_libraries = value_libraries or {}
         self._combinators = combinators or {}
         self._default_combinator = default_combinator
-        self._value_proxy_parser = ValueProxyParser(self._value_libraries)
         self._node_factory = SpecificationNodeFactory()
+        self._value_proxy_parser = value_proxy_parser
 
     def parse(self, node_spec, parent=None, node_policies=None, ghost_parameters=None):
         """Parse the `node_spec`, and expand its children.

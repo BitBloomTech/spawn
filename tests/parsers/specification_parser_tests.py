@@ -7,7 +7,10 @@ from multiwindcalc.specification.specification import *
 
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):
-        super().__init__(combinators={'zip': zip_properties, 'product': product}, default_combinator='product', **kwargs)
+        super().__init__(
+            value_proxy_parser=ValueProxyParser(kwargs.get('value_libraries', {})),
+            combinators={'zip': zip_properties, 'product': product}, default_combinator='product'
+        )
 
 
 def _parse_spec_into_node(spec):
@@ -184,7 +187,7 @@ def test_generator_does_not_duplicate():
 
 
 def test_emplaces_list_macro_correctly():
-    parser = SpecificationNodeParser(value_libraries={'macro': {'3directions': Macro([-8.0, 0.0, 8.0])}})
+    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'3directions': Macro([-8.0, 0.0, 8.0])}})
     root_node = parser.parse({
         'wind_speed': [6.0, 8.0],
         'yaw_angle': '$3directions'
@@ -203,7 +206,7 @@ def test_emplaces_dict_macro_correctly():
         'rotor_speed': 0.0,
         'simulation_mode': 'idling'
     })
-    parser = SpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
     root_node = parser.parse({
         'wind_speed': [6.0, 8.0],
         'irrelevant': 'macro:idling'
@@ -223,7 +226,7 @@ def test_raises_lookup_error_if_macro_not_found():
         'rotor_speed': 0.0,
         'simulation_mode': 'idling'
     })
-    parser = SpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
     with pytest.raises(LookupError):
         parser.parse({
             'wind_speed': [6.0, 8.0],
@@ -505,6 +508,7 @@ def test_macros_are_recursively_evaluated():
     })
     leaves = root_node.leaves
     assert len(leaves) == 1
+    print(leaves)
     assert leaves[0].collected_properties == {'alpha': 1}
 
 
