@@ -52,6 +52,7 @@ def inspect(specfile, outfile, format):
                 prettyspec(spec_dict, f)
             elif format == 'json':
                 json.dump(spec_dict, f, indent=2)
+        print('Specification details written to ', f.name)
     else:
         prettyspec(spec_dict)
 
