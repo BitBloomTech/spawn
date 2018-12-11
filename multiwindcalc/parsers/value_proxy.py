@@ -4,6 +4,7 @@
 import ast
 
 from multiwindcalc.specification.evaluators import ParameterEvaluator
+from multiwindcalc.specification.value_proxy import evaluate
 
 from .constants import (
     MACRO, GENERATOR, EVALUATOR, PARAMETER,
@@ -157,10 +158,7 @@ class ValueProxyParser:
         """
         self._evaluator_library = value_libraries.get(EVALUATOR, {})
         self._generator_library = value_libraries.get(GENERATOR, {})
-        # resolve macros that are evaluators or generators into ValueProxies
-        self._macro_library = {}
-        for k, v in value_libraries.get(MACRO, {}).items():
-            self._macro_library[k] = self.parse(v.evaluate()) if self.is_value_proxy(v.evaluate()) else v
+        self._macro_library = value_libraries.get(MACRO, {})
 
     def parse(self, value):
         """Parse the value string

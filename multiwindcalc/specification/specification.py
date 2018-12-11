@@ -357,6 +357,7 @@ class ValueProxyNode(SpecificationNode):
         self._children = [SpecificationNodeFactory().create(
             self, self.property_name, values, None, self._ghosts, old_children
         )]
+        self._property_value = None
         for child in self.children:
             child.evaluate()
 
