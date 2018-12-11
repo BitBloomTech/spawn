@@ -5,7 +5,6 @@ import click
 from pprint import pprint
 from os import path
 from sys import stdout
-from luigi import build, server
 import luigi.interface
 import luigi.configuration
 
@@ -72,11 +71,13 @@ def run(**kwargs):
 @cli.command()
 @click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
 @click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
-def serve(**kwargs):
-    """Runs the luigi server, for running using the centralised scheduler and viewing the UI
+def work(**kwargs):
+    """Adds a worker to a remote scheduler
     """
-    config = _get_config(**kwargs)
-    server.run(api_port=config.get('server', 'port'))
+    config = _get_config(**{**kwargs, 'local': False})
+    scheduler = LuigiScheduler(config)
+    scheduler.add_worker()
+
 
 def _get_config(**kwargs):
     command_line_config = CommandLineConfiguration(**kwargs)
