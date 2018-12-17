@@ -66,6 +66,7 @@ class SimulationTask(luigi.Task):
     _metadata = luigi.DictParameter(default={})
     _exe_path = luigi.Parameter()
     _dependencies = TaskListParameter(default=[])
+    _working_dir = luigi.Parameter(default=None)
 
     def run(self):
         """Run this task
@@ -121,7 +122,8 @@ class SimulationTask(luigi.Task):
     def _create_runner(self):
         if self._runner_type not in self.available_runners:
             raise ValueError('could not find runner for runner_type {} and task type {}'.format(self._runner_type, type(self)))
-        return self.available_runners[self._runner_type](self._id, self._input_file_path, exe_path=self._exe_path)
+        return self.available_runners[self._runner_type](self._id, self._input_file_path,
+                                                         exe_path=self._exe_path, cwd=self._working_dir)
 
     @property
     def available_runners(self):
