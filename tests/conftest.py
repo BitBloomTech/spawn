@@ -1,3 +1,19 @@
+# multiwindcalc
+# Copyright (C) 2018, Simmovation Ltd.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path, pardir
 
 import pytest
@@ -38,9 +54,9 @@ def configure_luigi():
     luigi.configuration.get_config().set('FastSimulationTask', '_exe_path', EXE_PATHS['fast'])
 
 @pytest.fixture
-def spawner(example_data_folder):
+def spawner(example_data_folder, tmpdir):
     wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                    'TurbSim.inp')))
     return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                'NRELOffshrBsline5MW_Onshore.fst')),
-                                 wind_spawner)
+                                 wind_spawner, tmpdir)

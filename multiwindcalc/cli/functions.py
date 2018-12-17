@@ -1,3 +1,19 @@
+# multiwindcalc
+# Copyright (C) 2018, Simmovation Ltd.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """multiwindcalc.cli module
 """
 import configparser
@@ -5,7 +21,7 @@ import click
 import json
 from pprint import pprint
 from os import path
-from luigi import build, server
+from sys import stdout
 import luigi.interface
 import luigi.configuration
 
@@ -63,10 +79,14 @@ def inspect(specfile, outfile, format):
 @click.option('--local/--remote', is_flag=True, default=True, help='Run local or remote. Remote running requires a luigi server to be running')
 @click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
 @click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
+@click.option('--check-config', is_flag=True, default=False, help='Print the configuration for the current run and exit')
 def run(**kwargs):
     """Runs the SPECFILE contents and write output to OUTDIR
     """
     config = _get_config(**kwargs)
+    if kwargs['check_config']:
+        _print_config(config)
+        return
     spec = SpecificationParser(SpecificationFileReader(config.get(APP_NAME, 'specfile'))).parse()
     plugin_type = config.get(APP_NAME, 'type') or spec.metadata.type
     if not plugin_type:
@@ -79,14 +99,29 @@ def run(**kwargs):
 @cli.command()
 @click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
 @click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
-def serve(**kwargs):
-    """Runs the luigi server, for running using the centralised scheduler and viewing the UI
+def work(**kwargs):
+    """Adds a worker to a remote scheduler
     """
-    config = _get_config(**kwargs)
-    server.run(api_port=config.get('server', 'port'))
+    config = _get_config(**{**kwargs, 'local': False})
+    scheduler = LuigiScheduler(config)
+    scheduler.add_worker()
+
 
 def _get_config(**kwargs):
     command_line_config = CommandLineConfiguration(**kwargs)
     ini_file_config = IniFileConfiguration(command_line_config.get(APP_NAME, 'config_file'))
     default_config = DefaultConfiguration()
     return CompositeConfiguration(command_line_config, ini_file_config, default_config)
+
+def _print_config(config, ):
+    name_col_width = 0
+    names_values = []
+    for category in config.categories:
+        for key in config.keys(category):
+            name = '{}.{}'.format(category, key)
+            value = config.get(category, key)
+            names_values.append((name, value))
+            name_col_width = max(name_col_width, len(name))
+        
+    for name, value in names_values:
+        click.echo('{name: <{width}}{value}'.format(name=name, value=value, width=name_col_width + 4))

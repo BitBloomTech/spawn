@@ -1,3 +1,19 @@
+# multiwindcalc
+# Copyright (C) 2018, Simmovation Ltd.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path
 import pytest
 import tempfile
@@ -18,11 +34,11 @@ def run_and_get_results(spawner, path_):
 
 
 @pytest.fixture()
-def spawner():
+def spawner(tmpdir):
     turbsim_input = TurbsimInput.from_file(example_data.turbsim_input_file)
     wind_spawner = TurbsimSpawner(turbsim_input)
     fast_input = FastInput.from_file(example_data.fast_input_file)
-    spawner = FastSimulationSpawner(fast_input, wind_spawner)
+    spawner = FastSimulationSpawner(fast_input, wind_spawner, tmpdir)
     spawner.wind_speed = 8.0
     spawner.output_start_time = 0.0
     spawner.simulation_time = 1.0
@@ -32,7 +48,7 @@ def spawner():
 @pytest.fixture(scope='module')
 def baseline():
     with tempfile.TemporaryDirectory() as tmpdir:
-        s = spawner()
+        s = spawner(tmpdir)
         return run_and_get_results(s, tmpdir)
 
 
