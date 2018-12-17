@@ -39,8 +39,8 @@ def test_validate_file_does_not_raise_for_existing_file(tmpdir):
 
 def test_validate_folder_raises_for_non_existent_folder():
     with pytest.raises(FileNotFoundError):
-        validate_folder('CDE:/I/do/not/exist', 'folder')
+        validate_dir('CDE:/I/do/not/exist', 'folder')
 
 def test_validate_folder_does_not_raise_for_existent_folder(tmpdir):
-    validate_folder(tmpdir, 'folder')
+    validate_dir(tmpdir, 'folder')
 

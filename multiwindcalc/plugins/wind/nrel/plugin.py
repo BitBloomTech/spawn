@@ -20,7 +20,7 @@ from os import path
 
 from luigi import configuration
 
-from multiwindcalc.util.validation import validate_file, validate_folder
+from multiwindcalc.util.validation import validate_file, validate_dir
 
 from .simulation_input import TurbsimInput, FastInput
 from .turbsim_spawner import TurbsimSpawner
@@ -34,8 +34,8 @@ def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, run
     validate_file(fast_exe, 'fast_exe')
     validate_file(turbsim_base_file, 'turbsim_base_file')
     validate_file(fast_base_file, 'fast_base_file')
-    validate_folder(turbsim_working_dir, 'turbsim_working_dir')
-    validate_folder(fast_working_dir, 'fast_working_dir')
+    validate_dir(turbsim_working_dir, 'turbsim_working_dir')
+    validate_dir(fast_working_dir, 'fast_working_dir')
 
     luigi_config = configuration.get_config()
 

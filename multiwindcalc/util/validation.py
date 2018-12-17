@@ -50,7 +50,7 @@ def validate_file(value, name):
         raise FileNotFoundError('File {} not found or not accessible at {}'.format(name, value))
 
 
-def validate_folder(value, name):
+def validate_dir(value, name):
     """Validates that the given folder exists and is accessible. Raises ``FileNotFoundError`` if not.
 
     Parameters
