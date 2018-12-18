@@ -1,3 +1,19 @@
+# multiwindcalc
+# Copyright (C) 2018, Simmovation Ltd.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path
 import pytest
 import tempfile
@@ -18,11 +34,11 @@ def run_and_get_results(spawner, path_):
 
 
 @pytest.fixture()
-def spawner():
+def spawner(tmpdir):
     turbsim_input = TurbsimInput.from_file(example_data.turbsim_input_file)
     wind_spawner = TurbsimSpawner(turbsim_input)
     fast_input = FastInput.from_file(example_data.fast_input_file)
-    spawner = FastSimulationSpawner(fast_input, wind_spawner)
+    spawner = FastSimulationSpawner(fast_input, wind_spawner, tmpdir)
     spawner.wind_speed = 8.0
     spawner.output_start_time = 0.0
     spawner.simulation_time = 1.0
@@ -32,7 +48,7 @@ def spawner():
 @pytest.fixture(scope='module')
 def baseline():
     with tempfile.TemporaryDirectory() as tmpdir:
-        s = spawner()
+        s = spawner(tmpdir)
         return run_and_get_results(s, tmpdir)
 
 
@@ -46,7 +62,9 @@ def baseline():
     ('upflow', float),
     ('initial_rotor_speed', float),
     ('initial_azimuth', float),
-    ('initial_yaw_angle', float),
+    ('initial_yaw', float),
+    ('yaw_manoeuvre_time', float),
+    ('final_yaw', float),
     ('number_of_blades', int)
 ])
 def test_property_type(spawner, property, type):
@@ -56,20 +74,22 @@ def test_property_type(spawner, property, type):
 def test_output_start_time(baseline, spawner, tmpdir):
     spawner.output_start_time = 0.5
     res = run_and_get_results(spawner, tmpdir)
-    assert res.shape[0] == 6
+    assert res['Time'][0] == pytest.approx(0.5)
+    assert res['Time'].iloc[-1] - res['Time'][0] == pytest.approx(spawner.simulation_time)
 
 
-def test_simulation_time(baseline, spawner, tmpdir):
-    spawner.simulation_time = 2 * spawner.simulation_time
+def test_simulation_time(spawner, tmpdir):
+    spawner.output_start_time = 1.0
+    spawner.simulation_time = 2.0
     res = run_and_get_results(spawner, tmpdir)
-    assert res.shape[0] == 2 * baseline.shape[0]
+    assert res['Time'].iloc[-1] - res['Time'][0] == pytest.approx(spawner.simulation_time)
 
 
 @pytest.mark.parametrize('key,value,output_name', [
     ('initial_rotor_speed', 7.0, 'RotSpeed'),
     ('initial_azimuth', 180.0, 'Azimuth'),
-    ('initial_yaw_angle', 90.0, 'YawPzn'),
-    ('initial_pitch_angle', 30.0, 'BldPitch1')
+    ('initial_yaw', 90.0, 'YawPzn'),
+    ('initial_pitch', 30.0, 'BldPitch1')
 ])
 def test_initial_values(spawner, key, value, output_name, tmpdir):
     setattr(spawner, key, value)
@@ -79,24 +99,67 @@ def test_initial_values(spawner, key, value, output_name, tmpdir):
 
 def test_operating_mode(spawner, tmpdir):
     spawner.operation_mode = 'idling'
-    spawner.initial_pitch_angle = 30.0
+    spawner.initial_pitch = 30.0
     res = run_and_get_results(spawner, path.join(tmpdir, 'a'))
     assert np.all(res['BldPitch1'] == 30.0)
     assert np.all(res['GenPwr'] <= 0.0)
     assert np.all(res['RotSpeed'] != 0.0)
     assert np.all(abs(res['RotSpeed']) < 1.0)
     spawner.operation_mode = 'parked'
-    spawner.initial_pitch_angle = 90.0
+    spawner.initial_pitch = 90.0
     res2 = run_and_get_results(spawner, path.join(tmpdir, 'b'))
     assert np.all(res2['BldPitch1'] == 90.0)
     assert np.all(res2['GenPwr'] <= 0.0)
     assert np.all(abs(res2['RotSpeed']) <= 0.011)    # rotor speed is slightly non-zero due to drive-train flexibility
     spawner.operation_mode = 'normal'
-    spawner.initial_pitch_angle = 0.0
+    spawner.initial_pitch = 0.0
     res3 = run_and_get_results(spawner, path.join(tmpdir, 'c'))
     assert np.all(res3['BldPitch1'] <= 10.0)
     assert np.all(res3['GenPwr'] >= 0.0)
     assert np.all(res3['RotSpeed'] > 0.0)
+
+
+def test_pitch_manoeuvre_all_blades(spawner, tmpdir):
+    spawner.simulation_time = 4.0
+    spawner.initial_pitch = 10.0
+    spawner.final_pitch = 12.0
+    spawner.pitch_manoeuvre_time = 1.0
+    spawner.pitch_manoeuvre_rate = 1.0
+    res = run_and_get_results(spawner, tmpdir)
+    assert res['BldPitch1'].iloc[0] == pytest.approx(10.0)
+    assert res['BldPitch1'].iloc[-1] == pytest.approx(12.0)
+
+
+def test_pitch_manoeuvre_one_blade(spawner, tmpdir):
+    spawner.simulation_time = 4.0
+    spawner.initial_pitch = 10.0
+    spawner.blade_final_pitch[1] = 12.0
+    spawner.blade_final_pitch[2] = 10.0
+    spawner.blade_final_pitch[3] = 10.0
+    spawner.pitch_manoeuvre_time = 1.0
+    spawner.pitch_manoeuvre_rate = 1.0
+    res = run_and_get_results(spawner, tmpdir)
+    assert res['BldPitch1'].iloc[0] == pytest.approx(10.0)
+    assert res['BldPitch1'].iloc[-1] == pytest.approx(12.0)
+
+
+def test_yaw_manoeuvre(spawner, tmpdir):
+    spawner.simulation_time = 4.0
+    spawner.initial_yaw = 5.0
+    spawner.final_yaw = 6.5
+    spawner.yaw_manoeuvre_time = 0.5
+    spawner.yaw_manoeuvre_rate = 0.8
+    res = run_and_get_results(spawner, tmpdir)
+    assert res['YawPzn'].iloc[0] == pytest.approx(5.0)
+    assert res['YawPzn'].iloc[-1] == pytest.approx(6.5)
+
+
+def test_grid_loss(spawner, tmpdir):
+    spawner.simulation_time = 2.0
+    spawner.grid_loss_time = 1.0
+    res = run_and_get_results(spawner, tmpdir)
+    assert res['GenPwr'].iloc[-1] == 0.0
+    assert res['GenTq'].iloc[-1] == 0.0
 
 
 def test_turbulence_seed(baseline, spawner, tmpdir):
@@ -112,7 +175,7 @@ def test_wind_speed(baseline, spawner, tmpdir):
 
 
 def test_turbulence_intensity(baseline, spawner, tmpdir):
-    assert spawner.turbulence_intensity < 1.0
+    assert 1.0 < spawner.turbulence_intensity < 100.0
     spawner.turbulence_intensity = 2 * spawner.turbulence_intensity
     res = run_and_get_results(spawner, tmpdir)
     assert np.std(res['WindVxi']) == pytest.approx(2*np.std(baseline['WindVxi']), rel=1e-3)
@@ -137,3 +200,10 @@ def test_upflow(baseline, spawner, tmpdir):
     upflow_baseline = np.mean(np.arctan2(baseline['WindVzi'], baseline['WindVxi']))
     upflow_new = np.mean(np.arctan2(res['WindVzi'], res['WindVxi']))
     assert math.degrees(upflow_new - upflow_baseline) == pytest.approx(spawner.upflow, abs=0.1)
+
+
+def test_wind_file(spawner, tmpdir):
+    spawner.wind_file = 'C:/this/is/a/bad/path.wnd'
+    task = spawner.spawn(str(tmpdir), {})
+    with pytest.raises(ChildProcessError):
+        task.run()

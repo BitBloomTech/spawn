@@ -1,9 +1,25 @@
+# multiwindcalc
+# Copyright (C) 2018, Simmovation Ltd.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """Contains definitions for NREL :class:`SimulationInput`
 """
 from os import path
 import csv
 from multiwindcalc.simulation_inputs import SimulationInput
-
+from multiwindcalc.util.hash import string_hash
 
 def _absolutise_path(line, root_dir, local_path):
     local_path = local_path.strip('"')
@@ -50,6 +66,14 @@ class NRELSimulationInput(SimulationInput):
         with open(file_path, 'w') as fw:
             for line in self._input_lines:
                 fw.write(line)
+    
+    def hash(self):
+        """Returns a hash of the contents of the file
+
+        :returns: The hash
+        :rtype: str
+        """
+        return string_hash('\n'.join(self._input_lines))
 
     def __setitem__(self, key, value):
         i, parts = self._get_index_and_parts(key)

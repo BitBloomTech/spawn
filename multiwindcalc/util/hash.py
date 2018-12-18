@@ -14,26 +14,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-import inspect
+"""Contains utility functions for hashing entitiess
+"""
+import hashlib
 
-from multiwindcalc.util.validation import validate_type
+from multiwindcalc.util.validation import validate_file, validate_type
 
-class ValueProxy:
-    def evaluate(self):
-        return NotImplementedError()
+def file_hash(filename):
+    validate_file(filename, 'filename')
+    with open(filename, 'rb') as fp:
+        return bytes_hash(fp.read())
 
+def bytes_hash(value):
+    validate_type(value, bytes, 'value')
+    h = hashlib.new('md5')
+    h.update(value)
+    return h.hexdigest()
 
-class Macro(ValueProxy):
-    def __init__(self, value):
-        self._value = value
-
-    def evaluate(self):
-        return self._value
-
-def evaluate(value_proxy, *args, **kwargs):
-    validate_type(value_proxy, ValueProxy, 'value_proxy')
-    parameters = inspect.signature(value_proxy.evaluate).parameters
-    if 'kwargs' in parameters:
-        return value_proxy.evaluate(*args, **kwargs)
-    else:
-        return value_proxy.evaluate(*args)
+def string_hash(string):
+    validate_type(string, str, 'string')
+    return bytes_hash(string.encode('utf8'))

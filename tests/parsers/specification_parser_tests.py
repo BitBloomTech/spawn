@@ -1,3 +1,19 @@
+# multiwindcalc
+# Copyright (C) 2018, Simmovation Ltd.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
 from multiwindcalc.specification.generator_methods import *
@@ -277,7 +293,7 @@ def test_node_with_overridden_properties_has_correct_path():
 
 def test_can_produce_range_of_items():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
-        'wind_speed': 'range(1, 3, 1)'
+        'wind_speed': '#range(1, 3, 1)'
     })
     root_node.evaluate()
     expected = [
@@ -290,7 +306,7 @@ def test_can_produce_range_of_items():
 
 def test_can_produce_range_of_items_combined_with_list():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
-        'wind_speed': 'range(1, 3, 1)',
+        'wind_speed': '#range(1, 3, 1)',
         'wind_direction': [0.0, 180.0]
     })
     root_node.evaluate()
@@ -307,7 +323,7 @@ def test_can_produce_range_of_items_combined_with_list():
 
 def test_can_produce_range_of_items_stopped_at_macro():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
-        'wind_speed': 'range(1, $vref, 1.5)',
+        'wind_speed': '#range(1, $vref, 1.5)',
         'wind_direction': [0.0, 180.0]
     })
     root_node.evaluate()
@@ -322,10 +338,68 @@ def test_can_produce_range_of_items_stopped_at_macro():
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
 
+def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator():
+    provider = DictSpecificationProvider({
+        'macros': {
+            'MyRange': '#range(2, 5, 2)'
+        },
+        'spec': {
+            'alpha': '$MyRange',
+            'beta': '#4 + !alpha'
+        }
+    })
+    parser = SpecificationParser(provider)
+    root_node = parser.parse().root_node
+    expected = [
+        {'alpha': 2, 'beta': 6},
+        {'alpha': 4, 'beta': 8}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_do_multiplication_with_evaluator():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'wind_speed': '#5 * 3',
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 15.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_multiply_property():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'wind_speed': [0.0, 10.0, 20.0],
+        'wind_direction': '!wind_speed * 18'
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 0.0, 'wind_direction': 0.0},
+        {'wind_speed': 10.0, 'wind_direction': 180.0},
+        {'wind_speed': 20.0, 'wind_direction': 360.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_can_multiply_macro():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+        'wind_speed': [0.0, 10.0, 20.0],
+        'wind_direction': '$vref * 1.5'
+    })
+    root_node.evaluate()
+    expected = [
+        {'wind_speed': 0.0, 'wind_direction': 6.0},
+        {'wind_speed': 10.0, 'wind_direction': 6.0},
+        {'wind_speed': 20.0, 'wind_direction': 6.0},
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
 def test_can_produce_range_of_items_stopped_at_property():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
         'top_speed': [1.5, 3.0, '$vref'],
-        'wind_speed': 'range(0, !top_speed, 1.5)',
+        'wind_speed': '#range(0, !top_speed, 1.5)',
     })
     root_node.evaluate()
     expected = [
@@ -344,7 +418,7 @@ def test_can_produce_range_of_items_stopped_at_property():
 def test_can_produce_range_of_items_stopped_at_ghost():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
         '_top_speed': 4.5,
-        'wind_speed': 'range(0, !top_speed, 1.5)',
+        'wind_speed': '#range(0, !top_speed, 1.5)',
     })
     root_node.evaluate()
     expected = [
@@ -393,6 +467,19 @@ def test_ghost_parameters_are_overwritten_lower_down():
     ]
 
     assert [l.ghosts for l in root_node.leaves] == expected_ghosts
+
+def test_can_use_macro_list_elements_in_addition():
+    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'add': AddEvaluator}, 'macro': {'List': Macro([3, 5])}}).parse({
+        'base_value': '$List',
+        'total_value': '!base_value + 4'
+    })
+    root_node.evaluate()
+    expected = [
+        {'base_value': 3, 'total_value': 7},
+        {'base_value': 5, 'total_value': 9}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
 
 def test_adding_index_property_produces_index_node():
     root_node = DefaultSpecificationNodeParser().parse({
