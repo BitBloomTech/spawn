@@ -71,7 +71,6 @@ def test_parse_multiple_properties_returns_multiple_levels():
 
 def test_parse_multiple_properties_returns_correct_leaf_nodes():
     root_node = DefaultSpecificationNodeParser().parse({'wind_speed': [8.0, 12.0], 'turbulence_intensity': ['10%', '20%']})
-    print(root_node.children)
     assert len(root_node.leaves) == 4
     expected_args = [
         {'wind_speed': 8.0, 'turbulence_intensity': '10%'},
@@ -524,7 +523,6 @@ def test_macros_are_recursively_evaluated():
     })
     leaves = root_node.leaves
     assert len(leaves) == 1
-    print(leaves)
     assert leaves[0].collected_properties == {'alpha': 1}
 
 

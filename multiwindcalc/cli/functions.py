@@ -52,23 +52,23 @@ def cli(ctx, log_level, log_console):
 @cli.command()
 @click.argument('specfile', type=click.Path(exists=True))
 @click.option('-o', '--outfile', type=click.Path(), help='write inspection output to file rather than to console')
-@click.option('-f', '--format', type=click.Choice(['txt', 'json', 'csv']), default='txt', help='format of specification inspection')
+@click.option('-f', '--format', type=click.Choice(['txt', 'json']), default='txt', help='format of specification inspection')
 def inspect(specfile, outfile, format):
     """Expand and write to console the contents of the SPECFILE
     """
-    click.echo('Inspecing input file "{}":'.format(click.format_filename(specfile)))
+    click.echo('Inspecting input file "{}":'.format(click.format_filename(specfile)))
     reader = SpecificationFileReader(specfile)
     parser = SpecificationParser(reader)
     spec = parser.parse()
     spec_dict = DictSpecificationConverter().convert(spec)
-    print('Number of leaves: ', len(spec.root_node.leaves))
+    click.echo('Number of leaves: {}'.format(len(spec.root_node.leaves)))
     if outfile is not None:
         with open(outfile, 'w') as f:
             if format == 'txt':
                 prettyspec(spec_dict, f)
             elif format == 'json':
                 json.dump(spec_dict, f, indent=2)
-        print('Specification details written to ', f.name)
+        click.echo('Specification details written to {}'.format(f.name))
     else:
         prettyspec(spec_dict)
 
