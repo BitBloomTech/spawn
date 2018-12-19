@@ -61,9 +61,9 @@
         "transient": "$Startup",
         "simulation_time": 100,
         "wind_file": [
-          "<path>/NWP4.0",
-          "<path>/NWP12.0",
-          "<path>/NWP24.0"
+          "./fast_input_files/wind_files/NWP4.0",
+          "./fast_input_files/wind_files/NWP12.0",
+          "./fast_input_files/wind_files/NWP24.0"
         ],
         "initial_yaw": "$YawRange"
       },
@@ -74,9 +74,9 @@
         "simulation_time": 100,
         "wind_speed": "$WindRangeOperating",
         "wind_file": [
-          "<path>/NWP4.0",
-          "<path>/NWP12.0",
-          "<path>/NWP24.0"
+          "./fast_input_files/wind_files/NWP4.0",
+          "./fast_input_files/wind_files/NWP12.0",
+          "./fast_input_files/wind_files/NWP24.0"
         ],
         "initial_yaw": "$YawRange"
       },
@@ -111,17 +111,22 @@
           "policy:path": "dlc1.4",
           "simulation_time": 100,
           "wind_file": [
-            "<path>/ECD+r-2.0.wnd",
-            "<path>/ECD+r.wnd",
-            "<path>/ECD+r+2.0.wnd"
+            "./fast_input_files/wind_files/ECD+r-2.0.wnd",
+            "./fast_input_files/wind_files/ECD+r.wnd",
+            "./fast_input_files/wind_files/ECD+r+2.0.wnd",
+            "./fast_input_files/wind_files/ECD-r-2.0.wnd",
+            "./fast_input_files/wind_files/ECD-r.wnd",
+            "./fast_input_files/wind_files/ECD-r+2.0.wnd"
           ]
         },
         "dlc1.5": {
           "policy:path": "dlc1.5",
           "simulation_time": 100,
           "wind_file": [
-            "<path>/EWSV+12.0.wnd",
-            "<path>/EWSV+24.0..wnd"
+            "./fast_input_files/wind_files/EWSV+12.0.wnd",
+            "./fast_input_files/wind_files/EWSV+24.0..wnd",
+            "./fast_input_files/wind_files/EWSV-12.0.wnd",
+            "./fast_input_files/wind_files/EWSV-24.0..wnd"
           ]
         }
       },
@@ -166,9 +171,9 @@
           "policy:path": "dlc2.3",
           "simulation_time": 100,
           "wind_file": [
-            "<path>/EOGr-2.0.wnd",
-            "<path>/EOGr+2.0.wnd",
-            "<path>/EOGo.wnd"
+            "./fast_input_files/wind_files/EOGr-2.0.wnd",
+            "./fast_input_files/wind_files/EOGr+2.0.wnd",
+            "./fast_input_files/wind_files/EOGo.wnd"
           ],
           "grid_loss_time": [10, 12, 14, 16],
           "_safety_factor": "$Abnormal"
@@ -182,10 +187,10 @@
           "transient": "$Startup",
           "pitch_manoeuvre_time": [40.0, 50.0, 60.0, 70.0],
           "wind_file": [
-            "<path>/EOGi.wnd",
-            "<path>/EOGr-2.0.wnd",
-            "<path>/EOGr+2.0.wnd",
-            "<path>/EOGo.wnd"
+            "./fast_input_files/wind_files/EOGi.wnd",
+            "./fast_input_files/wind_files/EOGr-2.0.wnd",
+            "./fast_input_files/wind_files/EOGr+2.0.wnd",
+            "./fast_input_files/wind_files/EOGo.wnd"
           ]
         },
         "dlc3.3": {
@@ -193,14 +198,14 @@
           "transient": "$Startup",
           "pitch_manoeuvre_time": [40.0, 50.0, 60.0, 70.0],
           "wind_file": [
-            "<path>/EDC-i.wnd",
-            "<path>/EDC+i.wnd",
-            "<path>/EDC-r-2.0.wnd",
-            "<path>/EDC-r+2.0.wnd",
-            "<path>/EDC+r-2.0.wnd",
-            "<path>/EDC+r+2.0.wnd",
-            "<path>/EDC-o.wnd",
-            "<path>/EDC+o.wnd"
+            "./fast_input_files/wind_files/EDC-i.wnd",
+            "./fast_input_files/wind_files/EDC+i.wnd",
+            "./fast_input_files/wind_files/EDC-r-2.0.wnd",
+            "./fast_input_files/wind_files/EDC-r+2.0.wnd",
+            "./fast_input_files/wind_files/EDC+r-2.0.wnd",
+            "./fast_input_files/wind_files/EDC+r+2.0.wnd",
+            "./fast_input_files/wind_files/EDC-o.wnd",
+            "./fast_input_files/wind_files/EDC+o.wnd"
           ]
         }
       },
@@ -210,9 +215,9 @@
         "transient": "$Shutdown",
         "pitch_manoeuvre_time": [40.0, 50.0, 60.0, 70.0],
         "wind_file": [
-          "<path>/EOGr-2.0.wnd",
-          "<path>/EOGr+2.0.wnd",
-          "<path>/EOGo.wnd"
+          "./fast_input_files/wind_files/EOGr-2.0.wnd",
+          "./fast_input_files/wind_files/EOGr+2.0.wnd",
+          "./fast_input_files/wind_files/EOGo.wnd"
         ],
         "_safety_factor": "$Normal"
       },
