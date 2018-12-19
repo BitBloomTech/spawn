@@ -14,10 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-from os import path, makedirs
+from os import path
 import tempfile
 import pytest
 from multiwindcalc.plugins.wind.nrel import TurbsimSpawner, FastSimulationSpawner, FastInput, TurbsimInput, WindGenerationTask
+from multiwindcalc.config.command_line import CommandLineConfiguration
+from multiwindcalc.schedulers.luigi import LuigiScheduler
+from multiwindcalc.parsers import SpecificationParser, DictSpecificationProvider
 
 
 @pytest.fixture(scope='function')
@@ -35,36 +38,22 @@ def test_can_spawn_turbsim_task(turbsim_input):
     spawner = TurbsimSpawner(turbsim_input)
     task = spawner.spawn(temp_dir.name, {})
     assert len(task.requires()) == 0
-    assert task.wind_file_path == path.join(temp_dir.name, turbsim_input.hash(), 'wind.wnd')
-    assert not task.complete()
-
-
-def test_spawns_fast_task_without_wind(turbsim_input, fast_input):
-    temp_dir = tempfile.TemporaryDirectory()
-    spawner = FastSimulationSpawner(fast_input, TurbsimSpawner(turbsim_input), temp_dir.name)
-    task = spawner.spawn(temp_dir.name, {})
-    assert len(task.requires()) == 0
+    assert task.wind_file_path == path.join(temp_dir.name, 'wind.wnd')
     assert not task.complete()
 
 
 def test_spawns_tests_requiring_wind_generation_when_wind_changed(turbsim_input, fast_input):
     temp_dir = tempfile.TemporaryDirectory()
-    dir_a = path.join(temp_dir.name, 'a')
-    dir_b = path.join(temp_dir.name, 'b')
     spawner = FastSimulationSpawner(fast_input, TurbsimSpawner(turbsim_input), temp_dir.name)
-    task = spawner.spawn(dir_a, {})
-    assert len(task.requires()) == 0
+    task = spawner.spawn(path.join(temp_dir.name, 'a'), {})
     s2 = spawner.branch()
     s2.wind_speed = 8.0
     task2 = s2.spawn(path.join(temp_dir.name, 'b'), {})
     assert isinstance(task2.requires()[0], WindGenerationTask)
-    s2.simulation_time = 1.1
+    s2.initial_yaw = 10.0
     task3 = s2.spawn(path.join(temp_dir.name, 'c'), {})
-    assert task3.requires()[0] is task2.requires()[0]
-    s3 = spawner.branch()
-    # wind file dependency is not yet carried through branching
-    # task4 = s3.spawn()
-    # assert task4.requires()[0] is task2.requires()[0]
+    assert task2.requires()[0]._id != task.requires()[0]._id
+    assert task3.requires()[0]._id == task2.requires()[0]._id
 
 
 def test_spawn_with_additional_directory_puts_tasks_in_new_folders(turbsim_input, fast_input, tmpdir):
@@ -77,3 +66,27 @@ def test_spawn_with_additional_directory_puts_tasks_in_new_folders(turbsim_input
     task2 = spawner.spawn(runs_dir_2, {})
     assert task1.output().path != task2.output().path
     assert task1.requires()[0].output().path != task2.requires()[0].output().path
+
+
+def test_runs_two_tasks_successfully_that_use_same_prerequisite(turbsim_input, fast_input, tmpdir):
+    spawner = FastSimulationSpawner(fast_input, TurbsimSpawner(turbsim_input), tmpdir)
+    spec_dict = {
+        "spec": {
+            "simulation_time": 1.0,
+            "wind_speed": 6.0,
+            "initial_yaw": [-10.0, 10.0]
+        }
+    }
+    spec = SpecificationParser(DictSpecificationProvider(spec_dict)).parse()
+    config = CommandLineConfiguration(workers=2, runner_type='process', prereq_outdir='prerequisites', outdir=tmpdir, local=True)
+    scheduler = LuigiScheduler(config)
+    scheduler.run(spawner, spec)
+
+
+def test_does_not_create_wind_task_when_wind_file_is_set(turbsim_input, fast_input, example_data_folder, tmpdir):
+    spawner = FastSimulationSpawner(fast_input, TurbsimSpawner(turbsim_input), tmpdir)
+    spawner.wind_file = path.join(example_data_folder, 'fast_input_files', 'EDC+R+2.0.wnd')
+    task = spawner.spawn(path.join(tmpdir, 'a'), {})
+    assert len(task.requires()) == 0
+    task.run()
+    assert task.complete()

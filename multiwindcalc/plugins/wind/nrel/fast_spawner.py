@@ -44,7 +44,8 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         self._prereq_outdir = prereq_outdir
         # non-arguments:
         self._aerodyn_input = AerodynInput.from_file(self._input['ADFile'])
-        self._wind_task = None
+        self._wind_task_cache = {}
+        self._wind_is_explicit = False
         # intermediate parameters
         self._pitch_manoeuvre_rate = None
         self._yaw_manoeuvre_rate = None
@@ -64,21 +65,32 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
             raise ValueError('Must provide an absolute path')
         if not path.isdir(path_):
             os.makedirs(path_)
-        wind_input_files = self._spawn_preproc_tasks(metadata)
+        wind_tasks = self._spawn_preproc_tasks(metadata)
+        self._resolve_aerodyn_input(path_)
         sim_input_file = path.join(path_, 'simulation.ipt')
         self._input.to_file(sim_input_file)
-        sim_task = FastSimulationTask('run ' + path_, sim_input_file, _dependencies=wind_input_files, _metadata=metadata)
+        sim_task = FastSimulationTask('run ' + path_, sim_input_file, _dependencies=wind_tasks, _metadata=metadata)
         return sim_task
 
     def _spawn_preproc_tasks(self, metadata):
         # Generate new wind file if needed
-        outdir = path.join(self._prereq_outdir, self._wind_spawner.input_hash())
-        self._wind_task = self._wind_spawner.spawn(outdir, metadata)
-        self._aerodyn_input['WindFile'] = quote(self._wind_task.wind_file_path)
-        aerodyn_file_path = path.join(outdir, 'aerodyn.ipt')
+        if self._wind_is_explicit:
+            return []
+        else:
+            wind_hash = self._wind_spawner.input_hash()
+            if wind_hash in self._wind_task_cache:
+                wind_task = self._wind_task_cache[wind_hash]
+            else:
+                outdir = path.join(self._prereq_outdir, wind_hash)
+                wind_task = self._wind_spawner.spawn(outdir, metadata)
+                self._wind_task_cache[wind_hash] = wind_task
+            self._aerodyn_input['WindFile'] = quote(wind_task.wind_file_path)
+            return [wind_task]
+
+    def _resolve_aerodyn_input(self, path_):
+        aerodyn_file_path = path.join(path_, 'aerodyn.ipt')
         self._aerodyn_input.to_file(aerodyn_file_path)
         self._input['ADFile'] = quote(aerodyn_file_path)
-        return [self._wind_task] if self._wind_task is not None else []
 
     def branch(self):
         """Create a copy of this spawner
@@ -302,7 +314,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def set_wind_file(self, file):
         self._aerodyn_input['WindFile'] = quote(file)
-        self._wind_environment_changed = False  # presumes file is externally generated
+        self._wind_is_explicit = True  # Don't generate wind task dependency
 
     # Properties of turbine, for which setting is not supported
     def get_number_of_blades(self):
