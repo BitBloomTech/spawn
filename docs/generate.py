@@ -21,7 +21,6 @@ import shutil
 from sphinx.cmd.build import build_main as build
 
 GENERATED_RSTS = [
-    'multiwindcalc',
     'multiwindcalc.cli',
     'multiwindcalc.parsers',
     'multiwindcalc.runners',
@@ -33,9 +32,25 @@ GENERATED_RSTS = [
     'multiwindcalc.util'
 ]
 
+TITLES = {
+    'multiwindcalc.cli': 'Spawn Command Line Interface'
+}
+
 def rst_contents(module):
-    underline = '='*len(module)
-    return f'{module}\n{underline}\n\n.. automodule:: {module}\n\t:members:\n\t:imported-members:\n'
+    title = TITLES.get(module, module)
+    underline = '='*len(title)
+    return f'{title}\n{underline}\n\n.. automodule:: {module}\n\t:members:\n\t:imported-members:\n'
+
+SUMMARY = """API Reference
+=============
+
+.. autosummary::
+
+    {}
+"""
+
+def summary():
+    return SUMMARY.format('\n    '.join(GENERATED_RSTS))
 
 def generate():
     docs_dir = os.path.join(os.getcwd(), 'docs')
@@ -47,6 +62,8 @@ def generate():
     for file in GENERATED_RSTS:
         with open(os.path.join(api_docs_dir, file + '.rst'), 'w+') as fp:
             fp.write(rst_contents(file))
+    with open(os.path.join(api_docs_dir, 'api_reference.rst'), 'w+') as fp:
+        fp.write(summary())
     build([docs_dir, build_dir])
 
 if __name__ == '__main__':

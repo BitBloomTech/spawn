@@ -26,7 +26,7 @@ from multiwindcalc.specification import ValueProxy, evaluate
 class Evaluator(ValueProxy):
     """Evaluator base class implementation of :class:`ValueProxy`
 
-    Implements the :method:`evaluate` method of the parent class to expand any arguments
+    Implements the :meth:`evaluate` method of the parent class to expand any arguments
     """
     def __init__(self, *args):
         """Initialises the :class:`Evaluator`
@@ -39,7 +39,7 @@ class Evaluator(ValueProxy):
     def evaluate(self, **kwargs):
         """Evaluates the value proxy.
 
-        Expands any arguments that are evaluators, and calls the :method:`_evaluate` implementation
+        Expands any arguments that are evaluators, and calls the :meth:`_evaluate` implementation
         required by base class
         """
         args = [self._evaluate_arg(a, **kwargs) for a in self._args]

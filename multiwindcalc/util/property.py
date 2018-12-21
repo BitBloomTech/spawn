@@ -350,8 +350,7 @@ class StringProperty(TypedProperty):
 
 class ArrayProperty(PropertyBase):
     """Implementation of :class:`PropertyBase` for array properties
-
-    :method:`__get__`, :method:`__set__` and :method:`__delete__` return array wrappers that allow indexes to be used
+    :meth:`__get__`, :meth:`__set__` and :meth:`__delete__` return array wrappers that allow indexes to be used
     """
     def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
         """Initialises :class:`ArrayProperty`
