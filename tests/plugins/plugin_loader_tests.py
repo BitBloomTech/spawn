@@ -19,12 +19,36 @@ import pytest
 from multiwindcalc.plugins.plugin_loader import PluginLoader
 from multiwindcalc.config import CommandLineConfiguration
 
+from multiwindcalc.specification.generator_methods import Generator
+
 @pytest.fixture
 def test_module(mocker):
     module = mocker.Mock()
     def create_spawner(foo):
         return foo
+
+    class BazGenerator(Generator):
+        def evaluate(self):
+            return 'baz'
+
+    class FrogGenerator(Generator):
+        def evaluate(self):
+            return 'frog'
+    
+    def _do_not_load_me():
+        pass
+    
+    def spawn_evaluator():
+        return 'spawn'
+    
+    def multiply_evaluator(a, b):
+        return a * b
+
     module.create_spawner = create_spawner
+    module.BazGenerator = BazGenerator
+    module.FrogGenerator = FrogGenerator
+    module.multiply_evaluator = multiply_evaluator
+    module.spawn_evaluator = spawn_evaluator
     return module
 
 @pytest.fixture
@@ -40,3 +64,15 @@ def test_module_is_loaded(plugin_loader):
 
 def test_module_is_called_with_correct_arg(plugin_loader):
     assert plugin_loader.create_spawner('test_plugin') == 'bar'
+
+def test_load_generators_finds_all_generators(plugin_loader):
+    generators = plugin_loader.load_generators()
+    assert list(generators.keys()) == ['BazGenerator', 'FrogGenerator']
+    assert generators['BazGenerator']().evaluate() == 'baz'
+    assert generators['FrogGenerator']().evaluate() == 'frog'
+
+def test_load_generators_finds_correct_evaluators(plugin_loader):
+    evaluators = plugin_loader.load_evaluators()
+    assert set(evaluators.keys()) == {'spawn_evaluator', 'multiply_evaluator'}
+    assert evaluators['spawn_evaluator']().evaluate() == 'spawn'
+    assert evaluators['multiply_evaluator'](42, 3).evaluate() == 126
