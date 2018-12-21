@@ -371,8 +371,9 @@ class ValueProxyNode(SpecificationNode):
         property_values = {**self.ghosts, **self.collected_properties}
         values = evaluate(self._property_value, **property_values)
         self._children = [SpecificationNodeFactory().create(
-            self, self.property_name, values, self._path_part, self._ghosts, old_children
+            self, self.property_name, values, None, self._ghosts, old_children
         )]
+        self._property_value = None
         for child in self.children:
             child.evaluate()
 
@@ -389,11 +390,12 @@ class DictNode(SpecificationNode):
         next_name = list(dict_value.keys())[0]
         next_value = dict_value.pop(next_name)
         if dict_value:
-            next_children = [node_factory.create(None, self.property_name, dict_value, self._path_part, self._ghosts)]
+            next_children = [node_factory.create(None, self.property_name, dict_value, None, self._ghosts, list(self._children))]
         else:
-            next_children = []
+            next_children = list(self._children)
         new_children = [node_factory.create(self, next_name, next_value, self._path_part, self._ghosts, next_children)]
         self._children = new_children
+        self._path_part = None
         for child in self.children:
             child.evaluate()
         self._property_value = None
@@ -408,7 +410,7 @@ class ListNode(SpecificationNode):
         old_children = list(self.children)
         new_children = []
         for value in self.property_value:
-            new_children.append(node_factory.create(self, self.property_name, value, self._path_part, self._ghosts, old_children))
+            new_children.append(node_factory.create(self, self.property_name, value, None, self._ghosts, old_children))
         self._children = new_children
         for child in self.children:
             child.evaluate()
@@ -432,8 +434,15 @@ class SpecificationNodeFactory:
             else:
                 node = SpecificationNode(parent, name, value, path, ghosts)
         for child in children:
-            node.add_child(type(child)(node, child.property_name, child.property_value, child._path_part, ghosts))
+            node.add_child(self._copy_tree(node, child))
         return node
+    
+    def _copy_tree(self, parent, node):
+        new_node = type(node)(parent, node.property_name, node.property_value, node._path_part, node._ghosts)
+        for child in node.children:
+            new_child = self._copy_tree(new_node, child)
+            new_node.add_child(new_child)
+        return new_node
     
     @staticmethod
     def _index(name):

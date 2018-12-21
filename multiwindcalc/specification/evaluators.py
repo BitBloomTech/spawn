@@ -62,7 +62,7 @@ class RangeEvaluator(Evaluator):
     def _evaluate(self, range_min, range_max, range_step):
         values = np.arange(range_min, range_max + range_step, range_step)
         values = values[values <= range_max]
-        return list(values)
+        return [float(v) for v in values]
 
 class MultiplyEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that multiplies two numbers

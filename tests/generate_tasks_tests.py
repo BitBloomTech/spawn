@@ -20,11 +20,12 @@ from multiwindcalc.generate_tasks import generate_tasks_from_spec
 from multiwindcalc.tasks.simulation import SimulationTask
 from multiwindcalc.plugins.wind.nrel import WindGenerationTask, FastSimulationSpawner
 from multiwindcalc.parsers import *
+from multiwindcalc.parsers.value_proxy import ValueProxyParser
 
 
 def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir, spawner):
     run_spec = {'wind_speed': list(np.arange(4.0, 15.0, 2.0))}
-    root_node = SpecificationNodeParser().parse(run_spec)
+    root_node = SpecificationNodeParser(ValueProxyParser({})).parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     assert len(tasks) == 6
     for t in tasks:

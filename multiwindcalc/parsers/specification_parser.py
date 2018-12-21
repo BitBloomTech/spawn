@@ -27,8 +27,10 @@ from ..specification.evaluators import (
 )
 from .value_proxy import ValueProxyParser
 from .generators import GeneratorsParser
+from .macros import MacrosParser
 from .constants import *
 from ..util.validation import validate_type, validate_file
+from ..util.path_builder import PathBuilder
 
 DEFAULT_COMBINATORS = {
     ZIP: zip_properties,
@@ -114,6 +116,12 @@ class SpecificationParser:
         """
         validate_type(provider, SpecificationDescriptionProvider, 'provider')
         self._provider = provider
+        self._value_libraries = {
+            GENERATOR: {},
+            MACRO: {},
+            EVALUATOR: EVALUATOR_LIB
+        }
+        self._value_proxy_parser = ValueProxyParser(self._value_libraries)
 
     def parse(self):
         """Parse the specification description
@@ -127,21 +135,17 @@ class SpecificationParser:
         """
         description = self._provider.get()
         metadata = SpecificationMetadata(description.get('type'), description.get('creation_time'), description.get('notes'))
-        value_libraries = self._get_value_libraries(description)
-        node_parser = SpecificationNodeParser(value_libraries, self._get_combinators(), default_combinator=PRODUCT)
+        self._parse_value_libraries(description)
+        node_parser = SpecificationNodeParser(self._value_proxy_parser, self._get_combinators(), default_combinator=PRODUCT)
         root_node = node_parser.parse(description.get('spec'))
         root_node.evaluate()
         return SpecificationModel(description.get('base_file'), root_node, metadata)
 
-    @staticmethod
-    def _get_value_libraries(description):
+    def _parse_value_libraries(self, description):
         generator_lib = GeneratorsParser().parse(description.get('generators'))
-        macro_lib = {k: Macro(v) for k, v in description.get('macros', {}).items()}
-        return {
-            GENERATOR: generator_lib,
-            MACRO: macro_lib,
-            EVALUATOR: EVALUATOR_LIB
-        }
+        self._value_libraries[GENERATOR].update(generator_lib)
+        macros_lib = MacrosParser(self._value_libraries, self._value_proxy_parser).parse(description.get('macros'))
+        self._value_libraries[MACRO].update(macros_lib)
 
     @staticmethod
     def _get_combinators():
@@ -155,24 +159,21 @@ class SpecificationNodeParser:
     child nodes and expands them according to their values.
     """
 
-    def __init__(self, value_libraries=None, combinators=None, default_combinator=None):
+    def __init__(self, value_proxy_parser, combinators=None, default_combinator=None):
         """Initialises the node parser
 
-        :param value_libraries: A mapping between value library names (e.g. generators, evaluators, macros)
-                                and value libraries.
-                                The default is {}.
-        :type value_libraries: dict
+        :param value_proxy_parser: The value proxy parser
+        :type value_proxy_parser: :class:`ValueProxyParser`
         :param combinators: A mapping between combinator names (e.g. zip, product) and combinators.
                            The default is {}
         :type combinators: dict
         """
-        self._value_libraries = value_libraries or {}
         self._combinators = combinators or {}
         self._default_combinator = default_combinator
-        self._value_proxy_parser = ValueProxyParser(self._value_libraries)
         self._node_factory = SpecificationNodeFactory()
+        self._value_proxy_parser = value_proxy_parser
 
-    def parse(self, node_spec, parent=None):
+    def parse(self, node_spec, parent=None, node_policies=None, ghost_parameters=None):
         """Parse the `node_spec`, and expand its children.
 
         This iterates through a `node_spec` and expands it's children.
@@ -185,8 +186,10 @@ class SpecificationNodeParser:
         :returns: The expanded `node_spec`
         :rtype: :class:`SpecificationNode`
         """
-        node_policies, node_spec = self._get_policies(node_spec)
-        ghost_parameters, node_spec = self._get_ghost_parameters(node_spec)
+        next_node_policies, node_spec = self._get_policies(node_spec)
+        node_policies = self._merge_policies(node_policies, next_node_policies)
+        next_ghost_parameters, node_spec = self._get_ghost_parameters(node_spec)
+        ghost_parameters = {**(ghost_parameters or {}), **next_ghost_parameters}
 
         parent = parent or SpecificationNode.create_root(node_policies.pop(PATH, None))
         if node_spec is None or node_spec == {}:
@@ -197,6 +200,16 @@ class SpecificationNodeParser:
         (name, value), next_node_spec = self._get_next_node(node_spec)
         self._parse_value(parent, name, value, next_node_spec, node_policies, ghost_parameters)
         return parent
+    
+    def _merge_policies(self, left, right):
+        if not left:
+            return right
+        if not right:
+            return left
+        merged = {}
+        if PATH in left and PATH in right:
+            merged[PATH] = str(PathBuilder(left[PATH]).join(right[PATH]))
+        return {**left, **right, **merged}
 
     def _parse_value(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
         # combinator lookup
@@ -208,15 +221,15 @@ class SpecificationNodeParser:
                 self._parse_value(parent, name, val, next_node_spec, node_policies, ghost_parameters)
         # burrow into object
         elif isinstance(value, dict):
-            self.parse(value, parent)
-            self.parse(next_node_spec, parent)
+            self.parse(value, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
+            self.parse(next_node_spec, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
         elif isinstance(value, str) and self._is_value_proxy(value):
-            next_parent = ValueProxyNode(parent, name, self._value_proxy_parser.parse(value), node_policies.pop(PATH, None), ghost_parameters)
+            next_parent = ValueProxyNode(parent, name, self._value_proxy_parser.parse(value), node_policies.get(PATH, None), ghost_parameters)
             self.parse(next_node_spec, next_parent)
         # simple single value
         else:
-            next_parent = self._node_factory.create(parent, name, value, node_policies.pop(PATH, None), ghost_parameters)
+            next_parent = self._node_factory.create(parent, name, value, node_policies.get(PATH, None), ghost_parameters)
             self.parse(next_node_spec, next_parent)
 
     def _is_value_proxy(self, value):
@@ -237,10 +250,12 @@ class SpecificationNodeParser:
 
     def _parse_combinator(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
         for node_spec in self._get_combinator(name)(value):
-            self._parse_value(parent, None, node_spec, next_node_spec, node_policies, ghost_parameters)
+            self._parse_value(parent, '', node_spec, next_node_spec, node_policies, ghost_parameters)
 
     def _get_next_node(self, node_spec):
         next_key = list(node_spec.keys())[0]
+        if len(node_spec) == 1:
+            return (next_key, node_spec[next_key]), {}
         # If the next value is a list, expand it using the default combinator if possible
         if not self._is_combinator(next_key) and isinstance(node_spec[next_key], list) and self._default_combinator:
             return ('{}{}'.format(self._prefix(COMBINATOR), self._default_combinator), node_spec), {}
