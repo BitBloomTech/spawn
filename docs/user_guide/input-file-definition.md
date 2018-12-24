@@ -1,6 +1,6 @@
 # Spawn Input File Definition
 
-Spawn is a declarative language based on JSON. The JSON standard is defined at <http://json.org>. Based on a specification in JSON, Spawn generates parameter sets, which we refer to as nodes.
+Spawn input is a hierarchical structure of branching nodes which allows large numbers of parameter sets (referred to as "specification nodes") to be specified in a declarative manner. The input is defined in JSON format (see <http://json.org> for the JSON standard). JSON editors are widely available, or you can use your favourite text editor to write Spawn input files.
 
 ## Getting Started
 
@@ -13,7 +13,7 @@ The specification is defined in an object named `"spec"`. Each name/value pair w
 }
 ```
 
-Sister name/value pairs are simultaneous (i.e. orccur on the same node). The following generates a single node with *two* simulataneous parameters - `"alpha"` with a vlue of 4, and "beta" with a value of "tadpole":
+Sibling name/value pairs are simultaneous (i.e. orccur on the same node). The following generates a single node with *two* simulataneous parameters - `"alpha"` with a value of 4, and "beta" with a value of "tadpole":
 ```json
 {
     "spec": {
@@ -23,7 +23,7 @@ Sister name/value pairs are simultaneous (i.e. orccur on the same node). The fol
 }
 ```
 
-Separate nodes can be created by separating parameters into different JSON nodes. Parameters defined outside of the object are also applied on each node. The following creates two nodes, both with parameters named `"alpha"` and `"beta"`, where the first node has parameter values of 4 and "tadpole" respectively and the second has values of 6 and "tadpole" respectively. The names of the sub-objects (`"blah"` and `"blo"`) are not used but must be present to conform to the JSON standard:
+Separate nodes can be created by separating parameters into different JSON nodes. Parameters defined outside of the object are also applied on each node. The following creates two nodes, both with parameters named `"alpha"` and `"beta"`, where the first node has parameter values of 4 and "tadpole" respectively and the second has values of 6 and "tadpole" respectively. Note that the names of the sub-objects (`"blah"` and `"blo"`) do not contribute to the parameter specification:
 ```json
 {
     "spec": {
@@ -60,7 +60,7 @@ Multiple specification nodes where one parameter is varied can be created by usi
 
 ### Cartesian Product
 
-The automatic behaviour of multiple sister arrays is to create all the parameter combinations of them (i.e. apply [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product)). The following will create 6 (3*2) nodes (2D product):
+The automatic behaviour of multiple sibling arrays is to create all the parameter combinations of them (i.e. apply [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product)). The following will create 6 (3*2) nodes (2D product):
 ```json
 {
     "spec": {
@@ -70,7 +70,7 @@ The automatic behaviour of multiple sister arrays is to create all the parameter
 }
 ```
 
-Additional sister arrays will add additional dimensions to the Cartesian product, and there is no limit. In this manner, a very large number of nodes can be created with just a few lines.
+Additional sibling arrays will add additional dimensions to the Cartesian product, and there is no limit. In this manner, a very large number of nodes can be created with just a few lines.
 
 ### Zip
 
@@ -85,7 +85,7 @@ To apply a one-one mapping between, we apply the zip "combinator" on the two arr
     }
 }
 ```
-There is no limit to the number of sister arrays, but they *must* all have equal size.
+There is no limit to the number of sibling arrays, but they *must* all have equal size.
 
 ## Value Proxies
 
@@ -99,7 +99,7 @@ The value of parameter/value pairs can be represented by a proxy. The proxy is a
 
 ### Macros
 
-Macros are declared alongside the spec and can then be used repeatedly. The name of the name/value pairs in the `macros` object determines the name of the macro that can be used in the `spec` object (where it must be prefixed). They can be a single value, array or object:
+Macros are declared alongside the spec and can then be used repeatedly. The name of the name/value pairs in the `macros` object determines the name of the macro that can be used in the `spec` object (where it must be prefixed). They can be a single value, array or object. The following will produce six nodes (three values of `"alpha"` with `"beta"` parameter specified, and three more with `"gamma"` parameter specified):
 ```json
 {
     "macros": {
