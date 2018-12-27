@@ -106,3 +106,15 @@ class RepeatEvaluator(Evaluator):
     
     def _evaluate_arg(self, arg, **kwargs):
         return arg
+
+def create_function_evaluator(function):
+    class FunctionEvaluator(Evaluator):
+        """Implementation of :class:`Evaluator` that evaluates a delegate function
+        """
+        def _evaluate(self, *args, **kwargs):
+            parameters = inspect.signature(function).parameters
+            if 'kwargs' not in parameters:
+                kwargs = {k: v for k, v in kwargs.items() if k in parameters}
+            return function(*args, **kwargs)
+
+    return FunctionEvaluator

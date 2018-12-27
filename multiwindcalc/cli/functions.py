@@ -40,25 +40,35 @@ from multiwindcalc.plugins import PluginLoader
 import logging
 LOGGER = logging.getLogger()
 
+_pass_config = click.make_pass_decorator(dict)
+
 @click.group()
 @click.pass_context
 @click.option('--log-level', type=click.Choice(['error', 'warning', 'info', 'debug']), default='info', help='The log level')
 @click.option('--log-console', is_flag=True, help='Write logs to the console')
-def cli(ctx, log_level, log_console):
+@click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
+@click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
+def cli(ctx, **kwargs):
     """Command Line Interface
     """
-    configure_logging(log_level, ctx.invoked_subcommand, log_console)
+    config = _get_config(**kwargs)
+    configure_logging(config.get(APP_NAME, 'log_level'), ctx.invoked_subcommand, config.get(APP_NAME, 'log_console'))
+    ctx.obj = kwargs
 
 @cli.command()
+@_pass_config
 @click.argument('specfile', type=click.Path(exists=True))
 @click.option('-o', '--outfile', type=click.Path(), help='write inspection output to file rather than to console')
 @click.option('-f', '--format', type=click.Choice(['txt', 'json']), default='txt', help='format of specification inspection')
-def inspect(specfile, outfile, format):
+def inspect(config, **kwargs):
     """Expand and write to console the contents of the SPECFILE
     """
-    click.echo('Inspecting input file "{}":'.format(click.format_filename(specfile)))
+    config = _get_config(**{**config, **kwargs})
+    specfile = config.get(APP_NAME, 'specfile')
+    outfile = config.get(APP_NAME, 'outfile')
+    click.echo('Inspecing input file "{}":'.format(click.format_filename(specfile)))
     reader = SpecificationFileReader(specfile)
-    parser = SpecificationParser(reader)
+    parser = SpecificationParser(reader, PluginLoader(config))
     spec = parser.parse()
     spec_dict = DictSpecificationConverter().convert(spec)
     click.echo('Number of leaves: {}'.format(len(spec.root_node.leaves)))
@@ -73,10 +83,12 @@ def inspect(specfile, outfile, format):
         prettyspec(spec_dict)
 
 @cli.command()
+@_pass_config
 @click.argument('specfile', type=click.Path(exists=True))
 @click.argument('outdir', type=click.Path(file_okay=False, resolve_path=True))
 @click.option('--type', type=str, default=None, help='The type of runs to create. Must have a corresponding plugin.')
 @click.option('--local/--remote', is_flag=True, default=True, help='Run local or remote. Remote running requires a luigi server to be running')
+<<<<<<< Updated upstream
 @click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
 @click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
 @click.option('--check-config', is_flag=True, default=False, help='Print the configuration for the current run and exit')
@@ -88,15 +100,24 @@ def run(**kwargs):
         _print_config(config)
         return
     spec = SpecificationParser(SpecificationFileReader(config.get(APP_NAME, 'specfile'))).parse()
+=======
+def run(config, **kwargs):
+    """Runs the SPECFILE contents and write output to OUTDIR
+    """
+    config = _get_config(**{**config, **kwargs})
+    reader = SpecificationFileReader(config.get(APP_NAME, 'specfile'))
+    plugin_loader = PluginLoader(config)
+    spec = SpecificationParser(reader, plugin_loader).parse()
+>>>>>>> Stashed changes
     plugin_type = config.get(APP_NAME, 'type') or spec.metadata.type
     if not plugin_type:
         raise ValueError('No plugin type defined - please specify the --type argument or add a type property in the spec file')
-    plugin_loader = PluginLoader(config)
     spawner = plugin_loader.create_spawner(plugin_type)
     scheduler = LuigiScheduler(config)
     scheduler.run(spawner, spec)
 
 @cli.command()
+<<<<<<< Updated upstream
 @click.option('-d', type=click.STRING, multiple=True, help='Definitions to override configuration file parameters (e.g. -d multiwindcalc.workers=2)')
 @click.option('--config-file', type=click.Path(exists=None, dir_okay=False, resolve_path=True), default=APP_NAME + '.ini', help='Path to the config file.')
 def work(**kwargs):
@@ -106,6 +127,14 @@ def work(**kwargs):
     scheduler = LuigiScheduler(config)
     scheduler.add_worker()
 
+=======
+@_pass_config
+def serve(config, **kwargs):
+    """Runs the luigi server, for running using the centralised scheduler and viewing the UI
+    """
+    config = _get_config(**{**config, **kwargs})
+    server.run(api_port=config.get('server', 'port'))
+>>>>>>> Stashed changes
 
 def _get_config(**kwargs):
     command_line_config = CommandLineConfiguration(**kwargs)
