@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@ import numpy as np
 import math
 import luigi
 from wetb.fast import fast_io
-from multiwindcalc.plugins.wind.nrel import FastInput, TurbsimInput, FastSimulationSpawner, TurbsimSpawner
+from spawn.plugins.wind.nrel import FastInput, TurbsimInput, FastSimulationSpawner, TurbsimSpawner
 import example_data
 
 

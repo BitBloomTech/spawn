@@ -1,6 +1,6 @@
 import pytest
 
-from multiwindcalc.tasks import SimulationTask
+from spawn.tasks import SimulationTask
 
 @pytest.fixture
 def task():

@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,10 +16,10 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.specification.generator_methods import *
-from multiwindcalc.specification.combinators import *
-from multiwindcalc.parsers.specification_parser import *
-from multiwindcalc.specification.specification import *
+from spawn.specification.generator_methods import *
+from spawn.specification.combinators import *
+from spawn.parsers.specification_parser import *
+from spawn.specification.specification import *
 
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):

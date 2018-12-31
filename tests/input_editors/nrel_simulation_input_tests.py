@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 from os import path
 import pytest
 import tempfile
-from multiwindcalc.plugins.wind.nrel import TurbsimInput, AerodynInput, FastInput
+from spawn.plugins.wind.nrel import TurbsimInput, AerodynInput, FastInput
 
 
 @pytest.mark.parametrize('cls,file,key', [
