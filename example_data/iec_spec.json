@@ -16,7 +16,7 @@
     "Vmean": 10.0,
     "Ve1": 56,
     "Ve50": 70,
-    "Iref": 0.14,
+    "Iref": 14.0,
     "WindRangeOperating": "#range($Vin, $Vout, 2)",
     "WindRangeParked": "#range(2, 0.7 * $Vref, 2)",
     "YawRange": [-10.0, 0.0, 10.0],

@@ -80,10 +80,11 @@ def inspect(config, **kwargs):
     spec_dict = DictSpecificationConverter().convert(spec)
     click.echo('Number of leaves: {}'.format(len(spec.root_node.leaves)))
     if outfile is not None:
+        format_ = config.get(APP_NAME, 'format')
         with open(outfile, 'w') as f:
-            if format == 'txt':
+            if format_ == 'txt':
                 prettyspec(spec_dict, f)
-            elif format == 'json':
+            elif format_ == 'json':
                 json.dump(spec_dict, f, indent=2)
         click.echo('Specification details written to {}'.format(f.name))
     else:
