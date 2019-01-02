@@ -151,7 +151,7 @@ The following example generates a value of 4 for "alpha" via the "a" object and 
 
 ### Evaluators
 
-Evaluators allow function-style syntax to evaluate expressions with arguments. Arithmetic operations are supported as well as inbuilt evaluators `range` (as per [python's range function](https://docs.python.org/3/library/stdtypes.html?highlight=range#range)) and `repeat`. Unlike macros and generators, evaluators do not need an object defined alongside the `spec`. Some examples:
+Evaluators allow function-style syntax to evaluate expressions with arguments. Arithmetic operations are supported as well as inbuilt evaluators `range`, which produces an evenly speced array, and `repeat`, which repeats a particular value. Unlike macros and generators, evaluators do not need an object defined alongside the `spec`. Some examples:
 
 | Example | Resolution |
 |---------|------------|
@@ -159,7 +159,8 @@ Evaluators allow function-style syntax to evaluate expressions with arguments. A
 | `"#3 - 5"` | `-2` |
 | `"#3 * 5"` | `15` |
 | `"#3 / 5"` | `0.6` |
-| `"#range(3, 8)"` | `[3, 4, 5, 6, 7]` |
+| `"#range(3, 8)"` | `[3, 4, 5, 6, 7, 8]` |
+| `"#range(0.3, 0.5, 0.1)"` | `[0.3, 0.4, 0.5]` |
 | `"eval:repeat(5, 3)"` | `[5, 5, 5]` |
 
 Note that the `repeat` can be used with a generator as argument and therefore generate a different value for each elemtn of the array. Evaluators can also take other parameters simultaneously present in the specification if they are prefixed by `!`. They do not need to be in the same object, but if not they must be defined higher up the object tree (i.e. they are unreferencable if in sub-objects). The following resolves `"gamma"` into the list `[3, 4]`:
