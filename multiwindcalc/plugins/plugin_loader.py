@@ -20,6 +20,8 @@ from importlib import import_module
 from inspect import signature
 
 from multiwindcalc import __name__ as APP_NAME
+from multiwindcalc.specification.generator_methods import Generator
+from multiwindcalc.specification.evaluators import create_function_evaluator
 
 def _load_plugin(plugin_definition):
     if not ':' in plugin_definition:
@@ -29,9 +31,11 @@ def _load_plugin(plugin_definition):
         plugin = import_module(module_path)
     except ImportError:
         raise ValueError('Could not import module {} for plugin definition {} - please make sure the module is available on your python path'.format(module_path, plugin_definition))
-    if not hasattr(plugin, 'create_spawner'):
-        raise TypeError('Plugin {} has no method create_spawner'.format(plugin_definition))
     return (plugin_type, plugin)
+
+RESERVED_NAMES = [
+    'create_spawner'
+]
 
 class PluginLoader:
     """Class to load plugins and create spawners from plugins
@@ -61,6 +65,51 @@ class PluginLoader:
         if not plugin_type in self._plugins:
             raise ValueError('Could not find plugin for plugin type {}'.format(plugin_type))
         plugin = self._plugins[plugin_type]
+        if not hasattr(plugin, 'create_spawner'):
+            raise TypeError('Plugin {} has no method create_spawner'.format(plugin_type))
         arg_names = signature(plugin.create_spawner).parameters
         arg_values = {n: self._config.get(plugin_type, n) or self._config.get(APP_NAME, n) for n in arg_names}
         return plugin.create_spawner(**arg_values)
+
+    def load_generators(self):
+        """Loads generators from the plugins defined.
+
+        Finds any classes of type :class:`Generator` in the plugin, and loads them
+
+        :returns: dict of names and :class:`Generator`
+        :rtype: dict
+        """
+        generators = {}
+        for plugin in self._plugins.values():
+            for name, value in plugin.__dict__.items():
+                if name not in generators and self._is_generator(value):
+                    generators[name] = value
+        return generators
+    
+    def load_evaluators(self):
+        """Loads evaluators from the plugins defined
+
+        Finds any functions that are not prefixed with _, are not generators and are not reserved
+
+        :returns: dict of names and :class:`Evaluator`
+        :rtype: dict
+        """
+        evaluators = {}
+        for plugin in self._plugins.values():
+            for name, value in plugin.__dict__.items():
+                if name not in evaluators and not self._is_generator(value) and not self._is_ignored(name) and self._is_evaluator(value):
+                    evaluators[name] = create_function_evaluator(value)
+        return evaluators
+
+    
+    @staticmethod
+    def _is_generator(value):
+        return isinstance(value, type) and issubclass(value, Generator)
+
+    @staticmethod
+    def _is_evaluator(value):
+        return callable(value)
+    
+    @staticmethod
+    def _is_ignored(name):
+        return name.startswith('_') or any(name == reserved_name for reserved_name in RESERVED_NAMES)

@@ -23,6 +23,8 @@ from ..util.validation import validate_type
 class GeneratorsParser:
     """Parser for the generators section of the spec file
     """
+    def __init__(self, generators):
+        self._generators = generators
 
     def parse(self, generators):
         """Parse the generators section of the spec file.
@@ -46,9 +48,17 @@ class GeneratorsParser:
             generator_objects[name] = self._instantiate(method, gen)
         return generator_objects
 
-    @staticmethod
-    def _instantiate(method, args):
-        for name, _ in inspect.getmembers(generator_methods, inspect.isclass):
-            if name == method:
-                return getattr(generator_methods, name)(**args)
+    def _instantiate(self, method, args):
+        if method in self._generators:
+            return self._generators[method](**args)
         raise KeyError("Method '" + method + "' not found in generator methods")
+
+    @staticmethod
+    def load_generators_from_module(module):
+        is_generator = lambda c: inspect.isclass(c) and issubclass(c, generator_methods.Generator)
+        return {name: class_type for name, class_type in inspect.getmembers(generator_methods, is_generator)}
+
+    @classmethod
+    def default(cls):
+        return cls(cls.load_generators_from_module(generator_methods))
+    
