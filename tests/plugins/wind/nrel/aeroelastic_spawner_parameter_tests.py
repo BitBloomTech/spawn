@@ -97,6 +97,18 @@ def test_initial_values(spawner, key, value, output_name, tmpdir):
     assert res[output_name][0] == pytest.approx(value, rel=0.1)
 
 
+@pytest.mark.parametrize('key,index,value', [
+    ('blade_initial_pitch', 1, 10.0),
+    ('blade_pitch_manoeuvre_time', 2, 30.0),
+    ('blade_final_pitch', 3, 90.0)
+])
+def test_set_and_then_get_indexed_parameters(spawner, key, index, value):
+    array = getattr(spawner, key)
+    array[index] = value
+    retval = array[index]
+    assert retval == value
+
+
 def test_operating_mode(spawner, tmpdir):
     spawner.operation_mode = 'idling'
     spawner.initial_pitch = 30.0

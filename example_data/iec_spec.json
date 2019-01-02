@@ -146,8 +146,8 @@
           "wind_speed": "#range(12, 26, 2)",
           "turbulence_seed": "#repeat(@TurbulenceSeed, 12)",
           "pitch_manoeuvre_time": 10.0,
-          "initial_pitch[1]": "$FinePitch",
-          "final_pitch[1]": "$FeatherPitch",
+          "blade_initial_pitch[1]": "$FinePitch",
+          "blade_final_pitch[1]": "$FeatherPitch",
           "_safety_factor": "$Abnormal"
         },
         "dlc2.2y": {
@@ -163,7 +163,7 @@
           "simulation_time": 600,
           "wind_speed": "$WindRangeOperating",
           "turbulence_seed": "#repeat(@TurbulenceSeed, 12)",
-          "initial_pitch[1]": "$FinePitch",
+          "blade_initial_pitch[1]": "$FinePitch",
           "_safety_factor": "$Abnormal"
         },
         "dlc2.3": {

@@ -31,6 +31,7 @@ class AeroelasticSimulationSpawner(TaskSpawner):
     initial_azimuth = FloatProperty(doc='Rotor azimuth of blade 1 at start of simulation in degrees', abstract=True)
     initial_yaw = FloatProperty(doc='Nacelle yaw angle at start of simulation in degrees; clockwise from North', abstract=True)
     initial_pitch = FloatProperty(doc='Pitch angle for all blades at start of simulation; in degrees, positive towards feather', abstract=True)
+    blade_initial_pitch = ArrayProperty(doc='Pitch angle for single blades at start of simulation; in degrees, positive towards feather', abstract=True, type_=float)
 
     # supervisory logic
     operation_mode = StringProperty(
