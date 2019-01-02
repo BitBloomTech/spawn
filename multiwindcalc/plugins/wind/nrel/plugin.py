@@ -50,12 +50,12 @@ def create_spawner(turbsim_exe, fast_exe, turbsim_base_file, fast_base_file, run
     return FastSimulationSpawner(FastInput.from_file(fast_base_file), wind_spawner, path.join(outdir, prereq_outdir))
 
 
-def NTM(self, Iref, wind_speed):
+def NTM(Iref, wind_speed):
     """Evaluates turbulence intensity according to normal turbulence model"""
     return Iref * (0.75 * wind_speed + 5.6) / wind_speed
 
 
-def ETM(self, Iref, Vmean, wind_speed):
+def ETM(Iref, Vmean, wind_speed):
     """Evaluates turbulence intensity according to extreme turbulence model"""
     c = 2.0
     return c * Iref * (0.072 * (Vmean / c + 3.0) * (wind_speed / c - 4) + 10.0) / wind_speed
