@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,8 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.plugins.plugin_loader import PluginLoader
-from multiwindcalc.config import CommandLineConfiguration
+from spawn.plugins.plugin_loader import PluginLoader
+from spawn.config import CommandLineConfiguration
 
 from multiwindcalc.specification.generator_methods import Generator
 
@@ -55,7 +55,7 @@ def test_module(mocker):
 def plugin_loader(mocker, test_module):
     load_module_mock = mocker.Mock()
     load_module_mock.return_value = test_module
-    mocker.patch('multiwindcalc.plugins.plugin_loader.import_module', load_module_mock)
+    mocker.patch('spawn.plugins.plugin_loader.import_module', load_module_mock)
     config = CommandLineConfiguration(d=('plugins=test_plugin:mock_plugin','test_plugin.foo=bar'))
     return PluginLoader(config)
 

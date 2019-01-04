@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@ import pytest
 from os import path, getcwd
 import json
 
-from multiwindcalc.runners.process_runner import ProcessRunner
+from spawn.runners.process_runner import ProcessRunner
 
 @pytest.fixture
 def output(mocker):
@@ -32,7 +32,7 @@ def output(mocker):
 @pytest.fixture
 def subprocess(mocker, output):
     subprocess_mock = mocker.Mock()
-    mocker.patch('multiwindcalc.runners.process_runner.subprocess', subprocess_mock)
+    mocker.patch('spawn.runners.process_runner.subprocess', subprocess_mock)
     subprocess_mock.run.return_value = output
     return subprocess_mock
 

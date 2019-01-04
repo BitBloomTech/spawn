@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,11 +16,11 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path
 import numpy as np
-from multiwindcalc.generate_tasks import generate_tasks_from_spec
-from multiwindcalc.tasks.simulation import SimulationTask
-from multiwindcalc.plugins.wind.nrel import WindGenerationTask, FastSimulationSpawner
-from multiwindcalc.parsers import *
-from multiwindcalc.parsers.value_proxy import ValueProxyParser
+from spawn.generate_tasks import generate_tasks_from_spec
+from spawn.tasks.simulation import SimulationTask
+from spawn.plugins.wind.nrel import WindGenerationTask, FastSimulationSpawner
+from spawn.parsers import *
+from spawn.parsers.value_proxy import ValueProxyParser
 
 
 def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir, spawner):

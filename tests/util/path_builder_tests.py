@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.util.path_builder import *
+from spawn.util.path_builder import *
 
 def test_convert_to_string_returns_empty_string_for_default_path_builder():
     assert str(PathBuilder()) == ''

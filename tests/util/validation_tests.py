@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@ import pytest
 
 from os import path
 
-from multiwindcalc.util.validation import *
+from spawn.util.validation import *
 
 def test_validate_type_raises_for_invalid_type():
     with pytest.raises(TypeError):
