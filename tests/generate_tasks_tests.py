@@ -37,9 +37,9 @@ def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir, spawner):
         assert 'wind_speed' in t.metadata
 
 
-def test_can_create_runs_from_tree_spec(tmpdir, spawner, example_data_folder):
+def test_can_create_runs_from_tree_spec(tmpdir, spawner, plugin_loader, example_data_folder):
     input_path = path.join(example_data_folder, 'iec_fatigue_spec.json')
-    spec_model = SpecificationParser(SpecificationFileReader(input_path)).parse()
+    spec_model = SpecificationParser(SpecificationFileReader(input_path), plugin_loader).parse()
     runs = generate_tasks_from_spec(spawner, spec_model.root_node, tmpdir.strpath)
     assert len(runs) == 12*3 + 12*2 + 12*3
     seeds = []

@@ -177,8 +177,8 @@ EXPECTED_4 = {
     }]
 }
 
-def parse(spec):
-    return SpecificationParser(DictSpecificationProvider(spec)).parse()
+def parse(spec, plugin_loader):
+    return SpecificationParser(DictSpecificationProvider(spec), plugin_loader).parse()
 
 @pytest.fixture
 def dict_converter():
@@ -190,6 +190,6 @@ def dict_converter():
     (SPEC_3, EXPECTED_3),
     (SPEC_4, EXPECTED_4),
 ])
-def test_dict_converter_converts_parsed_spec(dict_converter, spec, expected):
-    spec_model = parse(spec)
+def test_dict_converter_converts_parsed_spec(dict_converter, spec, expected, plugin_loader):
+    spec_model = parse(spec, plugin_loader)
     assert dict_converter.convert(spec_model) == expected

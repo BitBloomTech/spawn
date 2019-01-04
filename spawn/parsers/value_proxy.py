@@ -101,6 +101,22 @@ class ValueProxyVisitor(ast.NodeVisitor):
         :rtype: numeric
         """
         return node.n
+    
+    def visit_UnaryOp(self, node):
+        """Parse :class:`ast.UnaryOp` nodes
+
+        Inspects the unary operator and applies this to the result of the operand
+        
+        :param node: The node to parse
+        :type node: :class:`ast.UnaryOp`
+
+        :returns: The result
+        :rtype: object
+        """
+        if isinstance(node.op, ast.USub):
+            return -1 * self.visit(node.operand)
+        if isinstance(node.op, ast.UAdd):
+            return self.visit(node.operand)
 
     def visit_BinOp(self, node):
         """Parse :class:`ast.BinOp` nodes

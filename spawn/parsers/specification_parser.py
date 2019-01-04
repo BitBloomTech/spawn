@@ -29,6 +29,7 @@ from .value_proxy import ValueProxyParser
 from .generators import GeneratorsParser
 from .macros import MacrosParser
 from .constants import *
+from ..specification import generator_methods
 from ..util.validation import validate_type, validate_file
 from ..util.path_builder import PathBuilder
 
@@ -108,7 +109,7 @@ class SpecificationParser:
     produce a tree representation of the nodes.
     """
 
-    def __init__(self, provider):
+    def __init__(self, provider, plugin_loader):
         """Initialises the :class:`SpecificationParser`
 
         :param provider: The source of the specification description
@@ -116,10 +117,12 @@ class SpecificationParser:
         """
         validate_type(provider, SpecificationDescriptionProvider, 'provider')
         self._provider = provider
+        self._plugin_loader = plugin_loader
+        plugin_evaluators = self._plugin_loader.load_evaluators()
         self._value_libraries = {
             GENERATOR: {},
             MACRO: {},
-            EVALUATOR: EVALUATOR_LIB
+            EVALUATOR: {**EVALUATOR_LIB, **plugin_evaluators}
         }
         self._value_proxy_parser = ValueProxyParser(self._value_libraries)
 
@@ -142,7 +145,9 @@ class SpecificationParser:
         return SpecificationModel(description.get('base_file'), root_node, metadata)
 
     def _parse_value_libraries(self, description):
-        generator_lib = GeneratorsParser().parse(description.get('generators'))
+        built_in_generators = GeneratorsParser.load_generators_from_module(generator_methods)
+        plugin_generators = self._plugin_loader.load_generators()
+        generator_lib = GeneratorsParser({**built_in_generators, **plugin_generators}).parse(description.get('generators'))
         self._value_libraries[GENERATOR].update(generator_lib)
         macros_lib = MacrosParser(self._value_libraries, self._value_proxy_parser).parse(description.get('macros'))
         self._value_libraries[MACRO].update(macros_lib)

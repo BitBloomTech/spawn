@@ -63,6 +63,9 @@ def test_evaluation_of_parameters(parser):
 def test_evaluation_of_parameters_as_argumnts(parser):
     assert parser.parse('#range(1, !upper, !step)').evaluate(upper=4, step=1) == list(range(1, 5, 1))
 
+def test_evaluation_of_negative_values(parser):
+    assert parser.parse('#range(-180, 165, 15)').evaluate() == list(range(-180, 180, 15))
+
 def test_evaluation_of_generator(parser):
     evaluator = parser.parse('@seed')
     assert evaluator.evaluate() == 1

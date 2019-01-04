@@ -21,6 +21,8 @@ import pytest
 import luigi.configuration
 
 from spawn.plugins.wind.nrel import TurbsimInput, FastInput, TurbsimSpawner, FastSimulationSpawner
+from spawn.config import DefaultConfiguration
+from spawn.plugins import PluginLoader
 
 __home_dir = path.dirname(path.realpath(__file__))
 _example_data_folder = path.join(__home_dir, pardir, 'example_data')
@@ -60,3 +62,7 @@ def spawner(example_data_folder, tmpdir):
     return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
                                                                'NRELOffshrBsline5MW_Onshore.fst')),
                                  wind_spawner, tmpdir)
+
+@pytest.fixture
+def plugin_loader():
+    return PluginLoader(DefaultConfiguration())
