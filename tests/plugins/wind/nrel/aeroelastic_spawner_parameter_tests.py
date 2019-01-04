@@ -214,8 +214,16 @@ def test_upflow(baseline, spawner, tmpdir):
     assert math.degrees(upflow_new - upflow_baseline) == pytest.approx(spawner.upflow, abs=0.1)
 
 
-def test_wind_file(spawner, tmpdir):
+def test_fails_with_invalid_wind_file(spawner, tmpdir):
     spawner.wind_file = 'C:/this/is/a/bad/path.wnd'
     task = spawner.spawn(str(tmpdir), {})
     with pytest.raises(ChildProcessError):
         task.run()
+
+
+def test_completes_with_relative_wind_file(spawner, tmpdir):
+    # This test must be run with root as working directory
+    spawner.wind_file = 'example_data/fast_input_files/wind_files/NWP4.0.wnd'
+    task = spawner.spawn(str(tmpdir), {})
+    task.run()
+    assert task.complete()

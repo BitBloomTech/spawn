@@ -320,7 +320,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         return self._aerodyn_input['WindFile']
 
     def set_wind_file(self, file):
-        self._aerodyn_input['WindFile'] = quote(file)
+        self._aerodyn_input['WindFile'] = quote(path.abspath(file))
         self._wind_is_explicit = True  # Don't generate wind task dependency
 
     # Properties of turbine, for which setting is not supported
