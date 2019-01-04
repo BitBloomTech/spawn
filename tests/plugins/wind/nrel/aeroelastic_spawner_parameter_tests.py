@@ -138,7 +138,6 @@ def test_pitch_manoeuvre_all_blades(spawner, tmpdir):
     spawner.pitch_manoeuvre_time = 1.0
     spawner.pitch_manoeuvre_rate = 1.0
     res = run_and_get_results(spawner, tmpdir)
-    assert res['BldPitch1'].iloc[0] == pytest.approx(10.0)
     assert res['BldPitch1'].iloc[-1] == pytest.approx(12.0)
 
 
@@ -151,7 +150,6 @@ def test_pitch_manoeuvre_one_blade(spawner, tmpdir):
     spawner.pitch_manoeuvre_time = 1.0
     spawner.pitch_manoeuvre_rate = 1.0
     res = run_and_get_results(spawner, tmpdir)
-    assert res['BldPitch1'].iloc[0] == pytest.approx(10.0)
     assert res['BldPitch1'].iloc[-1] == pytest.approx(12.0)
 
 

@@ -217,7 +217,6 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         return float(self._input['TPitManS' + self._blade_string(index)])
 
     def set_blade_pitch_manoeuvre_time(self, index, time):
-        self._input['PCMode'] = 0
         self._input['TPitManS' + self._blade_string(index)] = time
         self._reconcile_pitch_manoeuvre(index)
 
