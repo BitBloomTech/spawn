@@ -23,10 +23,10 @@ from spawn.parsers.value_proxy import ValueProxyParser
 
 def test_can_run_job_with_dependency(spawner, tmpdir):
     spec = {
-        "runs": [{'wind_speed': 8.0, 'output_start_time': 0.0, 'simulation_time': 1.0}]
+        "runs": [{'alpha': 8.0, 'beta': 0.0, 'gamma': 1.0}]
     }
     run_spec = {
-        'wind_speed': 8.0, 'output_start_time': 0.0, 'simulation_time': 1.0
+        'alpha': 8.0, 'beta': 0.0, 'gamma': 1.0
     }
     root_node = SpecificationNodeParser(ValueProxyParser({})).parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
