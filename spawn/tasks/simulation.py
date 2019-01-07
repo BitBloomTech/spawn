@@ -31,7 +31,7 @@ from .base import SpawnTask
 
 LOGGER = logging.getLogger(__name__)
 
-class SimulationTask(luigi.Task):
+class SimulationTask(SpawnTask):
     """Implementation of :class:`luigi.Task`
     """
     _input_file_path = luigi.Parameter()

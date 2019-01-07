@@ -38,6 +38,8 @@ RESERVED_NAMES = [
 ]
 
 class PluginLoader:
+    _pre_loaded_plugins = {}
+
     """Class to load plugins and create spawners from plugins
     """
     def __init__(self, config):
@@ -48,10 +50,23 @@ class PluginLoader:
         """
         self._config = config
         plugin_definitions = self._config.get(APP_NAME, 'plugins', type=list, default=[])
-        self._plugins = {}
+        self._plugins = {**self._pre_loaded_plugins}
         for p in plugin_definitions:
             plugin_name, plugin = _load_plugin(p)
             self._plugins[plugin_name] = plugin
+    
+    @classmethod
+    def pre_load_plugin(cls, name, plugin):
+        """Pre-loads the specified plugin
+
+        Adds the plugin to the pre-loaded plugins static map
+
+        :param name: The name of the plugin
+        :type name: str
+        :param plugin: The plugin to load
+        :type plugin: obj
+        """
+        cls._pre_loaded_plugins[name] = plugin
     
     def create_spawner(self, plugin_type):
         """Creates a spawner for a particular plugin type

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-from setuptools import setup, find_packages, Command
+from setuptools import setup, Command
 
 class ApplyLicenseCommand(Command):
     user_options = [
@@ -78,11 +78,11 @@ class ApplyLicenseCommand(Command):
         return lines, []
 
 install_requires = [
-    'luigi',
-    'wetb',
+    'luigi==2.8.2',
+    'wetb==0.0.9',
     'setuptools>=38.3',
-    'click',
-    'appdirs'
+    'click==7.0',
+    'appdirs==1.4.3'
 ]
 
 tests_require = [
@@ -100,9 +100,9 @@ extras_require = {
 }
 
 setup(
-    name='spawn',
+    name='spawn-core',
     version='0.1',
-    packages=find_packages(),
+    packages=['spawn'],
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require=extras_require,
