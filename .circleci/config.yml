@@ -33,7 +33,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            pytest tests --cov spawn
+            py.test tests --cov spawn
 
       - save_cache:
           paths:
