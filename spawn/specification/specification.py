@@ -324,6 +324,24 @@ class SpecificationNode:
         """
         for child in self._children:
             child.evaluate()
+        
+    def copy(self, new_parent):
+        """Copies this node and this node's children
+
+        :param new_parent: The new parent node
+        :type new_parent: :class:`SpecificationNode`
+
+        :returns: A copy of this node
+        :rtype: :class:`SpecificationNode`
+        """
+        new_node = self._initialise_copy(new_parent)
+        for child in self.children:
+            new_child = child.copy(new_node)
+            new_node.add_child(new_child)
+        return new_node
+    
+    def _initialise_copy(self, new_parent):
+        return type(self)(new_parent, self.property_name, self.property_value, self._path_part, self._ghosts)
     
     def _climb(self, f):
         current_node = self
@@ -355,6 +373,9 @@ class IndexedNode(SpecificationNode):
         this node has a property
         """
         return True
+    
+    def _initialise_copy(self, new_parent):
+        return type(self)(new_parent, self.property_name, self._index, self.property_value, self._path_part, self._ghosts)
 
 class ValueProxyNode(SpecificationNode):
     def __init__(self, parent, name, value_proxy, path, ghosts):
@@ -438,11 +459,7 @@ class SpecificationNodeFactory:
         return node
     
     def _copy_tree(self, parent, node):
-        new_node = type(node)(parent, node.property_name, node.property_value, node._path_part, node._ghosts)
-        for child in node.children:
-            new_child = self._copy_tree(new_node, child)
-            new_node.add_child(new_child)
-        return new_node
+        return node.copy(parent)
     
     @staticmethod
     def _index(name):
