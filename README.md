@@ -1,4 +1,4 @@
-# Spawn
+![Spawn Logo](spawn_logo.png "Spawn Logo")
 
 Spawn is a python package that allows users to concisely specify and execute a large number of tasks with complex and co-dependent input parameter variations. It is used particularly in engineering where frequently thousands of similar simulations with input parameter variations are run for design and certification purposes. Spawn allows the specification of such large task sets to be formulated in a concise and readable input file.
 
