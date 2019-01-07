@@ -20,48 +20,70 @@ import pytest
 
 import luigi.configuration
 
-from spawn.plugins.wind.nrel import TurbsimInput, FastInput, TurbsimSpawner, FastSimulationSpawner
 from spawn.config import DefaultConfiguration
 from spawn.plugins import PluginLoader
+from spawn.tasks import SpawnTask, TaskListParameter
+from spawn.spawners import TaskSpawner
 
 __home_dir = path.dirname(path.realpath(__file__))
 _example_data_folder = path.join(__home_dir, pardir, 'example_data')
 
-EXE_PATHS = {
-    'turbsim': path.join(_example_data_folder, 'TurbSim.exe'),
-    'fast': path.join(_example_data_folder, 'FASTv7.0.2.exe')
-}
+class _TestTask(SpawnTask):
+    run_registry = []
+
+    @property
+    def _args(self):
+        return {'task': type(self).__name__, 'metadata': self._metadata}
+
+    def run(self):
+        self.run_registry.append(self._args)
+    
+    def complete(self):
+        return self._args in self.run_registry
+
+class FooTask(_TestTask):
+    pass
+
+class BarTask(_TestTask):
+    pass
+
+
+class FooSpawner(TaskSpawner):
+    def __init__(self, run_registry):
+        self._run_registry = run_registry
+
+    def spawn(self, path, metadata):
+        task = FooTask(_id=path, _metadata=metadata, )
+        task.run_registry = self._run_registry
+        return task
+    
+    def branch(self):
+        return FooSpawner(self._run_registry)
+
+class BarSpawner(TaskSpawner):
+    def __init__(self, foo_spawner, run_registry):
+        self._foo_spawner = foo_spawner
+        self._run_registry = run_registry
+
+    def spawn(self, path, metadata):
+        task = BarTask(_id=path, _dependencies=[self._foo_spawner.spawn(path, metadata)], _metadata=metadata)
+        task.run_registry = self._run_registry
+        return task
+
+    def branch(self):
+        return BarSpawner(self._foo_spawner.branch(), self._run_registry)
+
+@pytest.fixture
+def run_registry():
+    return []
+
+@pytest.fixture
+def spawner(run_registry):
+    return BarSpawner(FooSpawner(run_registry), run_registry)
 
 @pytest.fixture
 def example_data_folder():
     return _example_data_folder
-
-@pytest.fixture
-def examples_folder(example_data_folder):
-    return path.join(example_data_folder, 'fast_input_files')
-
-@pytest.fixture
-def turbsim_exe(example_data_folder):
-    return path.join(example_data_folder, 'TurbSim.exe')
-
-@pytest.fixture
-def fast_exe(example_data_folder):
-    return path.join(example_data_folder, 'FASTv7.0.2.exe')
-
-@pytest.fixture(scope='session', autouse=True)
-def configure_luigi():
-    luigi.configuration.get_config().set('WindGenerationTask', '_runner_type', 'process')
-    luigi.configuration.get_config().set('WindGenerationTask', '_exe_path', EXE_PATHS['turbsim'])
-    luigi.configuration.get_config().set('FastSimulationTask', '_runner_type', 'process')
-    luigi.configuration.get_config().set('FastSimulationTask', '_exe_path', EXE_PATHS['fast'])
-
-@pytest.fixture
-def spawner(example_data_folder, tmpdir):
-    wind_spawner = TurbsimSpawner(TurbsimInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                                   'TurbSim.inp')))
-    return FastSimulationSpawner(FastInput.from_file(path.join(example_data_folder, 'fast_input_files',
-                                                               'NRELOffshrBsline5MW_Onshore.fst')),
-                                 wind_spawner, tmpdir)
 
 @pytest.fixture
 def plugin_loader():
