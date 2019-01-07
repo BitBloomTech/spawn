@@ -225,3 +225,13 @@ def test_completes_with_relative_wind_file(spawner, tmpdir):
     task = spawner.spawn(str(tmpdir), {})
     task.run()
     assert task.complete()
+
+
+def test_runaway_at_high_wind_speed(spawner, tmpdir):
+    spawner.wind_speed = 24.0
+    spawner.simulation_time = 20.0
+    spawner.pitch_manoeuvre_rate = 6.0
+    spawner.pitch_manoeuvre_time = 1.0
+    spawner.set_blade_final_pitch(1, 90.0)
+    res = run_and_get_results(spawner, tmpdir)
+    assert res['BldPitch1'].iloc[-1] == pytest.approx(90.0)
