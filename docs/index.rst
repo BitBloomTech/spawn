@@ -3,28 +3,34 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to spawn's documentation!
-=========================================
+=================================
+Welcome to Spawn's Documentation!
+=================================
+
+Spawn provides a unique and user-friendly way of specifying large combinations of simultations in a simple and easy-to-read (and write!) input file.
+
+Read :ref:`Spawn Input File Definition` to discover how to build your first Spawn spec file.
+
+If you're using the command line interface, take a look at :ref:`Spawn Command Line Interface`.
+
+A full :ref:`API Reference` is also provided.
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+   :name: user_guide
+   :caption: User Guide
+   :hidden:
 
-API Reference
+   user_guide/input-file-definition
+   api/spawn.cli
+   user_guide/glossary
 
-.. autosummary::
-    :toctree: api
+.. toctree::
+    :name: api
+    :caption: API Reference
+    :glob:
+    :hidden:
 
-    spawn
-    spawn.cli
-    spawn.parsers
-    spawn.runners
-    spawn.schedulers
-    spawn.simulation_inputs
-    spawn.spawners
-    spawn.specification
-    spawn.tasks
-    spawn.util
+    api/*
 
 Indices and tables
 ==================
