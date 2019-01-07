@@ -88,7 +88,6 @@ tests_require = [
     'pytest',
     'pytest-mock',
     'pytest-cov',
-    'coverage',
     'pylint',
     'numpy',
     'pandas',

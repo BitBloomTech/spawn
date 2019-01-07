@@ -45,6 +45,7 @@ jobs:
       - run:
           name: Generate reports
           command: |
+            . .venv/bin/activate
             coverage report
             coverage xml -o test-reports/coverage.xml
 
