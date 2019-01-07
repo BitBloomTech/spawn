@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -45,11 +45,11 @@ class ApplyLicenseCommand(Command):
         pass
 
     def run(self):
-        import multiwindcalc
+        import spawn
         from glob import glob
 
-        name = multiwindcalc.__name__
-        copyright_ = multiwindcalc.__copyright__
+        name = spawn.__name__
+        copyright_ = spawn.__copyright__
 
         license_header = ['# ' + line.strip() + '\n' for line in self.GPL_V3_LICENSE.format(description=name, copyright=copyright_).split('\n')]
 
@@ -79,8 +79,6 @@ class ApplyLicenseCommand(Command):
 
 install_requires = [
     'luigi',
-    'numpy',
-    'pandas',
     'wetb',
     'setuptools>=38.3',
     'click',
@@ -91,6 +89,8 @@ tests_require = [
     'pytest',
     'pytest-mock',
     'pylint',
+    'numpy',
+    'pandas',
     'tox'
 ]
 
@@ -100,7 +100,7 @@ extras_require = {
 }
 
 setup(
-    name='multiwindcalc',
+    name='spawn',
     version='0.1',
     packages=find_packages(),
     install_requires=install_requires,

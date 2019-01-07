@@ -32,7 +32,7 @@ The idea is that this explicit run list can be generated from a more condensed f
 Multi Wind Calc provides a CLI. Currently the only available function is specfile inspection.
 
 ```
-Usage: multiwindcalc [OPTIONS] COMMAND [ARGS]...
+Usage: spawn [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --log-level [error|warning|info|debug]
@@ -46,7 +46,7 @@ Commands:
 ### `inspect` command
 
 ```
-Usage: multiwindcalc inspect [OPTIONS] SPECFILE
+Usage: spawn inspect [OPTIONS] SPECFILE
 
 Options:
   --help  Show this message and exit.

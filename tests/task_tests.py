@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path
 import tempfile
-from multiwindcalc.plugins.wind.nrel import FastSimulationTask, WindGenerationTask
+from spawn.plugins.wind.nrel import FastSimulationTask, WindGenerationTask
 
 
 def _check_run_fails(task, error_file):

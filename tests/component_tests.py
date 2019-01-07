@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,9 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path, pardir
 import luigi
-from multiwindcalc.generate_tasks import generate_tasks_from_spec
-from multiwindcalc.parsers.specification_parser import SpecificationNodeParser
+from spawn.generate_tasks import generate_tasks_from_spec
+from spawn.parsers.specification_parser import SpecificationNodeParser
+from spawn.parsers.value_proxy import ValueProxyParser
 
 
 def test_can_run_one_turbsim_and_fast_run(tmpdir, example_data_folder, spawner):
@@ -32,7 +33,7 @@ def test_can_run_one_turbsim_and_fast_run(tmpdir, example_data_folder, spawner):
     run_spec = {
         'wind_speed': 8.0, 'output_start_time': 0.0, 'simulation_time': 1.0
     }
-    root_node = SpecificationNodeParser().parse(run_spec)
+    root_node = SpecificationNodeParser(ValueProxyParser({})).parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     luigi.build(tasks, local_scheduler=True, log_level='WARNING')
     assert tasks[0].output().exists()

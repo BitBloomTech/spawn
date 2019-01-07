@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,14 +16,24 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.specification.generator_methods import *
-from multiwindcalc.specification.combinators import *
-from multiwindcalc.parsers.specification_parser import *
-from multiwindcalc.specification.specification import *
+from spawn.specification.generator_methods import *
+from spawn.specification.combinators import *
+from spawn.parsers.specification_parser import *
+from spawn.specification.specification import *
 
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):
-        super().__init__(combinators={'zip': zip_properties, 'product': product}, default_combinator='product', **kwargs)
+        super().__init__(
+            value_proxy_parser=ValueProxyParser(kwargs.get('value_libraries', {})),
+            combinators={'zip': zip_properties, 'product': product}, default_combinator='product'
+        )
+
+
+def _parse_spec_into_node(spec, plugin_loader):
+    provider = DictSpecificationProvider(spec)
+    parser = SpecificationParser(provider, plugin_loader)
+    return parser.parse().root_node
+
 
 def test_parse_null_node_returns_root_node_no_children():
     node = DefaultSpecificationNodeParser().parse(None)
@@ -167,8 +177,32 @@ def test_generator_persists(parser_with_incremental_int_generator):
     assert collected_properties[1]['seed2'] == 8
 
 
+def test_generator_does_not_duplicate(plugin_loader):
+    provider = DictSpecificationProvider({
+        'generators': {
+            'MyGen': {
+                'method': 'IncrementalInt'
+            }
+        },
+        'spec': {
+            'a': {'alpha': '@MyGen'},
+            'b': {'alpha': '@MyGen', 'beta': '@MyGen'},
+            'c': {'alpha': '#repeat(@MyGen, 3)'}
+        }
+    })
+    parser = SpecificationParser(provider, plugin_loader)
+    root_node = parser.parse().root_node
+    collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
+    assert collected_properties[0]['alpha'] == 1
+    assert collected_properties[1]['alpha'] == 2
+    assert collected_properties[1]['beta'] == 3
+    assert collected_properties[2]['alpha'] == 4
+    assert collected_properties[3]['alpha'] == 5
+    assert collected_properties[4]['alpha'] == 6
+
+
 def test_emplaces_list_macro_correctly():
-    parser = SpecificationNodeParser(value_libraries={'macro': {'3directions': Macro([-8.0, 0.0, 8.0])}})
+    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'3directions': Macro([-8.0, 0.0, 8.0])}})
     root_node = parser.parse({
         'wind_speed': [6.0, 8.0],
         'yaw_angle': '$3directions'
@@ -187,7 +221,7 @@ def test_emplaces_dict_macro_correctly():
         'rotor_speed': 0.0,
         'simulation_mode': 'idling'
     })
-    parser = SpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
     root_node = parser.parse({
         'wind_speed': [6.0, 8.0],
         'irrelevant': 'macro:idling'
@@ -207,7 +241,7 @@ def test_raises_lookup_error_if_macro_not_found():
         'rotor_speed': 0.0,
         'simulation_mode': 'idling'
     })
-    parser = SpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
     with pytest.raises(LookupError):
         parser.parse({
             'wind_speed': [6.0, 8.0],
@@ -291,6 +325,47 @@ def test_node_with_overridden_properties_has_correct_path():
     root_node.evaluate()
     assert {leaf.path for leaf in root_node.leaves} == expected_paths
 
+def test_concatenates_paths_in_child_dict():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'section1': {
+            'policy:path': 'section1',
+            'blah': {
+                'policy:path': '{alpha}',
+                'alpha': ['egg', 'tadpole', 'frog']
+            }
+        }
+    })
+    expected_paths = {
+        'section1/egg',
+        'section1/tadpole',
+        'section1/frog'
+    }
+    root_node.evaluate()
+    paths = {leaf.path for leaf in root_node.leaves}
+    assert paths == expected_paths
+
+
+def test_concatenates_paths_in_child_dict_parent_has_properties():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'section1': {
+            'policy:path': '{beta}',
+            'beta': 42.0,
+            'blah': {
+                'policy:path': '{alpha}',
+                'alpha': ['egg', 'tadpole', 'frog']
+            }
+        }
+    })
+    expected_paths = {
+        '42.0/egg',
+        '42.0/tadpole',
+        '42.0/frog'
+    }
+    root_node.evaluate()
+    paths = {leaf.path for leaf in root_node.leaves}
+    assert paths == expected_paths
+
+
 def test_can_produce_range_of_items():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
         'wind_speed': '#range(1, 3, 1)'
@@ -338,7 +413,7 @@ def test_can_produce_range_of_items_stopped_at_macro():
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
 
-def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator():
+def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator(plugin_loader):
     provider = DictSpecificationProvider({
         'macros': {
             'MyRange': '#range(2, 5, 2)'
@@ -348,7 +423,7 @@ def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator():
             'beta': '#4 + !alpha'
         }
     })
-    parser = SpecificationParser(provider)
+    parser = SpecificationParser(provider, plugin_loader)
     root_node = parser.parse().root_node
     expected = [
         {'alpha': 2, 'beta': 6},
@@ -356,6 +431,100 @@ def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator():
     ]
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
+
+def test_can_combine_macro_list_with_two_other_lists(plugin_loader):
+    provider = DictSpecificationProvider({
+        'macros': {
+            'MyRange': [2, 4]
+        },
+        'spec': {
+            'alpha': '$MyRange',
+            'beta': [9, 10],
+            'gamma': ['tadpole', 'frog']
+        }
+    })
+    parser = SpecificationParser(provider, plugin_loader)
+    root_node = parser.parse().root_node
+    expected = [
+        {'alpha': 2, 'beta': 9, 'gamma': 'tadpole'},
+        {'alpha': 2, 'beta': 9, 'gamma': 'frog'},
+        {'alpha': 2, 'beta': 10, 'gamma': 'tadpole'},
+        {'alpha': 2, 'beta': 10, 'gamma': 'frog'},
+        {'alpha': 4, 'beta': 9, 'gamma': 'tadpole'},
+        {'alpha': 4, 'beta': 9, 'gamma': 'frog'},
+        {'alpha': 4, 'beta': 10, 'gamma': 'tadpole'},
+        {'alpha': 4, 'beta': 10, 'gamma': 'frog'}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+
+def test_path_is_right_when_using_object_in_macro(plugin_loader):
+    provider = DictSpecificationProvider({
+        'macros': {
+            'DoSomething': {
+                'firstly': 'this',
+                'secondly': 2
+            }
+        },
+        'spec': {
+            'blah': {
+                'policy:path': 'my_path',
+                'blo': '$DoSomething'
+            }
+        }
+    })
+    parser = SpecificationParser(provider, plugin_loader)
+    root_node = parser.parse().root_node
+    leaves = root_node.leaves
+    assert len(leaves) == 1
+    assert leaves[0].path == 'my_path'
+
+
+def test_uses_object_in_macro_successfully(plugin_loader):
+    provider = DictSpecificationProvider({
+        'macros': {
+            'DoSomething': {
+                'firstly': 'this',
+                'secondly': 2
+            }
+        },
+        'spec': {
+            'blah': {
+                'blo': '$DoSomething',
+                'gamma': [1, 2, 3],
+                'delta': ['a', 'b']
+            }
+        }
+    })
+    parser = SpecificationParser(provider, plugin_loader)
+    root_node = parser.parse().root_node
+    leaves = root_node.leaves
+    assert len(leaves) == 6
+    for l in leaves:
+        collected_properties = l.collected_properties
+        assert collected_properties['firstly'] == 'this'
+        assert collected_properties['secondly'] == 2
+        assert 'gamma' in collected_properties
+        assert 'delta' in collected_properties
+
+
+def test_macros_are_recursively_evaluated(plugin_loader):
+    root_node = _parse_spec_into_node({
+        'macros': {
+            'Ref': 1,
+            'Something': {
+                'alpha': '$Ref'
+            }
+        },
+        'spec': {
+            'blah': '$Something'
+        }
+    }, plugin_loader)
+    leaves = root_node.leaves
+    assert len(leaves) == 1
+    assert leaves[0].collected_properties == {'alpha': 1}
+
 
 def test_can_do_multiplication_with_evaluator():
     root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
@@ -490,3 +659,19 @@ def test_adding_index_property_produces_index_node():
     assert root_node.leaves[0].index == 1
     assert root_node.leaves[0].property_name == 'pitch'
     assert root_node.leaves[0].property_value == 2.3
+
+def test_can_have_multiple_indexed_properties_with_one_being_a_macro(plugin_loader):
+    provider = DictSpecificationProvider({
+        'macros': {
+            'Value': 4.0
+        },
+        'spec': {
+            'blah': {
+                'alpha[1]': '$Value',
+                'beta[1]': 6
+            }
+        }
+    })
+    parser = SpecificationParser(provider, plugin_loader)
+    root_node = parser.parse().root_node
+    assert isinstance(root_node.leaves[0], IndexedNode)

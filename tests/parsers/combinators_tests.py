@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.specification.combinators import *
+from spawn.specification.combinators import *
 
 def test_zip_properties_raises_error_for_non_dict():
     with pytest.raises(TypeError):

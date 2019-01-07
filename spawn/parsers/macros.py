@@ -1,0 +1,74 @@
+"""This module defines the generator parser
+"""
+from spawn.specification.value_proxy import Macro, ValueProxy
+
+from .value_proxy import ValueProxyParser
+from .constants import MACRO
+from ..util.validation import validate_type
+
+MAX_PASSES = 10
+
+class MacrosParser:
+    """Parser for the macros section of the spec file
+    """
+    def __init__(self, value_libraries, value_proxy_parser):
+        """Initialise :class:`MacrosParser`
+        
+        :param value_proxy_parser: The value proxy parser
+        :type value_proxy_parser: :class:`ValueProxyParser`
+        """
+        validate_type(value_proxy_parser, ValueProxyParser, 'value_proxy_parser')
+        validate_type(value_libraries, dict, 'value_libraries')
+        if not MACRO in value_libraries:
+            raise ValueError('value_libraries must have MACRO section')
+        self._value_proxy_parser = value_proxy_parser
+        self._value_libraries = value_libraries
+
+    def parse(self, macros):
+        """Parse the macros section of the spec file.
+
+        :param macros: The macros dict. Keys are the names of the macros, values are a the values that a macro takes when used as a value in the spec.
+        :type macros: dict
+
+        :returns: An dict containing the values for the specified macros.
+        :rtype: dict
+        """
+        if macros is None:
+            return {}
+        validate_type(macros, dict, 'macros')
+
+        pass_number = 1
+
+        while macros and pass_number < MAX_PASSES:
+            pass_number += 1
+            for name, value in list(macros.items()):
+                if self._value_proxy_parser.is_value_proxy(value):
+                    try:
+                        value = self._value_proxy_parser.parse(value).evaluate()
+                    except LookupError:
+                        continue
+                if isinstance(value, dict):
+                    try:
+                        value = self._parse_dict(value)
+                    except LookupError:
+                        continue
+                self._add_macro(name, value)
+                macros.pop(name)
+        if macros:
+            raise LookupError('Failed to parse macros - the following macros could not be parsed after {} passes: {}'.format(MAX_PASSES, macros))
+        return self._value_libraries[MACRO]
+
+    def _add_macro(self, name, value):
+        if not isinstance(value, ValueProxy):
+            value = Macro(value)
+        self._value_libraries[MACRO][name] = value
+
+    def _parse_dict(self, value):
+        for k, v in value.items():
+            parsed_v = v
+            if self._value_proxy_parser.is_value_proxy(parsed_v):
+                parsed_v = self._value_proxy_parser.parse(v).evaluate()
+            if isinstance(parsed_v, dict):
+                parsed_v = self._parse_dict(v)
+            value[k] = parsed_v
+        return value            

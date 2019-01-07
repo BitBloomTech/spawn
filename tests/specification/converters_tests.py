@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,9 +16,9 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.parsers import SpecificationParser, DictSpecificationProvider
-from multiwindcalc.specification import DictSpecificationConverter
-from multiwindcalc.parsers.specification_parser import DEFAULT_COMBINATORS, ZIP
+from spawn.parsers import SpecificationParser, DictSpecificationProvider
+from spawn.specification import DictSpecificationConverter
+from spawn.parsers.specification_parser import DEFAULT_COMBINATORS, ZIP
 
 SPEC_1 = {
     'base_file': './file/input.in',
@@ -177,8 +177,8 @@ EXPECTED_4 = {
     }]
 }
 
-def parse(spec):
-    return SpecificationParser(DictSpecificationProvider(spec)).parse()
+def parse(spec, plugin_loader):
+    return SpecificationParser(DictSpecificationProvider(spec), plugin_loader).parse()
 
 @pytest.fixture
 def dict_converter():
@@ -190,6 +190,6 @@ def dict_converter():
     (SPEC_3, EXPECTED_3),
     (SPEC_4, EXPECTED_4),
 ])
-def test_dict_converter_converts_parsed_spec(dict_converter, spec, expected):
-    spec_model = parse(spec)
+def test_dict_converter_converts_parsed_spec(dict_converter, spec, expected, plugin_loader):
+    spec_model = parse(spec, plugin_loader)
     assert dict_converter.convert(spec_model) == expected
