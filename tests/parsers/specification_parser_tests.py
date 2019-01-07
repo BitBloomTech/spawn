@@ -659,3 +659,19 @@ def test_adding_index_property_produces_index_node():
     assert root_node.leaves[0].index == 1
     assert root_node.leaves[0].property_name == 'pitch'
     assert root_node.leaves[0].property_value == 2.3
+
+def test_can_have_multiple_indexed_properties_with_one_being_a_macro(plugin_loader):
+    provider = DictSpecificationProvider({
+        'macros': {
+            'Value': 4.0
+        },
+        'spec': {
+            'blah': {
+                'alpha[1]': '$Value',
+                'beta[1]': 6
+            }
+        }
+    })
+    parser = SpecificationParser(provider, plugin_loader)
+    root_node = parser.parse().root_node
+    assert isinstance(root_node.leaves[0], IndexedNode)
