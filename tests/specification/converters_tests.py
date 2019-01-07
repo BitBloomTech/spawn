@@ -25,9 +25,9 @@ SPEC_1 = {
     'creation_time': '2018-10-19T12:00:00',
     'notes': 'Some notes',
     'spec': {
-        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
-        'wind_speed': 12.0,
-        'wind_direction': 180.0
+        'policy:path': 'X{alpha}/Y{beta}',
+        'alpha': 12.0,
+        'beta': 180.0
     }
 }
 
@@ -38,12 +38,12 @@ EXPECTED_1 = {
         'notes': 'Some notes'
     },
     'spec': [{
-        'name': 'wind_speed',
+        'name': 'alpha',
         'value': 12.0,
         'children': [
             {
-                'path': 'WS12.0/WD180.0',
-                'name': 'wind_direction',
+                'path': 'X12.0/Y180.0',
+                'name': 'beta',
                 'value': 180.0
             }
         ]
@@ -55,9 +55,9 @@ SPEC_2 = {
     'creation_time': '2018-10-19T12:00:00',
     'notes': 'Some notes',
     'spec': {
-        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
-        'wind_speed': 12.0,
-        'wind_direction': [0.0, 180.0]
+        'policy:path': 'X{alpha}/Y{beta}',
+        'alpha': 12.0,
+        'beta': [0.0, 180.0]
     }
 }
 
@@ -68,17 +68,17 @@ EXPECTED_2 = {
         'notes': 'Some notes'
     },
     'spec': [{
-        'name': 'wind_speed',
+        'name': 'alpha',
         'value': 12.0,
         'children': [
             {
-                'path': 'WS12.0/WD0.0',
-                'name': 'wind_direction',
+                'path': 'X12.0/Y0.0',
+                'name': 'beta',
                 'value': 0.0
             },
             {
-                'path': 'WS12.0/WD180.0',
-                'name': 'wind_direction',
+                'path': 'X12.0/Y180.0',
+                'name': 'beta',
                 'value': 180.0
             }
         ]
@@ -90,9 +90,9 @@ SPEC_3 = {
     'creation_time': '2018-10-19T12:00:00',
     'notes': 'Some notes',
     'spec': {
-        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
-        'wind_speed': [3.0, 12.0],
-        'wind_direction': [0.0, 180.0]
+        'policy:path': 'X{alpha}/Y{beta}',
+        'alpha': [3.0, 12.0],
+        'beta': [0.0, 180.0]
     }
 }
 
@@ -103,32 +103,32 @@ EXPECTED_3 = {
         'notes': 'Some notes'
     },
     'spec': [{
-        'name': 'wind_speed',
+        'name': 'alpha',
         'value': 3.0,
         'children': [
             {
-                'path': 'WS3.0/WD0.0',
-                'name': 'wind_direction',
+                'path': 'X3.0/Y0.0',
+                'name': 'beta',
                 'value': 0.0
             },
             {
-                'path': 'WS3.0/WD180.0',
-                'name': 'wind_direction',
+                'path': 'X3.0/Y180.0',
+                'name': 'beta',
                 'value': 180.0
             }
         ]
     },{
-        'name': 'wind_speed',
+        'name': 'alpha',
         'value': 12.0,
         'children': [
             {
-                'path': 'WS12.0/WD0.0',
-                'name': 'wind_direction',
+                'path': 'X12.0/Y0.0',
+                'name': 'beta',
                 'value': 0.0
             },
             {
-                'path': 'WS12.0/WD180.0',
-                'name': 'wind_direction',
+                'path': 'X12.0/Y180.0',
+                'name': 'beta',
                 'value': 180.0
             }
         ]
@@ -140,10 +140,10 @@ SPEC_4 = {
     'creation_time': '2018-10-19T12:00:00',
     'notes': 'Some notes',
     'spec': {
-        'policy:path': 'WS{wind_speed}/WD{wind_direction}',
+        'policy:path': 'X{alpha}/Y{beta}',
         'combine:zip': {
-            'wind_speed': [3.0, 12.0],
-            'wind_direction': [0.0, 180.0]
+            'alpha': [3.0, 12.0],
+            'beta': [0.0, 180.0]
         }
     }
 }
@@ -155,22 +155,22 @@ EXPECTED_4 = {
         'notes': 'Some notes'
     },
     'spec': [{
-        'name': 'wind_speed',
+        'name': 'alpha',
         'value': 3.0,
         'children': [
             {
-                'path': 'WS3.0/WD0.0',
-                'name': 'wind_direction',
+                'path': 'X3.0/Y0.0',
+                'name': 'beta',
                 'value': 0.0
             }
         ]
     },{
-        'name': 'wind_speed',
+        'name': 'alpha',
         'value': 12.0,
         'children': [
             {
-                'path': 'WS12.0/WD180.0',
-                'name': 'wind_direction',
+                'path': 'X12.0/Y180.0',
+                'name': 'beta',
                 'value': 180.0
             }
         ]
