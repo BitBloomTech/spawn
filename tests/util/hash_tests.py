@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@ from os import path
 
 import pytest
 
-from multiwindcalc.util.hash import *
+from spawn.util.hash import *
 
 def create_file(tmpdir, contents, name):
     filename = path.join(tmpdir, name)

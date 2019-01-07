@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'multiwindcalc'
+project = 'spawn'
 copyright = '2018, Michael Tinning, Philip Bradstock'
 author = 'Michael Tinning, Philip Bradstock'
 
@@ -123,7 +123,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'multiwindcalcdoc'
+htmlhelp_basename = 'spawndoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -150,7 +150,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'multiwindcalc.tex', 'multiwindcalc Documentation',
+    (master_doc, 'spawn.tex', 'spawn Documentation',
      'Michael Tinning, Philip Bradstock', 'manual'),
 ]
 
@@ -160,7 +160,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'multiwindcalc', 'multiwindcalc Documentation',
+    (master_doc, 'spawn', 'spawn Documentation',
      [author], 1)
 ]
 
@@ -171,8 +171,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'multiwindcalc', 'multiwindcalc Documentation',
-     author, 'multiwindcalc', 'One line description of project.',
+    (master_doc, 'spawn', 'spawn Documentation',
+     author, 'spawn', 'One line description of project.',
      'Miscellaneous'),
 ]
 

@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -17,10 +17,10 @@
 from os import path
 import tempfile
 import pytest
-from multiwindcalc.plugins.wind.nrel import TurbsimSpawner, FastSimulationSpawner, FastInput, TurbsimInput, WindGenerationTask
-from multiwindcalc.config.command_line import CommandLineConfiguration
-from multiwindcalc.schedulers.luigi import LuigiScheduler
-from multiwindcalc.parsers import SpecificationParser, DictSpecificationProvider
+from spawn.plugins.wind.nrel import TurbsimSpawner, FastSimulationSpawner, FastInput, TurbsimInput, WindGenerationTask
+from spawn.config.command_line import CommandLineConfiguration
+from spawn.schedulers.luigi import LuigiScheduler
+from spawn.parsers import SpecificationParser, DictSpecificationProvider
 
 
 @pytest.fixture(scope='function')

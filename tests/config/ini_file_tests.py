@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -18,9 +18,9 @@ import pytest
 
 from os import path
 
-from multiwindcalc.config.ini_file import IniFileConfiguration
+from spawn.config.ini_file import IniFileConfiguration
 
-INI_CONTENTS = """[multiwindcalc]
+INI_CONTENTS = """[spawn]
 workers=4
 outdir=c:/some_directory
 plugins=nrel:some.path.to.Class,other:another.path.to.Class
@@ -37,10 +37,10 @@ def config(tmpdir):
     return IniFileConfiguration(ini_file)
 
 def test_config_reads_string_correctly(config):
-    assert config.get('multiwindcalc', 'outdir') == 'c:/some_directory'
+    assert config.get('spawn', 'outdir') == 'c:/some_directory'
 
 def test_config_reads_int_correctly(config):
-    assert config.get('multiwindcalc', 'workers', type=int) == 4
+    assert config.get('spawn', 'workers', type=int) == 4
 
 def test_config_reads_int_from_other_category_correctly(config):
     assert config.get('server', 'port', type=int) == 8082
@@ -52,4 +52,4 @@ def test_config_returns_default_if_default_provided(config):
     assert config.get('server', 'hostname', default='localhost') == 'localhost'
 
 def test_config_returns_list_value(config):
-    assert config.get('multiwindcalc', 'plugins', type=list) == ['nrel:some.path.to.Class', 'other:another.path.to.Class']
+    assert config.get('spawn', 'plugins', type=list) == ['nrel:some.path.to.Class', 'other:another.path.to.Class']

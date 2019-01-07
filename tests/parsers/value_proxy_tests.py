@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,11 +16,11 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.parsers.value_proxy import *
-from multiwindcalc.specification.evaluators import *
-from multiwindcalc.specification.value_proxy import *
-from multiwindcalc.specification.generator_methods import *
-from multiwindcalc.parsers.constants import EVALUATOR, GENERATOR, MACRO
+from spawn.parsers.value_proxy import *
+from spawn.specification.evaluators import *
+from spawn.specification.value_proxy import *
+from spawn.specification.generator_methods import *
+from spawn.parsers.constants import EVALUATOR, GENERATOR, MACRO
 
 @pytest.fixture
 def parser():
