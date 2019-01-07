@@ -21,7 +21,7 @@ A full :ref:`API Reference` is also provided.
    :hidden:
 
    user_guide/input-file-definition
-   api/multiwindcalc.cli
+   api/spawn.cli
    user_guide/glossary
 
 .. toctree::
