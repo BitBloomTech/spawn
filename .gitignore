@@ -9,3 +9,4 @@ spawn/temp/
 **/temp/*
 docs/_build
 docs/api
+!.circleci
