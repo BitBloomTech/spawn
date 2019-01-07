@@ -60,7 +60,9 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx_click.ext'
+    'sphinx.ext.autosectionlabel',
+    'sphinx_click.ext',
+    'm2r'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -69,8 +71,13 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
+# source_suffix = '.rst'
+
+no_underscore_emphasis = True
+m2r_parse_relative_links = True
+m2r_anonymous_references = False
+m2r_disable_inline_math = False
 
 # The master toctree document.
 master_doc = 'index'
