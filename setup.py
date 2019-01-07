@@ -79,7 +79,6 @@ class ApplyLicenseCommand(Command):
 
 install_requires = [
     'luigi==2.8.2',
-    'wetb==0.0.9',
     'setuptools>=38.3',
     'click==7.0',
     'appdirs==1.4.3'
