@@ -79,8 +79,6 @@ class ApplyLicenseCommand(Command):
 
 install_requires = [
     'luigi',
-    'numpy',
-    'pandas',
     'wetb',
     'setuptools>=38.3',
     'click',
@@ -91,6 +89,8 @@ tests_require = [
     'pytest',
     'pytest-mock',
     'pylint',
+    'numpy',
+    'pandas',
     'tox'
 ]
 
