@@ -188,24 +188,6 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         if mode == 'idling' or mode == 'parked':
             self.initial_rotor_speed = 0.0
 
-    def get_transient_mode(self):
-        raise NotImplementedError('Incapable of determining transient mode')  # Indeterminable!
-
-    def set_transient_mode(self, mode):
-        if mode not in ['stationary', 'startup', 'shutdown']:
-            raise ValueError("mode '" + mode + "' unrecognised")
-
-        large_time = self._make_large_time()
-        if mode == 'stationary':
-            self._input['PCMode'] = 1
-            self._input['TimGenOn'] = 0.0
-            self._input['TimGenOff'] = large_time
-        elif mode == 'startup':
-            self._input['PCMode'] = 0
-            self._input['GenTiStr'] = False
-        elif mode == 'shutdown':
-            self._input['TiGenOn'] = 0.0
-
     def get_pitch_manoeuvre_time(self):
         raise NotImplementedError('Incapable of determining pitch manoeuvre time for all blades at once')
 

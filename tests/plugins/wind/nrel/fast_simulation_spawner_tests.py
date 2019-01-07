@@ -68,7 +68,7 @@ def test_spawn_with_additional_directory_puts_tasks_in_new_folders(turbsim_input
     assert task1.requires()[0].output().path != task2.requires()[0].output().path
 
 
-def test_runs_two_tasks_successfully_that_use_same_prerequisite(turbsim_input, fast_input, tmpdir):
+def test_runs_two_tasks_successfully_that_use_same_prerequisite(turbsim_input, fast_input, tmpdir, plugin_loader):
     spawner = FastSimulationSpawner(fast_input, TurbsimSpawner(turbsim_input), tmpdir)
     spec_dict = {
         "spec": {
@@ -77,7 +77,7 @@ def test_runs_two_tasks_successfully_that_use_same_prerequisite(turbsim_input, f
             "initial_yaw": [-10.0, 10.0]
         }
     }
-    spec = SpecificationParser(DictSpecificationProvider(spec_dict)).parse()
+    spec = SpecificationParser(DictSpecificationProvider(spec_dict), plugin_loader).parse()
     config = CommandLineConfiguration(workers=2, runner_type='process', prereq_outdir='prerequisites', outdir=tmpdir, local=True)
     scheduler = LuigiScheduler(config)
     scheduler.run(spawner, spec)
@@ -85,7 +85,7 @@ def test_runs_two_tasks_successfully_that_use_same_prerequisite(turbsim_input, f
 
 def test_does_not_create_wind_task_when_wind_file_is_set(turbsim_input, fast_input, example_data_folder, tmpdir):
     spawner = FastSimulationSpawner(fast_input, TurbsimSpawner(turbsim_input), tmpdir)
-    spawner.wind_file = path.join(example_data_folder, 'fast_input_files', 'EDC+R+2.0.wnd')
+    spawner.wind_file = path.join(example_data_folder, 'fast_input_files', 'wind_files', 'EDC+R+2.0.wnd')
     task = spawner.spawn(path.join(tmpdir, 'a'), {})
     assert len(task.requires()) == 0
     task.run()
