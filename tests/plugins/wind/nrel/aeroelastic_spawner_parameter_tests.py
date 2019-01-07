@@ -97,6 +97,18 @@ def test_initial_values(spawner, key, value, output_name, tmpdir):
     assert res[output_name][0] == pytest.approx(value, rel=0.1)
 
 
+@pytest.mark.parametrize('key,index,value', [
+    ('blade_initial_pitch', 1, 10.0),
+    ('blade_pitch_manoeuvre_time', 2, 30.0),
+    ('blade_final_pitch', 3, 90.0)
+])
+def test_set_and_then_get_indexed_parameters(spawner, key, index, value):
+    array = getattr(spawner, key)
+    array[index] = value
+    retval = array[index]
+    assert retval == value
+
+
 def test_operating_mode(spawner, tmpdir):
     spawner.operation_mode = 'idling'
     spawner.initial_pitch = 30.0
@@ -126,7 +138,6 @@ def test_pitch_manoeuvre_all_blades(spawner, tmpdir):
     spawner.pitch_manoeuvre_time = 1.0
     spawner.pitch_manoeuvre_rate = 1.0
     res = run_and_get_results(spawner, tmpdir)
-    assert res['BldPitch1'].iloc[0] == pytest.approx(10.0)
     assert res['BldPitch1'].iloc[-1] == pytest.approx(12.0)
 
 
@@ -139,7 +150,6 @@ def test_pitch_manoeuvre_one_blade(spawner, tmpdir):
     spawner.pitch_manoeuvre_time = 1.0
     spawner.pitch_manoeuvre_rate = 1.0
     res = run_and_get_results(spawner, tmpdir)
-    assert res['BldPitch1'].iloc[0] == pytest.approx(10.0)
     assert res['BldPitch1'].iloc[-1] == pytest.approx(12.0)
 
 
@@ -202,8 +212,16 @@ def test_upflow(baseline, spawner, tmpdir):
     assert math.degrees(upflow_new - upflow_baseline) == pytest.approx(spawner.upflow, abs=0.1)
 
 
-def test_wind_file(spawner, tmpdir):
+def test_fails_with_invalid_wind_file(spawner, tmpdir):
     spawner.wind_file = 'C:/this/is/a/bad/path.wnd'
     task = spawner.spawn(str(tmpdir), {})
     with pytest.raises(ChildProcessError):
         task.run()
+
+
+def test_completes_with_relative_wind_file(spawner, tmpdir):
+    # This test must be run with root as working directory
+    spawner.wind_file = 'example_data/fast_input_files/wind_files/NWP4.0.wnd'
+    task = spawner.spawn(str(tmpdir), {})
+    task.run()
+    assert task.complete()

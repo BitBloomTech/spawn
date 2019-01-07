@@ -146,11 +146,18 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
 
     def set_initial_pitch(self, angle):
         for i in range(self.number_of_blades):
-            bld = self._blade_string(i+1)
-            self._input['BlPitch' + bld] = angle
-            # if the pitch manoeuvre ends at time zero, the final pitch is actually the initial pitch too!
-            if float(self._input['TPitManE' + bld]) <= 0.0:
-                self._input['BlPitchF' + bld] = angle
+            self.set_blade_initial_pitch(i+1, angle)
+
+    def get_blade_initial_pitch(self, index):
+        bld = self._blade_string(index)
+        return float(self._input['BlPitch' + bld])
+
+    def set_blade_initial_pitch(self, index, angle):
+        bld = self._blade_string(index)
+        self._input['BlPitch' + bld] = angle
+        # if the pitch manoeuvre ends at time zero, the final pitch is actually the initial pitch too!
+        if float(self._input['TPitManE' + bld]) <= 0.0:
+            self._input['BlPitchF' + bld] = angle
 
     # Supervisory operation
     def get_operation_mode(self):
@@ -207,10 +214,9 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
             self.set_blade_pitch_manoeuvre_time(i+1, time)
 
     def get_blade_pitch_manoeuvre_time(self, index):
-        return self._input['TPitManS' + self._blade_string(index)]
+        return float(self._input['TPitManS' + self._blade_string(index)])
 
     def set_blade_pitch_manoeuvre_time(self, index, time):
-        self._input['PCMode'] = 0
         self._input['TPitManS' + self._blade_string(index)] = time
         self._reconcile_pitch_manoeuvre(index)
 
@@ -313,7 +319,7 @@ class FastSimulationSpawner(AeroelasticSimulationSpawner):
         return self._aerodyn_input['WindFile']
 
     def set_wind_file(self, file):
-        self._aerodyn_input['WindFile'] = quote(file)
+        self._aerodyn_input['WindFile'] = quote(path.abspath(file))
         self._wind_is_explicit = True  # Don't generate wind task dependency
 
     # Properties of turbine, for which setting is not supported

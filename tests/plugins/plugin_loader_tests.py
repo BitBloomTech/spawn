@@ -19,7 +19,7 @@ import pytest
 from spawn.plugins.plugin_loader import PluginLoader
 from spawn.config import CommandLineConfiguration
 
-from multiwindcalc.specification.generator_methods import Generator
+from spawn.specification.generator_methods import Generator
 
 @pytest.fixture
 def test_module(mocker):
