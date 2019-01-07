@@ -59,10 +59,20 @@ class Evaluator(ValueProxy):
 class RangeEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that returns a range from range_min up to and including range_max, in steps of range_step
     """
-    def _evaluate(self, range_min, range_max, range_step):
-        values = np.arange(range_min, range_max + range_step, range_step)
-        values = values[values <= range_max]
-        return [float(v) for v in values]
+    def _evaluate(self, start, end, step=1):
+        if start != end and step * (end-start) <= 0:
+            raise ValueError("step value '{}' invalid in range evaluator".format(step))
+        comp = end.__ge__ if step > 0 else end.__le__
+        values = []
+        i = 0
+        while True:
+            val = start + i*step
+            if comp(val):
+                values.append(val)
+            else:
+                break
+            i += 1
+        return values
 
 class MultiplyEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that multiplies two numbers
