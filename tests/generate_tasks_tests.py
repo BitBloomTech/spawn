@@ -17,40 +17,34 @@
 from os import path
 import numpy as np
 from spawn.generate_tasks import generate_tasks_from_spec
-from spawn.tasks.simulation import SimulationTask
-from spawn.plugins.wind.nrel import WindGenerationTask, FastSimulationSpawner
+from spawn.tasks import SpawnTask
 from spawn.parsers import *
 from spawn.parsers.value_proxy import ValueProxyParser
 
+from .conftest import *
 
-def test_can_create_1d_set_of_aeroelastic_tasks(tmpdir, spawner):
-    run_spec = {'wind_speed': list(np.arange(4.0, 15.0, 2.0))}
+
+def test_can_create_1d_set_of_tasks(tmpdir, spawner, run_registry):
+    run_spec = {'alpha': list(np.arange(4.0, 15.0, 2.0))}
     root_node = SpecificationNodeParser(ValueProxyParser({})).parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     assert len(tasks) == 6
     for t in tasks:
-        assert isinstance(t, SimulationTask)
+        assert isinstance(t, SpawnTask)
         assert len(t.requires()) == 1
-        assert isinstance(t.requires()[0], WindGenerationTask)
-        assert path.isdir(path.split(t.run_name_with_path)[0])
-        assert tmpdir.strpath in t.run_name_with_path
-        assert 'wind_speed' in t.metadata
+        assert isinstance(t.requires()[0], FooTask)
+        assert 'alpha' in t.metadata
 
 
-def test_can_create_runs_from_tree_spec(tmpdir, spawner, plugin_loader, example_data_folder):
-    input_path = path.join(example_data_folder, 'iec_fatigue_spec.json')
+def test_can_create_runs_from_example_spec(tmpdir, spawner, plugin_loader, example_data_folder):
+    input_path = path.join(example_data_folder, 'example_spec.json')
     spec_model = SpecificationParser(SpecificationFileReader(input_path), plugin_loader).parse()
     runs = generate_tasks_from_spec(spawner, spec_model.root_node, tmpdir.strpath)
-    assert len(runs) == 12*3 + 12*2 + 12*3
-    seeds = []
+    assert len(runs) == 3 * (3 + 9*4)
     for t in runs:
-        assert isinstance(t, SimulationTask)
+        assert isinstance(t, SpawnTask)
         assert len(t.requires()) == 1
-        assert isinstance(t.requires()[0], WindGenerationTask)
-        assert path.isdir(path.split(t.run_name_with_path)[0])
-        assert tmpdir.strpath in t.run_name_with_path
-        assert 'wind_speed' in t.metadata
-        assert 'turbulence_seed' in t.metadata
-        assert 'wind_direction' in t.metadata or 'rotor_azimuth' in t.metadata
-        seeds.append(t.metadata['turbulence_seed'])
-    assert len(seeds) == len(set(seeds))  # testing uniqueness
+        assert isinstance(t.requires()[0], FooTask)
+        assert 'alpha' in t.metadata
+        assert 'beta' in t.metadata
+        assert t.metadata['beta'] in ['egg', 'tadpole', 'frog']

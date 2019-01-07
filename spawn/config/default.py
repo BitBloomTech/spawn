@@ -55,6 +55,19 @@ class DefaultConfiguration(ConfigurationBase):
         :rtype: list
         """
         return list(DEFAULT_CONFIGURATION.get(category, {}).keys())
+    
+    @classmethod
+    def set_default(cls, key, value, category=DEFAULT_CATEGORY):
+        """Set a default value
+        
+        :param key: The key to set
+        :type key: str
+        :param valye: The value to set
+        :type value: obj
+        :param category: The category to set. Defaults to the default category for the app.
+        :type category: str
+        """
+        DEFAULT_CONFIGURATION.setdefault(category, {}).setdefault(key, value)
 
     def _get_value(self, category, key):
         return DEFAULT_CONFIGURATION.get(category, {}).get(key)

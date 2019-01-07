@@ -26,13 +26,12 @@ import luigi.interface
 import luigi.configuration
 
 # Prevent luigi from setting up it's own logging
-luigi.interface.setup_interface_logging.has_run = True
+luigi.interface.InterfaceLogging._configured = True
 
 from spawn import __name__ as APP_NAME
 from spawn.util import configure_logging, prettyspec
 from spawn.parsers import SpecificationFileReader, SpecificationParser, SpecificationNodeParser
 from spawn.specification import DictSpecificationConverter
-from spawn.plugins.wind.nrel import TurbsimSpawner, FastSimulationSpawner, TurbsimInput, FastInput
 from spawn.schedulers import LuigiScheduler
 from spawn.config import CommandLineConfiguration, IniFileConfiguration, DefaultConfiguration, CompositeConfiguration
 from spawn.plugins import PluginLoader

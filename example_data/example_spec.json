@@ -1,0 +1,28 @@
+{
+    "generators": {
+      "Counter": {
+        "method": "IncrementalInt"
+      }
+    },
+    "macros": {
+      "Multiplier": 3
+    },
+    "spec": {
+      "alpha": 4,
+      "beta": ["egg", "tadpole", "frog"],
+      "section1": {
+        "policy:path": "section1/{beta}/{delta}",
+        "gamma": 5.0,
+        "combine:zip": {
+          "delta": [1, 2, 3],
+          "epsilon": ["a", "b", "c"]
+        }
+      },
+      "section2": {
+        "policy:path": "section2/{beta}/{gamma:a}",
+        "gamma": "#range(3.0, 7.0, 0.5)",
+        "zeta": "#repeat(@Counter, 4)",
+        "eta": "Multiplier * gamma"
+      }
+    }
+  }

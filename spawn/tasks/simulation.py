@@ -23,49 +23,20 @@ import os
 from os import path
 import logging
 import luigi
-import json
 
 from spawn.runners import ProcessRunner
 
+from .base import SpawnTask
+
+
 LOGGER = logging.getLogger(__name__)
 
-class _TaskEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Mapping):
-            return dict(obj.items())
-        return super().default(obj)
-
-class TaskListParameter(luigi.Parameter):
-    """Implementation of :class:`luigi.Parameter` to allow definitions of multiple tasks as dependencies
-    """
-    def parse(self, input):
-        input_dicts = json.loads(input)
-        return [luigi.task_register.Register.get_task_cls(i['family'])(**i['params']) for i in input_dicts]
-    
-    def serialize(self, clss):
-        tasks = []
-        for c in clss:
-            if not isinstance(c, luigi.Task):
-                continue
-            task = {
-                'family': c.get_task_family(),
-                'params': {}
-            }
-            for param_name, _param_obj in c.get_params():
-                if hasattr(c, param_name):
-                    task['params'][param_name] = getattr(c, param_name)
-            tasks.append(task)
-        return json.dumps(tasks, cls=_TaskEncoder)
-
-class SimulationTask(luigi.Task):
+class SimulationTask(SpawnTask):
     """Implementation of :class:`luigi.Task`
     """
-    _id = luigi.Parameter()
     _input_file_path = luigi.Parameter()
     _runner_type = luigi.Parameter()
-    _metadata = luigi.DictParameter(default={})
     _exe_path = luigi.Parameter()
-    _dependencies = TaskListParameter(default=[])
     _working_dir = luigi.Parameter(default=None)
 
     def run(self):
@@ -102,22 +73,11 @@ class SimulationTask(luigi.Task):
         error_string = traceback.format_exception(type(exception), exception, exception.__traceback__)
         return 'Unhandled exception running task:\n\n{}'.format(''.join(error_string))
 
-    def requires(self):
-        """The prerequisites for this task
-        """
-        return self._dependencies
-
     @property
     def run_name_with_path(self):
         """Return the run name of this task
         """
         return path.splitext(self._input_file_path)[0]
-
-    @property
-    def metadata(self):
-        """Metadata for this task
-        """
-        return self._metadata
 
     def _create_runner(self):
         if self._runner_type not in self.available_runners:
