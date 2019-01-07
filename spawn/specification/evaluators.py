@@ -59,13 +59,13 @@ class Evaluator(ValueProxy):
 class RangeEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that returns a range from range_min up to and including range_max, in steps of range_step
     """
-    def _evaluate(self, start, end, step=1):
+    def _evaluate(self, start, end, step=1.0):
         if start != end and step * (end-start) <= 0:
             raise ValueError("step value '{}' invalid in range evaluator".format(step))
-        comp = end.__ge__ if step > 0 else end.__le__
+        comp = (lambda v: end >= v) if step > 0 else (lambda v: end <= v)
         values = []
         i = 0
-        while True:
+        while i < 100:
             val = start + i*step
             if comp(val):
                 values.append(val)
