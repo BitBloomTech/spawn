@@ -33,7 +33,8 @@ jobs:
       - run:
           name: run tests
           command: |
-            python -m pytest tests --cov spawn
+            . .venv/bin/activate
+            pytest tests --cov spawn
 
       - save_cache:
           paths:
