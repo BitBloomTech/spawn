@@ -1,53 +1,12 @@
-# multi-wind-calc
-Generator of multiple aeroelastic simulations for wind turbines
+# Spawn
 
-## Status
+Spawn is a python package that allows users to concisely specify and execute a large number of tasks with complex and co-dependent input parameter variations. It is used particularly in engineering where frequently thousands of similar simulations with input parameter variations are run for design and certification purposes. Spawn allows the specification of such large task sets to be formulated in a concise and readable input file.
 
-Some parts of this repo have become obsolete since it changed to Luigi (`run_generator` and `batch` now obsolete).
+A typical Spawn process is:
+1. Write an input specification file in JSON that specifies the parameters and their values.
+2. Inspect the fully expanded specification tree with the `inspect` command.
+3. Execute all tasks with the `run` command. This uses a back-end "spawner" to create the tasks, which can be fully customised for individual use cases.
 
-Needs one extra function for just executing runs perhaps that calls the `luigi.build` function.
+Read the [full Spawn documentation](link-goes-here).
 
-## Run Specification
-
-The explicit run list specification has the following approximate structure:
-
-```
-+-- baseline file inputs
-+-- simulation executables
-+-- load cases (call this a group?) [
-    +-- name / folder
-    +-- runs [
-        +-- list field key / value pairs to edit from baseline
-    ]
-]
-```
-The `TaskSpawner` then uses this run list to generate new luigi tasks (simulations) by using an `InputEditor` to edit the baseline file inputs. Each run is given a new folder in the load case directory.
-
-This format should be extended to allow children in the runs list so that you can make some editions and then make a set of new runs based on a new baseline with the aforementioned editions.
-
-The idea is that this explicit run list can be generated from a more condensed format using the `combinators`, which support actions such as `zip` and `grid` on co-existing lists of variables. This effectively fills the prupose of the maps in Bladed's multiple calculation setup.
-
-## CLI
-
-Multi Wind Calc provides a CLI. Currently the only available function is specfile inspection.
-
-```
-Usage: spawn [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --log-level [error|warning|info|debug]
-  --log-console
-  --help                          Show this message and exit.
-
-Commands:
-  inspect
-```
-
-### `inspect` command
-
-```
-Usage: spawn inspect [OPTIONS] SPECFILE
-
-Options:
-  --help  Show this message and exit.
-```
+If you are interested in using Spawn for executing wind turbine aeroelastic simulation using NREL's FAST, please see the [spawn-wind page](link-goes-here).
