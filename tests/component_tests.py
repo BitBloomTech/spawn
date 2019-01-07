@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,9 +16,9 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path, pardir
 import luigi
-from multiwindcalc.generate_tasks import generate_tasks_from_spec
-from multiwindcalc.parsers.specification_parser import SpecificationNodeParser
-from multiwindcalc.parsers.value_proxy import ValueProxyParser
+from spawn.generate_tasks import generate_tasks_from_spec
+from spawn.parsers.specification_parser import SpecificationNodeParser
+from spawn.parsers.value_proxy import ValueProxyParser
 
 
 def test_can_run_one_turbsim_and_fast_run(tmpdir, example_data_folder, spawner):

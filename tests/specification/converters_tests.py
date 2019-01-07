@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,9 +16,9 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.parsers import SpecificationParser, DictSpecificationProvider
-from multiwindcalc.specification import DictSpecificationConverter
-from multiwindcalc.parsers.specification_parser import DEFAULT_COMBINATORS, ZIP
+from spawn.parsers import SpecificationParser, DictSpecificationProvider
+from spawn.specification import DictSpecificationConverter
+from spawn.parsers.specification_parser import DEFAULT_COMBINATORS, ZIP
 
 SPEC_1 = {
     'base_file': './file/input.in',

@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -20,9 +20,9 @@ import pytest
 
 import luigi.configuration
 
-from multiwindcalc.plugins.wind.nrel import TurbsimInput, FastInput, TurbsimSpawner, FastSimulationSpawner
-from multiwindcalc.config import DefaultConfiguration
-from multiwindcalc.plugins import PluginLoader
+from spawn.plugins.wind.nrel import TurbsimInput, FastInput, TurbsimSpawner, FastSimulationSpawner
+from spawn.config import DefaultConfiguration
+from spawn.plugins import PluginLoader
 
 __home_dir = path.dirname(path.realpath(__file__))
 _example_data_folder = path.join(__home_dir, pardir, 'example_data')

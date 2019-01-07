@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -21,16 +21,16 @@ import shutil
 from sphinx.cmd.build import build_main as build
 
 GENERATED_RSTS = [
-    'multiwindcalc',
-    'multiwindcalc.cli',
-    'multiwindcalc.parsers',
-    'multiwindcalc.runners',
-    'multiwindcalc.schedulers',
-    'multiwindcalc.simulation_inputs',
-    'multiwindcalc.spawners',
-    'multiwindcalc.specification',
-    'multiwindcalc.tasks',
-    'multiwindcalc.util'
+    'spawn',
+    'spawn.cli',
+    'spawn.parsers',
+    'spawn.runners',
+    'spawn.schedulers',
+    'spawn.simulation_inputs',
+    'spawn.spawners',
+    'spawn.specification',
+    'spawn.tasks',
+    'spawn.util'
 ]
 
 def rst_contents(module):

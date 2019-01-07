@@ -1,8 +1,8 @@
 import pytest
 
-from multiwindcalc.parsers.macros import MacrosParser
-from multiwindcalc.parsers.value_proxy import ValueProxyParser
-from multiwindcalc.parsers.constants import MACRO
+from spawn.parsers.macros import MacrosParser
+from spawn.parsers.value_proxy import ValueProxyParser
+from spawn.parsers.constants import MACRO
 
 @pytest.fixture
 def parser():

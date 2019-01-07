@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.config.command_line import CommandLineConfiguration, DEFAULT_CATEGORY
+from spawn.config.command_line import CommandLineConfiguration, DEFAULT_CATEGORY
 
 def test_returns_none_when_no_config_provided():
     assert CommandLineConfiguration().get(DEFAULT_CATEGORY, 'foo') is None

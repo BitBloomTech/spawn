@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,11 +16,11 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.parsers.value_proxy import *
-from multiwindcalc.specification.evaluators import *
-from multiwindcalc.specification.value_proxy import *
-from multiwindcalc.specification.generator_methods import *
-from multiwindcalc.parsers.constants import EVALUATOR, GENERATOR, MACRO
+from spawn.parsers.value_proxy import *
+from spawn.specification.evaluators import *
+from spawn.specification.value_proxy import *
+from spawn.specification.generator_methods import *
+from spawn.parsers.constants import EVALUATOR, GENERATOR, MACRO
 
 @pytest.fixture
 def parser():
@@ -60,11 +60,23 @@ def test_parser_returns_correct_result_containing_macros(parser):
 def test_evaluation_of_parameters(parser):
     assert parser.parse('!value').evaluate(value=42) == 42
 
-def test_evaluation_of_parameters_as_argumnts(parser):
-    assert parser.parse('#range(1, !upper, !step)').evaluate(upper=4, step=1) == list(range(1, 5, 1))
+@pytest.mark.parametrize('expression,params,expected_list',[
+    ('#range(1, !upper, !step)', {'upper': 4, 'step': 1}, list(range(1, 5, 1))),
+    ('#range(-180, 165, 15)', {}, list(range(-180, 180, 15))),
+    ('#range(20, 0, -5)', {}, [20, 15, 10, 5, 0]),
+    ('#range(1.0, 1.5, 0.1)', {}, [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]),
+    ('#range(20, 20)', {}, [20]),
+    ('#range(1, 5)', {}, [1, 2, 3, 4, 5])
+])
+def test_evaluation_of_range(parser, expression, params, expected_list):
+    assert parser.parse(expression).evaluate(**params) == expected_list
 
-def test_evaluation_of_negative_values(parser):
-    assert parser.parse('#range(-180, 165, 15)').evaluate() == list(range(-180, 180, 15))
+
+@pytest.mark.parametrize('step', [0, -2])
+def test_range_evaluator_raises_value_error_with_bad_step(step, parser):
+    with pytest.raises(ValueError):
+        parser.parse('#range(4, 8, {})'.format(step)).evaluate()
+
 
 def test_evaluation_of_generator(parser):
     evaluator = parser.parse('@seed')

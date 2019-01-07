@@ -1,4 +1,4 @@
-# multiwindcalc
+# spawn
 # Copyright (C) 2018, Simmovation Ltd.
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,10 +16,10 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
 
-from multiwindcalc.specification.generator_methods import *
-from multiwindcalc.specification.combinators import *
-from multiwindcalc.parsers.specification_parser import *
-from multiwindcalc.specification.specification import *
+from spawn.specification.generator_methods import *
+from spawn.specification.combinators import *
+from spawn.parsers.specification_parser import *
+from spawn.specification.specification import *
 
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):
@@ -659,3 +659,19 @@ def test_adding_index_property_produces_index_node():
     assert root_node.leaves[0].index == 1
     assert root_node.leaves[0].property_name == 'pitch'
     assert root_node.leaves[0].property_value == 2.3
+
+def test_can_have_multiple_indexed_properties_with_one_being_a_macro(plugin_loader):
+    provider = DictSpecificationProvider({
+        'macros': {
+            'Value': 4.0
+        },
+        'spec': {
+            'blah': {
+                'alpha[1]': '$Value',
+                'beta[1]': 6
+            }
+        }
+    })
+    parser = SpecificationParser(provider, plugin_loader)
+    root_node = parser.parse().root_node
+    assert isinstance(root_node.leaves[0], IndexedNode)
