@@ -33,7 +33,7 @@ GENERATED_RSTS = [
 ]
 
 TITLES = {
-    'multiwindcalc.cli': 'Spawn Command Line Interface'
+    'spawn.cli': 'Spawn Command Line Interface'
 }
 
 def rst_contents(module):
