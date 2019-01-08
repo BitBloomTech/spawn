@@ -40,10 +40,10 @@ def test_config_reads_string_correctly(config):
     assert config.get('spawn', 'outdir') == 'c:/some_directory'
 
 def test_config_reads_int_correctly(config):
-    assert config.get('spawn', 'workers', type=int) == 4
+    assert config.get('spawn', 'workers', parameter_type=int) == 4
 
 def test_config_reads_int_from_other_category_correctly(config):
-    assert config.get('server', 'port', type=int) == 8082
+    assert config.get('server', 'port', parameter_type=int) == 8082
 
 def test_config_returns_none_if_value_not_found(config):
     assert config.get('server', 'hostname') is None
@@ -52,4 +52,4 @@ def test_config_returns_default_if_default_provided(config):
     assert config.get('server', 'hostname', default='localhost') == 'localhost'
 
 def test_config_returns_list_value(config):
-    assert config.get('spawn', 'plugins', type=list) == ['nrel:some.path.to.Class', 'other:another.path.to.Class']
+    assert config.get('spawn', 'plugins', parameter_type=list) == ['nrel:some.path.to.Class', 'other:another.path.to.Class']

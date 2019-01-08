@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -19,9 +19,7 @@
 from abc import abstractmethod
 import inspect
 
-import numpy as np
-
-from spawn.specification import ValueProxy, evaluate
+from .value_proxy import ValueProxy, evaluate
 
 class Evaluator(ValueProxy):
     """Evaluator base class implementation of :class:`ValueProxy`
@@ -35,7 +33,8 @@ class Evaluator(ValueProxy):
         :type args: args
         """
         self._args = args
-    
+
+    #pylint: disable=arguments-differ
     def evaluate(self, **kwargs):
         """Evaluates the value proxy.
 
@@ -46,19 +45,22 @@ class Evaluator(ValueProxy):
         parameters = inspect.signature(self._evaluate).parameters
         if 'kwargs' in parameters:
             return self._evaluate(*args, **kwargs)
-        else:
-            return self._evaluate(*args)
-    
+        return self._evaluate(*args)
+
+    #pylint: disable=no-self-use
     def _evaluate_arg(self, arg, **kwargs):
         return evaluate(arg, **kwargs) if isinstance(arg, ValueProxy) else arg
 
     @abstractmethod
-    def _evaluate(self, *args):
+    #pylint: disable=no-self-use
+    def _evaluate(self, *args, **kwargs):
         raise NotImplementedError()
 
 class RangeEvaluator(Evaluator):
-    """Implementation of :class:`Evaluator` that returns a range from range_min up to and including range_max, in steps of range_step
+    """Implementation of :class:`Evaluator` that returns a range
+    from range_min up to and including range_max, in steps of range_step
     """
+    #pylint: disable=arguments-differ
     def _evaluate(self, start, end, step=1.0):
         if start != end and step * (end-start) <= 0:
             raise ValueError("step value '{}' invalid in range evaluator".format(step))
@@ -77,54 +79,73 @@ class RangeEvaluator(Evaluator):
 class MultiplyEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that multiplies two numbers
     """
+    #pylint: disable=arguments-differ
     def _evaluate(self, left, right):
         return left * right
-    
+
 class DivideEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that divides the left by right
     """
+    #pylint: disable=arguments-differ
     def _evaluate(self, left, right):
         return left / right
-    
+
 class AddEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that adds two numbers
     """
+    #pylint: disable=arguments-differ
     def _evaluate(self, left, right):
         return left + right
 
 class SubtractEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that subtracts right from left
     """
+    #pylint: disable=arguments-differ
     def _evaluate(self, left, right):
         return left - right
 
 class ParameterEvaluator(Evaluator):
-    """Implementation of :class:`Evaluator` that returns the value of a parameter in the keyword arguments
+    """Implementation of :class:`Evaluator` that returns the value of a parameter
+    in the keyword arguments
     """
+    #pylint: disable=arguments-differ
     def _evaluate(self, parameter_name, **kwargs):
         return kwargs[parameter_name]
 
 class RepeatEvaluator(Evaluator):
     """Implementation of :class:`Evaluator` that repeats a value or evaluator ``count`` times
     """
+    #pylint: disable=arguments-differ
     def _evaluate(self, value, count, **kwargs):
         count = super()._evaluate_arg(count, **kwargs)
         values = []
         for _ in range(count):
             values.append(super()._evaluate_arg(value, **kwargs))
         return values
-    
+
     def _evaluate_arg(self, arg, **kwargs):
         return arg
 
 def create_function_evaluator(function):
+    """Create a function evaluator that will evaluate the provided function
+
+    :param function: The function to wrap in a function evaluator
+    :type function: function
+
+    :returns: :class:`Evaluator` that wraps the function
+    :rtype: :class:`Evaluator`
+    """
     class FunctionEvaluator(Evaluator):
         """Implementation of :class:`Evaluator` that evaluates a delegate function
         """
         def _evaluate(self, *args, **kwargs):
             parameters = inspect.signature(function).parameters
             if 'kwargs' not in parameters:
-                kwargs = {k: v for k, v in kwargs.items() if k in parameters and list(parameters.keys()).index(k) >= len(args)}
+                all_keys = list(parameters.keys())
+                kwargs = {
+                    k: v for k, v in kwargs.items()
+                    if k in parameters and all_keys.index(k) >= len(args)
+                }
             return function(*args, **kwargs)
 
     return FunctionEvaluator

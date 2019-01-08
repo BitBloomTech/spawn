@@ -34,11 +34,12 @@ jobs:
           name: run tests
           command: |
             . .venv/bin/activate
-            pytest tests --cov spawn
+            tox
 
       - save_cache:
           paths:
             - ./.venv
+            - ./.tox
             - .coverage
           key: v1-dependencies-{{ checksum "setup.py" }}
 

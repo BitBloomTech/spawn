@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -25,12 +25,18 @@ from spawn.specification.evaluators import create_function_evaluator
 
 def _load_plugin(plugin_definition):
     if not ':' in plugin_definition:
-        raise ValueError('plugin_definition {} does not have the expected format (plugin_type:plugin_path)'.format(plugin_definition))
+        raise ValueError(
+            'plugin_definition {} does not have the expected format (plugin_type:plugin_path)'
+            .format(plugin_definition)
+        )
     plugin_type, module_path = plugin_definition.split(':')
     try:
         plugin = import_module(module_path)
     except ImportError:
-        raise ValueError('Could not import module {} for plugin definition {} - please make sure the module is available on your python path'.format(module_path, plugin_definition))
+        raise ValueError((
+            'Could not import module {} for plugin definition {} - ' +
+            'please make sure the module is available on your python path'
+        ).format(module_path, plugin_definition))
     return (plugin_type, plugin)
 
 RESERVED_NAMES = [
@@ -38,23 +44,24 @@ RESERVED_NAMES = [
 ]
 
 class PluginLoader:
-    _pre_loaded_plugins = {}
-
     """Class to load plugins and create spawners from plugins
     """
+
+    _pre_loaded_plugins = {}
+
     def __init__(self, config):
         """Initialises the plugin spawner
-        
+
         :param config: A configuration object
         :type config: :class:`ConfigurationBase`
         """
         self._config = config
-        plugin_definitions = self._config.get(APP_NAME, 'plugins', type=list, default=[])
+        plugin_definitions = self._config.get(APP_NAME, 'plugins', parameter_type=list, default=[])
         self._plugins = {**self._pre_loaded_plugins}
-        for p in plugin_definitions:
-            plugin_name, plugin = _load_plugin(p)
+        for plugin_def in plugin_definitions:
+            plugin_name, plugin = _load_plugin(plugin_def)
             self._plugins[plugin_name] = plugin
-    
+
     @classmethod
     def pre_load_plugin(cls, name, plugin):
         """Pre-loads the specified plugin
@@ -67,7 +74,7 @@ class PluginLoader:
         :type plugin: obj
         """
         cls._pre_loaded_plugins[name] = plugin
-    
+
     def create_spawner(self, plugin_type):
         """Creates a spawner for a particular plugin type
 
@@ -100,7 +107,7 @@ class PluginLoader:
                 if name not in generators and self._is_generator(value):
                     generators[name] = value
         return generators
-    
+
     def load_evaluators(self):
         """Loads evaluators from the plugins defined
 
@@ -112,11 +119,15 @@ class PluginLoader:
         evaluators = {}
         for plugin in self._plugins.values():
             for name, value in plugin.__dict__.items():
-                if name not in evaluators and not self._is_generator(value) and not self._is_ignored(name) and self._is_evaluator(value):
+                if (name not in evaluators and
+                        not self._is_generator(value) and
+                        not self._is_ignored(name) and
+                        self._is_evaluator(value)
+                   ):
                     evaluators[name] = create_function_evaluator(value)
         return evaluators
 
-    
+
     @staticmethod
     def _is_generator(value):
         return isinstance(value, type) and issubclass(value, Generator)
@@ -124,7 +135,7 @@ class PluginLoader:
     @staticmethod
     def _is_evaluator(value):
         return callable(value)
-    
+
     @staticmethod
     def _is_ignored(name):
         return name.startswith('_') or any(name == reserved_name for reserved_name in RESERVED_NAMES)

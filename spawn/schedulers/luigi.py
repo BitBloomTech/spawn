@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -18,24 +18,41 @@
 """
 import logging
 
-from luigi import build, configuration, worker, rpc, scheduler, execution_summary
+from luigi import build, worker, rpc, scheduler, execution_summary
 
 from spawn import __name__ as APP_NAME
 from spawn.generate_tasks import generate_tasks_from_spec
 
 LOGGER = logging.getLogger()
 
-class _LuigiWorkerSchedulerFactory(object):
-
+class _LuigiWorkerSchedulerFactory:
+    #pylint: disable=no-self-use
     def create_local_scheduler(self):
+        """Creates a local scheduler
+
+        :returns: The local scheduler
+        :rtype: :class:`scheduler.Scheduler`
+        """
         return scheduler.Scheduler(prune_on_get_work=True, record_task_history=False)
 
+    #pylint: disable=no-self-use
     def create_remote_scheduler(self, url):
+        """Creates a remote scheduler
+
+        :returns: The remote scheduler
+        :rtype: :class:`rpc.RemoteScheduler`
+        """
         return rpc.RemoteScheduler(url)
 
-    def create_worker(self, scheduler, worker_processes, assistant=False):
+    #pylint: disable=no-self-use
+    def create_worker(self, scheduler_, worker_processes, assistant=False):
+        """Creates a worker
+
+        :returns: The worker
+        :rtype: :class:`worker.Worker`
+        """
         return worker.Worker(
-            scheduler=scheduler, worker_processes=worker_processes, assistant=assistant)
+            scheduler=scheduler_, worker_processes=worker_processes, assistant=assistant)
 
 class LuigiScheduler:
     """Scheduler implementation for Luigi
@@ -58,14 +75,14 @@ class LuigiScheduler:
         """
         self._workers = config.get(APP_NAME, 'workers')
         self._out_dir = config.get(APP_NAME, 'outdir')
-        self._local = config.get(APP_NAME, 'local', type=bool)
+        self._local = config.get(APP_NAME, 'local', parameter_type=bool)
         self._host = config.get('server', 'host')
-        self._port = config.get('server', 'port', type=int)
+        self._port = config.get('server', 'port', parameter_type=int)
         self._worker_scheduler_factory = _LuigiWorkerSchedulerFactory()
 
     def run(self, spawner, spec):
         """Run the spec by generating tasks using the spawner
-        
+
         :param spawner: The task spawner
         :type spawner: :class:`TaskSpawner`
         :param spec: The specification
@@ -84,11 +101,11 @@ class LuigiScheduler:
         """Add a worker
         """
         if self._local:
-            scheduler = self._worker_scheduler_factory.create_local_scheduler()
+            scheduler_ = self._worker_scheduler_factory.create_local_scheduler()
         else:
             url = 'http://{host}:{port:d}/'.format(host=self._host, port=self._port)
-            scheduler = self._worker_scheduler_factory.create_remote_scheduler(url)
-        assistant_worker = self._worker_scheduler_factory.create_worker(scheduler, self._workers, True)
+            scheduler_ = self._worker_scheduler_factory.create_remote_scheduler(url)
+        assistant_worker = self._worker_scheduler_factory.create_worker(scheduler_, self._workers, True)
         with assistant_worker:
             success = assistant_worker.run()
         LOGGER.info(execution_summary.summary(assistant_worker))

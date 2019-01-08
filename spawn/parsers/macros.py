@@ -13,7 +13,7 @@ class MacrosParser:
     """
     def __init__(self, value_libraries, value_proxy_parser):
         """Initialise :class:`MacrosParser`
-        
+
         :param value_proxy_parser: The value proxy parser
         :type value_proxy_parser: :class:`ValueProxyParser`
         """
@@ -27,7 +27,9 @@ class MacrosParser:
     def parse(self, macros):
         """Parse the macros section of the spec file.
 
-        :param macros: The macros dict. Keys are the names of the macros, values are a the values that a macro takes when used as a value in the spec.
+        :param macros: The macros dict.
+        Keys are the names of the macros, values are a the values that a macro takes
+        when used as a value in the spec.
         :type macros: dict
 
         :returns: An dict containing the values for the specified macros.
@@ -55,7 +57,10 @@ class MacrosParser:
                 self._add_macro(name, value)
                 macros.pop(name)
         if macros:
-            raise LookupError('Failed to parse macros - the following macros could not be parsed after {} passes: {}'.format(MAX_PASSES, macros))
+            raise LookupError((
+                'Failed to parse macros - the following macros ' +
+                'could not be parsed after {} passes: {}'
+            ).format(MAX_PASSES, macros))
         return self._value_libraries[MACRO]
 
     def _add_macro(self, name, value):
@@ -71,4 +76,4 @@ class MacrosParser:
             if isinstance(parsed_v, dict):
                 parsed_v = self._parse_dict(v)
             value[k] = parsed_v
-        return value            
+        return value

@@ -20,6 +20,7 @@ from spawn.specification.generator_methods import *
 from spawn.specification.combinators import *
 from spawn.parsers.specification_parser import *
 from spawn.specification.specification import *
+from spawn.specification.value_proxy import *
 
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):

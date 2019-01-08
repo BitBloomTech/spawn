@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -45,7 +45,11 @@ def string_property(fget):
     return StringProperty(fget)
 
 class PropertyBase:
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
+    """Base class for properties
+    """
+    def __init__(
+            self, type_, fget=None, fset=None, fdel=None, fvalidate=None,
+            default=None, doc=None, abstract=False, readonly=False):
         """Initialises :class:`PropertyBase`
 
         :param fget: Getter function for property
@@ -60,7 +64,8 @@ class PropertyBase:
         :type default: object
         :parm doc: The docstring for this property
         :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :param abstract: ``True`` if this property is abstract (requires implementation);
+        ``False`` otherwise.
         :type abstract: bool
         """
         self._type = type_
@@ -76,11 +81,11 @@ class PropertyBase:
 
     def __set_name__(self, _obj, name):
         self._name = name
-    
+
     @property
     def type(self):
         """The type of this property
-        
+
         :returns: The type
         :rtype: type
         """
@@ -96,9 +101,10 @@ class PropertyBase:
         if self._fget is not None:
             raise ValueError('Cannot set fget more than once')
         other = copy.copy(self)
+        #pylint: disable=protected-access
         other._fget = fget
         return other
-    
+
     def setter(self, fset):
         """Acts as a function decorator to provide a :class:`TypedProperty` with a setter
 
@@ -110,9 +116,10 @@ class PropertyBase:
         if self._fget is None:
             raise ValueError('Must set getter before setting fset')
         other = copy.copy(self)
+        #pylint: disable=protected-access
         other._fset = fset
         return other
-    
+
     def deleter(self, fdel):
         """Acts as a function decorator to provide a :class:`TypedProperty` with a deleter
 
@@ -124,9 +131,10 @@ class PropertyBase:
         if self._fget is None or self._fset is None:
             raise ValueError('Must set getter and setter before setting fdel')
         other = copy.copy(self)
+        #pylint: disable=protected-access
         other._fdel = fdel
         return other
-    
+
     def validator(self, fvalidate):
         """Acts as a function decorator to provide a :class:`TypedProperty` with a validator
 
@@ -134,9 +142,10 @@ class PropertyBase:
         :type fvalidate: func
         """
         other = copy.copy(self)
+        #pylint: disable=protected-access
         other._fvalidate = fvalidate
         return other
-    
+
     def _get_fname(self, function):
         return '{}_{}'.format(function, self._name)
 
@@ -146,26 +155,6 @@ class PropertyBase:
 class TypedProperty(PropertyBase):
     """Base class for typed properties
     """
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
-        """Initialises :class:`TypedProperty`
-
-        :param fget: Getter function for property
-        :type fget: func
-        :param fset: Setter function for property
-        :type fset: func
-        :param fdel: Deleter function for property
-        :type fdel: func
-        :param fvalidate: Validation function for property
-        :type fvalidate: func
-        :param default: The default value for this property
-        :type default: object
-        :parm doc: The docstring for this property
-        :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
-        :type abstract: bool
-        """
-        super().__init__(type_, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
-
     def __get__(self, obj, _type=None):
         if obj is None:
             return self
@@ -178,7 +167,7 @@ class TypedProperty(PropertyBase):
         if self._abstract:
             raise NotImplementedError()
         return obj.__dict__.get(self._name, self._default)
-    
+
     def __set__(self, obj, value):
         if obj is None:
             return
@@ -199,7 +188,7 @@ class TypedProperty(PropertyBase):
             raise NotImplementedError()
         else:
             obj.__dict__[self._name] = value
-    
+
     def __delete__(self, obj):
         if self._name is None:
             raise ValueError('Cannot delete property, name has not been set')
@@ -211,8 +200,8 @@ class TypedProperty(PropertyBase):
             raise NotImplementedError()
         else:
             del obj.__dict__[self._name]
-    
-    def _validate(self, obj, value):
+
+    def _validate(self, _obj, value):
         if not isinstance(value, self._type):
             raise TypeError('value')
 
@@ -221,7 +210,11 @@ class NumericProperty(TypedProperty):
 
     Adds min and max options
     """
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
+    #pylint: disable=redefined-builtin
+    def __init__(
+            self, type_, fget=None, fset=None, fdel=None, fvalidate=None,
+            default=None, doc=None, abstract=False, readonly=False,
+            min=None, max=None):
         """Initialises :class:`NumericProperty`
 
         :param fget: Getter function for property
@@ -236,7 +229,8 @@ class NumericProperty(TypedProperty):
         :type default: numeric
         :parm doc: The docstring for this property
         :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :param abstract: ``True`` if this property is abstract (requires implementation);
+        ``False`` otherwise.
         :type abstract: bool
         :param min: Minimum allowed value for this property
         :type min: numeric
@@ -250,7 +244,7 @@ class NumericProperty(TypedProperty):
             raise TypeError('max')
         self._min = min
         self._max = max
-    
+
     def _validate(self, obj, value):
         super()._validate(obj, value)
         if self._min is not None and value < self._min:
@@ -261,7 +255,11 @@ class NumericProperty(TypedProperty):
 class IntProperty(NumericProperty):
     """Implementation of :class:`NumericProperty` for int properties
     """
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
+    #pylint: disable=redefined-builtin
+    def __init__(
+            self, fget=None, fset=None, fdel=None, fvalidate=None,
+            default=None, doc=None, abstract=False, readonly=False,
+            min=None, max=None):
         """Initialises :class:`IntProperty`
 
         :param fget: Getter function for property
@@ -276,19 +274,26 @@ class IntProperty(NumericProperty):
         :type default: int
         :parm doc: The docstring for this property
         :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :param abstract: ``True`` if this property is abstract (requires implementation);
+        ``False`` otherwise.
         :type abstract: bool
         :param min: Minimum allowed value for this property
         :type min: int
         :param max: Maximum allowed value for this property
         :type max: int
         """
-        super().__init__(int, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
+        super().__init__(
+            int, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max
+        )
 
 class FloatProperty(NumericProperty):
     """Implementation of :class:`NumericProperty` for float properties
     """
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, min=None, max=None):
+    #pylint: disable=redefined-builtin
+    def __init__(
+            self, fget=None, fset=None, fdel=None, fvalidate=None,
+            default=None, doc=None, abstract=False, readonly=False,
+            min=None, max=None):
         """Initialises :class:`FloatProperty`
 
         :param fget: Getter function for property
@@ -303,19 +308,25 @@ class FloatProperty(NumericProperty):
         :type default: float
         :parm doc: The docstring for this property
         :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :param abstract: ``True`` if this property is abstract (requires implementation);
+        ``False`` otherwise.
         :type abstract: bool
         :param min: Minimum allowed value for this property
         :type min: float
         :param max: Maximum allowed value for this property
         :type max: float
         """
-        super().__init__(float, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max)
+        super().__init__(
+            float, fget, fset, fdel, fvalidate, default, doc, abstract, readonly, min, max
+        )
 
 class StringProperty(TypedProperty):
     """Implementation of :class:`TypedProperty` for string properties
     """
-    def __init__(self, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False, possible_values=None, regex=None):
+    def __init__(
+            self, fget=None, fset=None, fdel=None, fvalidate=None,
+            default=None, doc=None, abstract=False, readonly=False,
+            possible_values=None, regex=None):
         """Initialises :class:`StringProperty`
 
         :param fget: Getter function for property
@@ -330,7 +341,8 @@ class StringProperty(TypedProperty):
         :type default: str
         :parm doc: The docstring for this property
         :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :param abstract: ``True`` if this property is abstract (requires implementation);
+        ``False`` otherwise.
         :type abstract: bool
         :param possible_values: Array of possible values for this property
         :type possible_values: list
@@ -340,7 +352,7 @@ class StringProperty(TypedProperty):
         super().__init__(str, fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
         self._possible_values = possible_values
         self._regex = regex
-    
+
     def _validate(self, obj, value):
         super()._validate(obj, value)
         if self._possible_values is not None and value not in self._possible_values:
@@ -350,9 +362,12 @@ class StringProperty(TypedProperty):
 
 class ArrayProperty(PropertyBase):
     """Implementation of :class:`PropertyBase` for array properties
-    :meth:`__get__`, :meth:`__set__` and :meth:`__delete__` return array wrappers that allow indexes to be used
+    :meth:`__get__`, :meth:`__set__` and :meth:`__delete__` return array wrappers
+    that allow indexes to be used
     """
-    def __init__(self, type_, fget=None, fset=None, fdel=None, fvalidate=None, default=None, doc=None, abstract=False, readonly=False):
+    def __init__(
+            self, type_, fget=None, fset=None, fdel=None, fvalidate=None,
+            default=None, doc=None, abstract=False, readonly=False):
         """Initialises :class:`ArrayProperty`
 
         :param fget: Getter function for property
@@ -367,12 +382,13 @@ class ArrayProperty(PropertyBase):
         :type default: object
         :parm doc: The docstring for this property
         :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation); ``False`` otherwise.
+        :param abstract: ``True`` if this property is abstract (requires implementation);
+        ``False`` otherwise.
         :type abstract: bool
         """
         super().__init__(fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
         self._type = type_
-    
+
     def __get__(self, obj, _type=None):
         if obj is None:
             return self
@@ -381,7 +397,7 @@ class ArrayProperty(PropertyBase):
         if self._abstract:
             raise NotImplementedError()
         return self._wrapper(obj)
-    
+
     def __set__(self, obj, value):
         if obj is None:
             return
@@ -404,12 +420,15 @@ class ArrayProperty(PropertyBase):
         if self._fget or self._fset or self._fdel:
             raise ValueError('Cannot delete array with custom getters and setters')
         del obj.__dict__[self._name]
-    
+
     def _wrapper(self, obj):
         fget = functools.partial(self._fget, obj) if self._fget else self._get_method(obj, 'get')
         fset = functools.partial(self._fset, obj) if self._fset else self._get_method(obj, 'set')
         fdel = functools.partial(self._fdel, obj) if self._fdel else self._get_method(obj, 'delete')
-        fvalidate = functools.partial(self._fvalidate, obj) if self._fvalidate else self._get_method(obj, 'validate')
+        fvalidate = (
+            functools.partial(self._fvalidate, obj) if self._fvalidate
+            else self._get_method(obj, 'validate')
+        )
         obj.__dict__.setdefault(self._name, [])
         return ArrayWrapper(self._type, fget, fset, fdel, fvalidate, obj.__dict__[self._name])
 
@@ -475,7 +494,9 @@ class ArrayWrapper:
             self._extend(index + 1)
             del self._store[index]
         else:
-            raise ValueError('Could not deleted index for property, no store and no setter specified')
+            raise ValueError(
+                'Could not deleted index for property, no store and no setter specified'
+            )
 
     def _extend(self, length):
         if self._store is None:
