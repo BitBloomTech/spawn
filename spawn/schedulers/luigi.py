@@ -25,9 +25,9 @@ from spawn.generate_tasks import generate_tasks_from_spec
 
 LOGGER = logging.getLogger()
 
-class _LuigiWorkerSchedulerFactory:
-    #pylint: disable=no-self-use
-    def create_local_scheduler(self):
+class _LuigiWorkerSchedulerFactory():
+    @staticmethod
+    def create_local_scheduler():
         """Creates a local scheduler
 
         :returns: The local scheduler
@@ -35,8 +35,8 @@ class _LuigiWorkerSchedulerFactory:
         """
         return scheduler.Scheduler(prune_on_get_work=True, record_task_history=False)
 
-    #pylint: disable=no-self-use
-    def create_remote_scheduler(self, url):
+    @staticmethod
+    def create_remote_scheduler(url):
         """Creates a remote scheduler
 
         :returns: The remote scheduler
@@ -44,8 +44,8 @@ class _LuigiWorkerSchedulerFactory:
         """
         return rpc.RemoteScheduler(url)
 
-    #pylint: disable=no-self-use
-    def create_worker(self, scheduler_, worker_processes, assistant=False):
+    @staticmethod
+    def create_worker(scheduler_, worker_processes, assistant=False):
         """Creates a worker
 
         :returns: The worker
