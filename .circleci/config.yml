@@ -46,7 +46,7 @@ jobs:
           name: run tests
           command: |
             . .venv/bin/activate
-            tox -e py37
+            tox -e py37,docs
 
       - save_cache:
           paths:

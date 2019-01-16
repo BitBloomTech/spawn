@@ -23,7 +23,7 @@ from spawn.util.validation import validate_type
 class ValueProxy:
     """Base value proxy class
 
-    A value proxy is anything that can be `evaluate`d in place of a value
+    A value proxy is anything that can be `evaluate` d in place of a value
     """
     #pylint: disable=no-self-use
     def evaluate(self):
