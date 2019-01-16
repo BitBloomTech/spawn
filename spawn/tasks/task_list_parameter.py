@@ -17,7 +17,7 @@
 """Defines the :class:`TaskListParameter` to provide numerous tasks as
 dependencies for `luigi`
 """
-from collections import Mapping
+from collections.abc import Mapping
 import json
 import luigi
 

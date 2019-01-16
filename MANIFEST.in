@@ -1,0 +1,2 @@
+include versioneer.py
+include spawn/_version.py
