@@ -10,3 +10,4 @@ spawn/temp/
 docs/_build
 docs/api
 !.circleci
+!.pylintrc

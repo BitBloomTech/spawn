@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -20,7 +20,6 @@
 import ast
 
 from spawn.specification.evaluators import ParameterEvaluator
-from spawn.specification.value_proxy import evaluate
 
 from .constants import (
     MACRO, GENERATOR, EVALUATOR, PARAMETER,
@@ -60,7 +59,7 @@ class ValueProxyVisitor(ast.NodeVisitor):
         :param generator_library: The generator library
         :type generator_library: dict
         :param value_proxy_string: The string to be evaluated
-        :type value_proxy_string: str 
+        :type value_proxy_string: str
         """
         self._evaluator_library = evaluator_library
         self._macro_library = macro_library
@@ -68,11 +67,12 @@ class ValueProxyVisitor(ast.NodeVisitor):
         self._value_proxy_string = value_proxy_string
         self._value_proxy = None
 
+    #pylint: disable=invalid-name
     def visit_Call(self, node):
         """Parse :class:`ast.Call` nodes
 
         Recursively calls :method:`visit` on args
-        
+
         :param node: The node to parse
         :type node: :class:`ast.Call`
 
@@ -88,12 +88,13 @@ class ValueProxyVisitor(ast.NodeVisitor):
             raise LookupError('Evaluator {} not found'.format(node.func.id))
         self._value_proxy = self._evaluator_library[node.func.id](*arg_values)
         return self._value_proxy
-    
+
+    #pylint: disable=invalid-name,no-self-use
     def visit_Num(self, node):
         """Parse :class:`ast.Num` nodes
 
         Returns the value at the node
-        
+
         :param node: The node to parse
         :type node: :class:`ast.Num`
 
@@ -101,12 +102,13 @@ class ValueProxyVisitor(ast.NodeVisitor):
         :rtype: numeric
         """
         return node.n
-    
+
+    #pylint: disable=invalid-name
     def visit_UnaryOp(self, node):
         """Parse :class:`ast.UnaryOp` nodes
 
         Inspects the unary operator and applies this to the result of the operand
-        
+
         :param node: The node to parse
         :type node: :class:`ast.UnaryOp`
 
@@ -117,12 +119,14 @@ class ValueProxyVisitor(ast.NodeVisitor):
             return -1 * self.visit(node.operand)
         if isinstance(node.op, ast.UAdd):
             return self.visit(node.operand)
+        return None
 
+    #pylint: disable=invalid-name
     def visit_BinOp(self, node):
         """Parse :class:`ast.BinOp` nodes
 
         Converts the binary operation into an evaluator
-        
+
         :param node: The node to parse
         :type node: :class:`ast.BinOp`
 
@@ -136,12 +140,13 @@ class ValueProxyVisitor(ast.NodeVisitor):
             raise SyntaxError('Invalid operator in {} at position {}'.format(self._value_proxy_string, node.col_offset))
         self._value_proxy = self._evaluator_library[OP_NAMES[op_type]](left_value, right_value)
         return self._value_proxy
-    
+
+    #pylint: disable=invalid-name
     def visit_Name(self, node):
         """Parse :class:`ast.Name` nodes
 
         If a macro, generator or parameter token is found, converts to an evaluator
-        
+
         :param node: The node to parse
         :type node: :class:`ast.Name`
 
@@ -205,10 +210,12 @@ class ValueProxyParser:
             raise ValueError('{} is not a value proxy'.format(value))
         tokenised_string = self._tokenise(value)
         tree = ast.parse(tokenised_string)
-        visitor = ValueProxyVisitor(self._evaluator_library, self._macro_library, self._generator_library, tokenised_string)
+        visitor = ValueProxyVisitor(
+            self._evaluator_library, self._macro_library, self._generator_library, tokenised_string
+        )
         visitor.visit(tree)
         return visitor.value_proxy
-    
+
     def is_value_proxy(self, value):
         """Determine if the provided string is a value proxy
 
@@ -229,7 +236,7 @@ class ValueProxyParser:
         for token, replacement in TOKENS.items():
             output = output.replace(token + ':', replacement)
         return output
-    
+
     @staticmethod
     def _expand(input_string):
         output = input_string

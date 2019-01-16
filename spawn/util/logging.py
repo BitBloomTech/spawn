@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -41,9 +41,11 @@ def configure_logging(log_level, command_name, log_console=True, log_file=True):
     :type log_level: str
     :param command_name: The name of the invoked subcommand
     :type command_name: str
-    :param log_console: ``True`` if logs should be displayed in the console; otherwise ``False``. Defaults to ``True``.
+    :param log_console: ``True`` if logs should be displayed in the console; otherwise ``False``.
+    Defaults to ``True``.
     :type log_console: bool
-    :param log_file: ``True`` if logs should be written to file; otherwise ``False``. Defaults to ``True``.
+    :param log_file: ``True`` if logs should be written to file; otherwise ``False``.
+    Defaults to ``True``.
     :type log_file: bool
     """
     logging.addLevelName(TRACE, 'TRACE')
@@ -79,6 +81,8 @@ def configure_logging(log_level, command_name, log_console=True, log_file=True):
     if log_console:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(numeric_level)
-        console_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
         console_handler.setFormatter(console_formatter)
         logging.getLogger().addHandler(console_handler)

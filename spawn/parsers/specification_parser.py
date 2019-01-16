@@ -1,25 +1,27 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """This module defines the ``SpecificationParser``, which parsers specifications
 """
-from os import path
 from json import load
 
-from ..specification import SpecificationModel, SpecificationMetadata, SpecificationNode, Macro, ValueProxyNode, SpecificationNodeFactory
+from ..specification import (
+    SpecificationModel, SpecificationMetadata, SpecificationNode,
+    ValueProxyNode, SpecificationNodeFactory
+)
 from ..specification.combinators import zip_properties, product
 from ..specification.evaluators import (
     RangeEvaluator, RepeatEvaluator, MultiplyEvaluator,
@@ -28,7 +30,12 @@ from ..specification.evaluators import (
 from .value_proxy import ValueProxyParser
 from .generators import GeneratorsParser
 from .macros import MacrosParser
-from .constants import *
+from .constants import (
+    GENERATOR, MACRO, EVALUATOR,
+    COMBINATOR, ZIP, PRODUCT,
+    RANGE, REPEAT, MULTIPLY, DIVIDE, ADD, SUBTRACT,
+    PATH, POLICY, GHOST
+)
 from ..specification import generator_methods
 from ..util.validation import validate_type, validate_file
 from ..util.path_builder import PathBuilder
@@ -93,7 +100,7 @@ class DictSpecificationProvider(SpecificationDescriptionProvider):
         """
         validate_type(spec, dict, 'spec')
         self._spec = spec
-    
+
     def get(self):
         """Gets the specification
 
@@ -137,9 +144,13 @@ class SpecificationParser:
         :rtype: :class:`SpecificationModel`
         """
         description = self._provider.get()
-        metadata = SpecificationMetadata(description.get('type'), description.get('creation_time'), description.get('notes'))
+        metadata = SpecificationMetadata(
+            description.get('type'), description.get('creation_time'), description.get('notes')
+        )
         self._parse_value_libraries(description)
-        node_parser = SpecificationNodeParser(self._value_proxy_parser, self._get_combinators(), default_combinator=PRODUCT)
+        node_parser = SpecificationNodeParser(
+            self._value_proxy_parser, self._get_combinators(), default_combinator=PRODUCT
+        )
         root_node = node_parser.parse(description.get('spec'))
         root_node.evaluate()
         return SpecificationModel(description.get('base_file'), root_node, metadata)
@@ -147,7 +158,9 @@ class SpecificationParser:
     def _parse_value_libraries(self, description):
         built_in_generators = GeneratorsParser.load_generators_from_module(generator_methods)
         plugin_generators = self._plugin_loader.load_generators()
-        generator_lib = GeneratorsParser({**built_in_generators, **plugin_generators}).parse(description.get('generators'))
+        generator_lib = GeneratorsParser({
+            **built_in_generators, **plugin_generators
+        }).parse(description.get('generators'))
         self._value_libraries[GENERATOR].update(generator_lib)
         macros_lib = MacrosParser(self._value_libraries, self._value_proxy_parser).parse(description.get('macros'))
         self._value_libraries[MACRO].update(macros_lib)
@@ -205,8 +218,9 @@ class SpecificationNodeParser:
         (name, value), next_node_spec = self._get_next_node(node_spec)
         self._parse_value(parent, name, value, next_node_spec, node_policies, ghost_parameters)
         return parent
-    
-    def _merge_policies(self, left, right):
+
+    @staticmethod
+    def _merge_policies(left, right):
         if not left:
             return right
         if not right:
@@ -230,11 +244,16 @@ class SpecificationNodeParser:
             self.parse(next_node_spec, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
         elif isinstance(value, str) and self._is_value_proxy(value):
-            next_parent = ValueProxyNode(parent, name, self._value_proxy_parser.parse(value), node_policies.get(PATH, None), ghost_parameters)
+            next_parent = ValueProxyNode(
+                parent, name, self._value_proxy_parser.parse(value),
+                node_policies.get(PATH, None), ghost_parameters
+            )
             self.parse(next_node_spec, next_parent)
         # simple single value
         else:
-            next_parent = self._node_factory.create(parent, name, value, node_policies.get(PATH, None), ghost_parameters)
+            next_parent = self._node_factory.create(
+                parent, name, value, node_policies.get(PATH, None), ghost_parameters
+            )
             self.parse(next_node_spec, next_parent)
 
     def _is_value_proxy(self, value):
@@ -273,13 +292,13 @@ class SpecificationNodeParser:
         prefix = self._prefix(POLICY)
         policies = {k.replace(prefix, ''): v for k, v in node_spec.items() if k.startswith(prefix)}
         return policies, {k: v for k, v in node_spec.items() if not k.startswith(prefix)}
-    
+
     def _get_ghost_parameters(self, node_spec):
         if not node_spec:
             return {}, {}
         ghost_parameters = {self._deghost(k): v for k, v in node_spec.items() if self._is_ghost(k)}
         return ghost_parameters, {k: v for k, v in node_spec.items() if not self._is_ghost(k)}
-    
+
     @staticmethod
     def _is_ghost(prop):
         return prop.startswith(GHOST)

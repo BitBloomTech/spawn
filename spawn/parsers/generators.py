@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -29,7 +29,8 @@ class GeneratorsParser:
     def parse(self, generators):
         """Parse the generators section of the spec file.
 
-        :param generators: The generators dict. Keys are the names of the generators, values are a dict specifying the generator.
+        :param generators: The generators dict.
+        Keys are the names of the generators, values are a dict specifying the generator.
         :type generators: dict
 
         :returns: An expanding dict containing the values for the specified generators.
@@ -55,10 +56,20 @@ class GeneratorsParser:
 
     @staticmethod
     def load_generators_from_module(module):
+        """Loads generators from the specified module
+
+        :returns: The :class:`GeneratorsParser`
+        :rtype: :class:`GeneratorsParser`
+        """
         is_generator = lambda c: inspect.isclass(c) and issubclass(c, generator_methods.Generator)
-        return {name: class_type for name, class_type in inspect.getmembers(generator_methods, is_generator)}
+        return {name: class_type for name, class_type in inspect.getmembers(module, is_generator)}
 
     @classmethod
     def default(cls):
+        """Returns the default :class:`GeneratorsParser`, which
+        loads generators from the `generator_methods` module
+
+        :returns: The :class:`GeneratorsParser`
+        :rtype: :class:`GeneratorsParser`
+        """
         return cls(cls.load_generators_from_module(generator_methods))
-    

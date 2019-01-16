@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -33,7 +33,7 @@ class PathBuilder:
         :type path: str
         """
         self._path = path
-    
+
     def join(self, other):
         """Join two paths by adding ``other`` onto the end of ``self``
 
@@ -45,7 +45,7 @@ class PathBuilder:
         """
         new_path = '{}/{}'.format(self._path, other) if self._path else other
         return PathBuilder(new_path)
-    
+
     def join_start(self, other):
         """Join two paths by adding ``other`` onto the start of ``self``
 
@@ -57,7 +57,7 @@ class PathBuilder:
         """
         new_path = '{}/{}'.format(other, self._path) if self._path else other
         return PathBuilder(new_path)
-    
+
     def format(self, properties, indices=None):
         """Format the path by interpolating with the properties provided.
 
@@ -65,7 +65,8 @@ class PathBuilder:
 
         :param properties: The properties to interpolate with.
         :type properties: dict
-        :param indices: The indicies to use in place of the properties, if any. Defaults to ``None``.
+        :param indices: The indicies to use in place of the properties, if any.
+        Defaults to ``None``.
         :type indicies: dict
 
         :returns: A new instance with the interpolated values
@@ -91,16 +92,17 @@ class PathBuilder:
         if remaining_values:
             raise ValueError('No value supplied for token "{}"'.format(remaining_values.group(0)))
         return PathBuilder(next_path)
-    
+
     @staticmethod
     def _token(value):
-        return r'\{' + value + r':?(?P<index_format>[^\}]*)\}' 
-    
+        return r'\{' + value + r':?(?P<index_format>[^\}]*)\}'
+
     def __repr__(self):
         return self._path
-    
+
     @staticmethod
     def index(index, index_format='1'):
+        #pylint: disable=anomalous-backslash-in-string
         """Formats an index given the ``index_format`` provided
 
         :param index: The index to format
@@ -120,15 +122,17 @@ class PathBuilder:
                                                          aa -> aa, ab, ac, ad...
         ======= ======================================== =======================
         """
-        if re.search('0*[\d]+', index_format):
+        if re.search(r'0*[\d]+', index_format):
             start_index = int(index_format)
             pad_width = len(index_format)
             return '{index:0>{pad_width}}'.format(index=index + start_index, pad_width=pad_width)
-        if re.search('[a]+', index_format):
+        if re.search(r'[a]+', index_format):
             index_string = ''
             while index > 0:
                 next_value, index = index % 26, index // 26
                 index_string = LETTERS[next_value] + index_string
-            return '{index_string:a>{pad_width}}'.format(index_string=index_string, pad_width=len(index_format))
-        
+            return '{index_string:a>{pad_width}}'.format(
+                index_string=index_string, pad_width=len(index_format)
+            )
+
         raise ValueError('index_format has unsupported value {}'.format(index_format))

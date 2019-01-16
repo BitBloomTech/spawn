@@ -1,16 +1,16 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -62,7 +62,7 @@ class ProcessRunner:
         """
         validate_file(self._input_file_path, 'input_file_path')
         validate_file(self._exe_path, 'exe_path')
-        LOGGER.info('Executing \'{}\': {}'.format(self._id, self.process_args))
+        LOGGER.info('Executing \'%s\': %s', self._id, self.process_args)
         output = subprocess.run(args=self.process_args, cwd=self._cwd,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._write_logs(output)
@@ -71,7 +71,7 @@ class ProcessRunner:
             json.dump(state, fp)
         if output.returncode != 0:
             raise ChildProcessError('process exited with {}'.format(output.returncode))
-    
+
     def error_logs(self):
         """Error logs produced by the process, if any
 
@@ -83,7 +83,7 @@ class ProcessRunner:
             with open(error_file) as fp:
                 return fp.read()
         return None
-    
+
     def logs(self):
         """Stdout logs produced by the process, if any
 
@@ -95,7 +95,7 @@ class ProcessRunner:
             with open(log_file) as fp:
                 return fp.read()
         return None
-        
+
     def complete(self):
         """Determine if the run is complete.
 
@@ -118,7 +118,7 @@ class ProcessRunner:
         :rtype: list
         """
         return [self._exe_path, self._input_file_path]
-        
+
     @property
     def output_file_base(self):
         """The base path of the output file (without extension)
@@ -146,8 +146,9 @@ class ProcessRunner:
         elif output.returncode != 0:
             with open(self.output_file_base + '.err', 'w') as fp:
                 fp.write(str(output.returncode))
-    
-    def _output_to_state(self, output):
+
+    @staticmethod
+    def _output_to_state(output):
         return {
             'result': SUCCESS if output.returncode == 0 else FAILURE,
             'returncode': output.returncode

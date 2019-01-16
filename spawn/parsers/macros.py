@@ -1,3 +1,19 @@
+# spawn
+# Copyright (C) 2018, Simmovation Ltd.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """This module defines the generator parser
 """
 from spawn.specification.value_proxy import Macro, ValueProxy
@@ -13,7 +29,7 @@ class MacrosParser:
     """
     def __init__(self, value_libraries, value_proxy_parser):
         """Initialise :class:`MacrosParser`
-        
+
         :param value_proxy_parser: The value proxy parser
         :type value_proxy_parser: :class:`ValueProxyParser`
         """
@@ -27,7 +43,9 @@ class MacrosParser:
     def parse(self, macros):
         """Parse the macros section of the spec file.
 
-        :param macros: The macros dict. Keys are the names of the macros, values are a the values that a macro takes when used as a value in the spec.
+        :param macros: The macros dict.
+        Keys are the names of the macros, values are a the values that a macro takes
+        when used as a value in the spec.
         :type macros: dict
 
         :returns: An dict containing the values for the specified macros.
@@ -55,7 +73,10 @@ class MacrosParser:
                 self._add_macro(name, value)
                 macros.pop(name)
         if macros:
-            raise LookupError('Failed to parse macros - the following macros could not be parsed after {} passes: {}'.format(MAX_PASSES, macros))
+            raise LookupError((
+                'Failed to parse macros - the following macros ' +
+                'could not be parsed after {} passes: {}'
+            ).format(MAX_PASSES, macros))
         return self._value_libraries[MACRO]
 
     def _add_macro(self, name, value):
@@ -71,4 +92,4 @@ class MacrosParser:
             if isinstance(parsed_v, dict):
                 parsed_v = self._parse_dict(v)
             value[k] = parsed_v
-        return value            
+        return value

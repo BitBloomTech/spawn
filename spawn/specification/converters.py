@@ -1,23 +1,24 @@
 # spawn
 # Copyright (C) 2018, Simmovation Ltd.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """Converters for :class:`SpecificationModel`s
 """
-from .specification import SpecificationModel, SpecificationNode, SpecificationMetadata, IndexedNode
 from spawn.util.validation import validate_type
+
+from .specification import SpecificationModel, SpecificationNode, SpecificationMetadata, IndexedNode
 
 class SpecificationConverter:
     """Abstract base class for converting :class:`SpecificationModel`
@@ -50,14 +51,15 @@ class DictSpecificationConverter(SpecificationConverter):
             'metadata': self._convert_metadata(spec.metadata),
             'spec': sum([self._convert_node(c) for c in spec.root_node.children], [])
         }
-    
-    def _convert_metadata(self, metadata):
+
+    @staticmethod
+    def _convert_metadata(metadata):
         validate_type(metadata, SpecificationMetadata, 'metadata')
         return {
             'creation_time': metadata.creation_time,
             'notes': metadata.notes
         }
-    
+
     def _convert_node(self, node):
         validate_type(node, SpecificationNode, 'node')
         if not node.has_property:
