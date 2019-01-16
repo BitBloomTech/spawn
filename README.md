@@ -1,4 +1,4 @@
-![Spawn Logo](spawn_logo.png "Spawn Logo")
+![Spawn Logo](https://raw.githubusercontent.com/Simmovation/spawn/master/spawn_logo.png "Spawn Logo")
 
 [![CircleCI](https://circleci.com/gh/Simmovation/spawn.svg?style=svg&circle-token=7b196f71c3a3f53004970c6bb798bab074d3bea6)](https://circleci.com/gh/Simmovation/spawn)
 
