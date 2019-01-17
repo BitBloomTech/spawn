@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
 import versioneer
@@ -55,7 +55,7 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require=extras_require,
-    packages=[PACKAGE_NAME],
+    packages=find_packages(),
     cmdclass=versioneer.get_cmdclass(),
     license='GPLv3',
     version=versioneer.get_version(),
