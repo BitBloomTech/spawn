@@ -55,7 +55,7 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require=extras_require,
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests*',)),
     cmdclass=versioneer.get_cmdclass(),
     license='GPLv3',
     version=versioneer.get_version(),
