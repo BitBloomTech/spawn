@@ -45,14 +45,15 @@ class _LuigiWorkerSchedulerFactory():
         return rpc.RemoteScheduler(url)
 
     @staticmethod
-    def create_worker(scheduler_, worker_processes, assistant=False):
+    #pylint: disable=redefined-outer-name
+    def create_worker(scheduler, worker_processes, assistant=False):
         """Creates a worker
 
         :returns: The worker
         :rtype: :class:`worker.Worker`
         """
         return worker.Worker(
-            scheduler=scheduler_, worker_processes=worker_processes, assistant=assistant)
+            scheduler=scheduler, worker_processes=worker_processes, assistant=assistant)
 
 class LuigiScheduler:
     """Scheduler implementation for Luigi
