@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
 import versioneer
@@ -55,7 +55,7 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require=extras_require,
-    packages=[PACKAGE_NAME],
+    packages=find_packages(exclude=('tests*',)),
     cmdclass=versioneer.get_cmdclass(),
     license='GPLv3',
     version=versioneer.get_version(),
@@ -66,5 +66,8 @@ setup(
     description='Spawn is a python package that allows users to concisely specify and execute a large number of tasks with complex and co-dependent input parameter variations',
     long_description=README_CONTENTS,
     long_description_content_type='text/markdown',
-    python_requires='>=3.6,<4'
+    python_requires='>=3.6,<4',
+    entry_points={
+        'console_scripts': ['spawn=spawn.cli:cli'],
+    },
 )
