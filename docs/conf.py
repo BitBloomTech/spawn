@@ -29,15 +29,24 @@
 
 
 # -- Project information -----------------------------------------------------
+import os
+import shutil
+import sys
+
+_here = os.path.abspath(os.path.dirname(__file__))
+
+sys.path.insert(0, os.path.abspath(os.path.join(_here, '..')))
+
+import spawn
 
 project = 'spawn'
 copyright = '2018, Michael Tinning, Philip Bradstock'
 author = 'Michael Tinning, Philip Bradstock'
 
 # The short X.Y version
-version = ''
+version = spawn.__version__
 # The full version, including alpha/beta/rc tags
-release = ''
+release = spawn.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -114,7 +123,7 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -213,3 +222,48 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+GENERATED_RSTS = [
+    'spawn.cli',
+    'spawn.parsers',
+    'spawn.runners',
+    'spawn.schedulers',
+    'spawn.simulation_inputs',
+    'spawn.spawners',
+    'spawn.specification',
+    'spawn.tasks',
+    'spawn.util'
+]
+
+TITLES = {
+    'spawn.cli': 'Spawn Command Line Interface'
+}
+
+def rst_contents(module):
+    title = TITLES.get(module, module)
+    underline = '='*len(title)
+    return f'{title}\n{underline}\n\n.. automodule:: {module}\n\t:members:\n\t:imported-members:\n'
+
+SUMMARY = """API Reference
+=============
+
+.. autosummary::
+
+    {}
+"""
+
+def summary():
+    return SUMMARY.format('\n    '.join(GENERATED_RSTS))
+
+def generate(docs_dir):
+    api_docs_dir = os.path.join(docs_dir, 'api')
+    if os.path.isdir(api_docs_dir):
+        shutil.rmtree(api_docs_dir)
+    os.mkdir(api_docs_dir)
+    for file in GENERATED_RSTS:
+        with open(os.path.join(api_docs_dir, file + '.rst'), 'w+') as fp:
+            fp.write(rst_contents(file))
+    with open(os.path.join(api_docs_dir, 'api_reference.rst'), 'w+') as fp:
+        fp.write(summary())
+
+generate(_here)

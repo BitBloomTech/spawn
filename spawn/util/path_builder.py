@@ -66,7 +66,7 @@ class PathBuilder:
         :param properties: The properties to interpolate with.
         :type properties: dict
         :param indices: The indicies to use in place of the properties, if any.
-        Defaults to ``None``.
+            Defaults to ``None``.
         :type indicies: dict
 
         :returns: A new instance with the interpolated values

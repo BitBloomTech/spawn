@@ -42,10 +42,10 @@ def configure_logging(log_level, command_name, log_console=True, log_file=True):
     :param command_name: The name of the invoked subcommand
     :type command_name: str
     :param log_console: ``True`` if logs should be displayed in the console; otherwise ``False``.
-    Defaults to ``True``.
+        Defaults to ``True``.
     :type log_console: bool
     :param log_file: ``True`` if logs should be written to file; otherwise ``False``.
-    Defaults to ``True``.
+        Defaults to ``True``.
     :type log_file: bool
     """
     logging.addLevelName(TRACE, 'TRACE')
