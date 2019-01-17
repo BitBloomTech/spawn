@@ -66,5 +66,8 @@ setup(
     description='Spawn is a python package that allows users to concisely specify and execute a large number of tasks with complex and co-dependent input parameter variations',
     long_description=README_CONTENTS,
     long_description_content_type='text/markdown',
-    python_requires='>=3.6,<4'
+    python_requires='>=3.6,<4',
+    entry_points={
+        'console_scripts': ['spawn=spawn.cli:cli'],
+    },
 )
