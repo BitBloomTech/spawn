@@ -37,14 +37,16 @@ _here = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.insert(0, os.path.abspath(os.path.join(_here, '..')))
 
+import spawn
+
 project = 'spawn'
 copyright = '2018, Michael Tinning, Philip Bradstock'
 author = 'Michael Tinning, Philip Bradstock'
 
 # The short X.Y version
-version = ''
+version = spawn.__version__
 # The full version, including alpha/beta/rc tags
-release = ''
+release = spawn.__version__
 
 
 # -- General configuration ---------------------------------------------------
