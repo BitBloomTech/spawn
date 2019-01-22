@@ -29,10 +29,7 @@ from spawn import __name__ as APP_NAME
 from spawn.config import (CommandLineConfiguration, CompositeConfiguration,
                           DefaultConfiguration, IniFileConfiguration)
 from spawn.interface import LocalInterface
-from spawn.parsers import SpecificationFileReader, SpecificationParser
-from spawn.plugins import PluginLoader
 from spawn.schedulers import LuigiScheduler
-from spawn.specification import DictSpecificationConverter
 from spawn.util import configure_logging, prettyspec
 
 # Prevent luigi from setting up it's own logging

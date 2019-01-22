@@ -75,5 +75,6 @@ class LocalInterface(SpawnInterface):
         reader = DictSpecificationProvider(spec_dict)
         return SpecificationParser(reader, self._plugin_loader).parse()
 
-    def _spec_to_spec_dict(self, spec):
+    @staticmethod
+    def _spec_to_spec_dict(spec):
         return DictSpecificationConverter().convert(spec)
