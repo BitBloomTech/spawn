@@ -16,6 +16,8 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """spawn.cli module
 """
+import functools
+import io
 import json
 import logging
 
@@ -26,6 +28,7 @@ import luigi.interface
 from spawn import __name__ as APP_NAME
 from spawn.config import (CommandLineConfiguration, CompositeConfiguration,
                           DefaultConfiguration, IniFileConfiguration)
+from spawn.interface import LocalInterface
 from spawn.parsers import SpecificationFileReader, SpecificationParser
 from spawn.plugins import PluginLoader
 from spawn.schedulers import LuigiScheduler
@@ -86,21 +89,25 @@ def inspect(config, **kwargs):
     specfile = config.get(APP_NAME, 'specfile')
     outfile = config.get(APP_NAME, 'outfile')
     click.echo('Inspecing input file "{}":'.format(click.format_filename(specfile)))
-    reader = SpecificationFileReader(specfile)
-    parser = SpecificationParser(reader, PluginLoader(config))
-    spec = parser.parse()
-    spec_dict = DictSpecificationConverter().convert(spec)
-    click.echo('Number of leaves: {}'.format(len(spec.root_node.leaves)))
-    if outfile is not None:
-        format_ = config.get(APP_NAME, 'format')
-        with open(outfile, 'w') as f:
-            if format_ == 'txt':
-                prettyspec(spec_dict, f)
-            elif format_ == 'json':
-                json.dump(spec_dict, f, indent=2)
-        click.echo('Specification details written to {}'.format(f.name))
-    else:
-        prettyspec(spec_dict)
+    interface = LocalInterface(config)
+    with open(specfile) as fp:
+        obj = json.load(fp)
+    spec_dict = interface.inspect(obj)
+    spec_stats = interface.stats(obj)
+    click.echo('Stats: {}'.format('; '.join('{}={}'.format(k, v) for k, v in spec_stats.items())))
+    format_ = config.get(APP_NAME, 'format')
+    buffer = (
+        functools.partial(open, outfile, 'w') if outfile else
+        functools.partial(io.TextIOWrapper, click.get_text_stream('stdout'))
+    )
+    formatter = (
+        functools.partial(prettyspec, spec_dict) if format_ == 'txt' else
+        functools.partial(json.dump, spec_dict, indent=2)
+    )
+    with buffer() as f:
+        formatter(f)
+    if outfile:
+        click.echo('Specification details written to {}'.format(outfile))
 
 @cli.command()
 @_pass_config
@@ -115,18 +122,10 @@ def run(config, **kwargs):
     """Runs the SPECFILE contents and write output to OUTDIR
     """
     config = _get_config(**{**config, **kwargs})
-    reader = SpecificationFileReader(config.get(APP_NAME, 'specfile'))
-    plugin_loader = PluginLoader(config)
-    spec = SpecificationParser(reader, plugin_loader).parse()
-    plugin_type = config.get(APP_NAME, 'type') or spec.metadata.spec_type
-    if not plugin_type:
-        raise ValueError((
-            'No plugin type defined - please specify the --type argument ' +
-            'or add a type property in the spec file'
-        ))
-    spawner = plugin_loader.create_spawner(plugin_type)
-    scheduler = LuigiScheduler(config)
-    scheduler.run(spawner, spec)
+    interface = LocalInterface(config)
+    with open(config.get(APP_NAME, 'specfile')) as fp:
+        spec_dict = json.load(fp)
+    interface.run(spec_dict)
 
 @cli.command()
 @_pass_config
