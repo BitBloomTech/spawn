@@ -16,14 +16,12 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """Implementation of :class:`ConfigurationBase` returning default configuration values
 """
-from spawn import __name__ as DEFAULT_CATEGORY
-
 from .base import ConfigurationBase
 
 DEFAULT_CONFIGURATION = {
-    DEFAULT_CATEGORY: {
+    ConfigurationBase.default_category: {
         'workers': 4,
-        'config_file': DEFAULT_CATEGORY + '.ini',
+        'config_file': ConfigurationBase.default_category + '.ini',
         'runner_type': 'process',
         'prereq_outdir': 'prerequisites'
     },
@@ -58,7 +56,7 @@ class DefaultConfiguration(ConfigurationBase):
         return list(DEFAULT_CONFIGURATION.get(category, {}).keys())
 
     @classmethod
-    def set_default(cls, key, value, category=DEFAULT_CATEGORY):
+    def set_default(cls, key, value, category=ConfigurationBase.default_category):
         """Set a default value
 
         :param key: The key to set

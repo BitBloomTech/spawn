@@ -16,13 +16,18 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """Defines the base class for configuration implementations
 """
-from abc import abstractmethod
+from abc import ABC, abstractmethod
+
+DEFAULT_CATEGORY = 'spawn'
 
 LIST_DELIMITER = ','
 
-class ConfigurationBase:
+class ConfigurationBase(ABC):
     """Base class for configuration implementations.
     """
+
+    default_category = DEFAULT_CATEGORY
+
     def get(self, category, key, parameter_type=str, default=None):
         """Gets the configuration value corresponding to the category and key.
 

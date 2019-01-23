@@ -18,11 +18,11 @@ from os import path
 import numpy as np
 from glob import glob
 import json
+import spawn
 from spawn.generate_tasks import generate_tasks_from_spec
 from spawn.tasks import SpawnTask
 from spawn.parsers import *
 from spawn.parsers.value_proxy import ValueProxyParser
-from spawn.interface import LocalInterface
 from spawn.config import DefaultConfiguration
 
 from .conftest import *
@@ -46,9 +46,8 @@ def test_tasks_are_run_via_interface(tmpdir):
     config.set_default('outfile', tmpdir)
     config.set_default('workers', 1)
     config.set_default('local', True)
-    interface = LocalInterface(config)
     spec_dict = {'spec': {'alpha': list(np.arange(4.0, 10.0, 2.0))}}
-    interface.run(spec_dict)
+    spawn.run(spec_dict, config)
     assert path.isfile(path.join(str(tmpdir), 'spawn.json'))
     assert len(glob(str(tmpdir) + '/**')) == 7
 
