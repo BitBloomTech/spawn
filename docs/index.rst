@@ -3,11 +3,23 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=================================
-Welcome to Spawn's Documentation!
-=================================
+.. image:: https://raw.githubusercontent.com/Simmovation/spawn/master/spawn_logo.png
+   :height: 100px
+   :alt: Spawn Logo
+   :align: center
 
-Spawn provides a unique and user-friendly way of specifying large combinations of simultations in a simple and easy-to-read (and write!) input file.
+Spawn is a python package that allows users to concisely specify and execute a large number of tasks with complex and co-dependent input parameter variations. It is used particularly in engineering where frequently thousands of similar simulations with input parameter variations are run for design and certification purposes. Spawn allows the specification of such large task sets to be formulated in a concise and readable input file.
+
+A typical Spawn process is:
+1. Write an input specification file in JSON that specifies the parameters and their values.
+2. Inspect the fully expanded specification tree with the `inspect` command.
+3. Execute all tasks with the `run` command. This uses a back-end "spawner" to create the tasks, which can be fully customised for individual use cases.
+
+If you are interested in using Spawn for executing wind turbine aeroelastic simulation using NREL's FAST, please see the `spawn-wind page
+<https://github.com/Simmovation/spawn-wind>`_.
+
+Get Started with Spawn
+======================
 
 Read :ref:`Spawn Input File Definition` to discover how to build your first Spawn spec file.
 
@@ -31,6 +43,7 @@ A full :ref:`API Reference` is also provided.
     :hidden:
 
     api/*
+
 
 Indices and tables
 ==================
