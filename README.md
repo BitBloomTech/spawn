@@ -13,4 +13,4 @@ A typical Spawn process is:
 
 Read the [full Spawn documentation](http://spawn.readthedocs.io/).
 
-If you are interested in using Spawn for executing wind turbine aeroelastic simulation using NREL's FAST, please see the [spawn-wind page](link-goes-here).
+If you are interested in using Spawn for executing wind turbine aeroelastic simulation using NREL's FAST, please see the [spawn-wind page](https://github.com/Simmovation/spawn-wind).
