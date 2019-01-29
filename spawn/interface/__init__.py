@@ -19,3 +19,4 @@
 from .spawn import SpawnInterface
 from .local import LocalInterface, run as run_local, inspect as inspect_local
 from .config import spawn_config
+from .util import write_inspection

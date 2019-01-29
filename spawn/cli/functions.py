@@ -16,8 +16,6 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """spawn.cli module
 """
-import functools
-import io
 import json
 import logging
 
@@ -26,9 +24,9 @@ import luigi.configuration
 import luigi.interface
 
 from spawn import __name__ as APP_NAME
-from spawn.interface import LocalInterface, spawn_config
+from spawn.interface import LocalInterface, spawn_config, write_inspection
 from spawn.schedulers import LuigiScheduler
-from spawn.util import configure_logging, prettyspec
+from spawn.util import configure_logging
 
 # Prevent luigi from setting up it's own logging
 #pylint: disable=protected-access
@@ -90,17 +88,7 @@ def inspect(config, **kwargs):
     spec_dict = interface.inspect(obj)
     spec_stats = interface.stats(obj)
     click.echo('Stats: {}'.format('; '.join('{}={}'.format(k, v) for k, v in spec_stats.items())))
-    format_ = config.get(APP_NAME, 'format')
-    buffer = (
-        functools.partial(open, outfile, 'w') if outfile else
-        functools.partial(io.TextIOWrapper, click.get_text_stream('stdout'))
-    )
-    formatter = (
-        functools.partial(prettyspec, spec_dict) if format_ == 'txt' else
-        functools.partial(json.dump, spec_dict, indent=2)
-    )
-    with buffer() as f:
-        formatter(f)
+    write_inspection(spec_dict, outfile or click.get_text_stream('stdout'), config.get(APP_NAME, 'format'))
     if outfile:
         click.echo('Specification details written to {}'.format(outfile))
 

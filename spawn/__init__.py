@@ -31,4 +31,4 @@ __version__ = get_versions()['version']
 del get_versions
 
 # Default `run` and `inspect` should be local
-from .interface import run_local as run, inspect_local as inspect
+from .interface import run_local as run, inspect_local as inspect, write_inspection

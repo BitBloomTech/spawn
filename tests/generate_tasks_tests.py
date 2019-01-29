@@ -18,12 +18,10 @@ from os import path
 import numpy as np
 from glob import glob
 import json
-import spawn
 from spawn.generate_tasks import generate_tasks_from_spec
 from spawn.tasks import SpawnTask
 from spawn.parsers import *
 from spawn.parsers.value_proxy import ValueProxyParser
-from spawn.config import DefaultConfiguration
 
 from .conftest import *
 
@@ -38,18 +36,6 @@ def test_can_create_1d_set_of_tasks(tmpdir, spawner):
         assert len(t.requires()) == 1
         assert isinstance(t.requires()[0], FooTask)
         assert 'alpha' in t.metadata
-
-def test_tasks_are_run_via_interface(tmpdir):
-    config = DefaultConfiguration()
-    config.set_default('plugins', 'test:tests.conftest')
-    config.set_default('type', 'test')
-    config.set_default('outfile', tmpdir)
-    config.set_default('workers', 1)
-    config.set_default('local', True)
-    spec_dict = {'spec': {'alpha': list(np.arange(4.0, 10.0, 2.0))}}
-    spawn.run(spec_dict, config)
-    assert path.isfile(path.join(str(tmpdir), 'spawn.json'))
-    assert len(glob(str(tmpdir) + '/**')) == 7
 
 def test_can_create_runs_from_example_spec(tmpdir, spawner, plugin_loader, example_data_folder):
     input_path = path.join(example_data_folder, 'example_spec.json')

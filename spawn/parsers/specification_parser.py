@@ -17,6 +17,7 @@
 """This module defines the ``SpecificationParser``, which parsers specifications
 """
 from json import load
+from copy import deepcopy
 
 from ..specification import (
     SpecificationModel, SpecificationMetadata, SpecificationNode,
@@ -99,7 +100,7 @@ class DictSpecificationProvider(SpecificationDescriptionProvider):
         :type spec: dict
         """
         validate_type(spec, dict, 'spec')
-        self._spec = spec
+        self._spec = deepcopy(spec)
 
     def get(self):
         """Gets the specification

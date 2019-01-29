@@ -43,7 +43,7 @@ class GeneratorsParser:
         generator_objects = {}
         for name, gen in generators.items():
             if 'method' not in gen:
-                raise KeyError("Generator missing 'method'")
+                raise KeyError("Generator '{}' missing 'method'".format(name))
             method = gen['method']
             del gen['method']
             generator_objects[name] = self._instantiate(method, gen)
