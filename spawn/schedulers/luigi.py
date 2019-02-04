@@ -20,7 +20,6 @@ import logging
 
 from luigi import build, worker, rpc, scheduler, execution_summary
 
-from spawn import __name__ as APP_NAME
 from spawn.generate_tasks import generate_tasks_from_spec
 
 LOGGER = logging.getLogger()
@@ -74,9 +73,9 @@ class LuigiScheduler:
         local               ``True`` if running locally; otherwise, ``False``. (bool)
         port                The port on which the remote scheduler is running, if ``local`` is ``False``. (int)
         """
-        self._workers = config.get(APP_NAME, 'workers')
-        self._out_dir = config.get(APP_NAME, 'outdir')
-        self._local = config.get(APP_NAME, 'local', parameter_type=bool)
+        self._workers = config.get(config.default_category, 'workers')
+        self._out_dir = config.get(config.default_category, 'outdir')
+        self._local = config.get(config.default_category, 'local', parameter_type=bool)
         self._host = config.get('server', 'host')
         self._port = config.get('server', 'port', parameter_type=int)
         self._worker_scheduler_factory = _LuigiWorkerSchedulerFactory()

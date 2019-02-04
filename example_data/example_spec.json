@@ -22,7 +22,7 @@
         "policy:path": "section2/{beta}/{gamma:a}",
         "gamma": "#range(3.0, 7.0, 0.5)",
         "zeta": "#repeat(@Counter, 4)",
-        "eta": "Multiplier * gamma"
+        "eta": "$Multiplier * !gamma"
       }
     }
   }

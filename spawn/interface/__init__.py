@@ -14,21 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+"""Defines objects that implement the spawn interface
 """
-spawn root module
-=================================================
-
-.. :platform: Unix, Windows
-   :synopsis: Concisely declare and run simulations with many parameter permutations.
-.. moduleauthor:: Michael Tinning <michael.tinning@simmovation.tech>
-.. moduleauthor:: Philip Bradstock <philip.bradstock@simmovation.tech>
-"""
-__copyright__ = 'Copyright (C) 2018, Simmovation Ltd.'
-__author__ = 'Simmovation Ltd.'
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
-# Default `run` and `inspect` should be local
-from .interface import run_local as run, inspect_local as inspect, write_inspection
+from .spawn import SpawnInterface
+from .local import LocalInterface, run as run_local, inspect as inspect_local
+from .config import spawn_config
+from .util import write_inspection

@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path, pardir
+import json
 
 import pytest
 
@@ -29,17 +30,21 @@ __home_dir = path.dirname(path.realpath(__file__))
 _example_data_folder = path.join(__home_dir, pardir, 'example_data')
 
 class _TestTask(SpawnTask):
-    run_registry = []
+    _outdir = luigi.Parameter()
 
     @property
     def _args(self):
         return {'task': type(self).__name__, 'metadata': self._metadata}
 
     def run(self):
-        self.run_registry.append(self._args)
+        with open(path.join(self._outdir, self._filename() + '.json'), 'w') as fp:
+            json.dump({**self._metadata}, fp)
     
     def complete(self):
-        return self._args in self.run_registry
+        return path.isfile(path.join(self._outdir, self._filename() + '.json'))
+
+    def _filename(self):
+        return str(hash(self))
 
 class FooTask(_TestTask):
     pass
@@ -49,37 +54,35 @@ class BarTask(_TestTask):
 
 
 class FooSpawner(TaskSpawner):
-    def __init__(self, run_registry):
-        self._run_registry = run_registry
+    def __init__(self, outdir):
+        self._outdir = outdir
 
     def spawn(self, path, metadata):
-        task = FooTask(_id=path, _metadata=metadata, )
-        task.run_registry = self._run_registry
+        task = FooTask(_id=path, _metadata=metadata, _outdir=self._outdir)
         return task
     
     def branch(self):
-        return FooSpawner(self._run_registry)
+        return FooSpawner(self._outdir)
 
 class BarSpawner(TaskSpawner):
-    def __init__(self, foo_spawner, run_registry):
+    def __init__(self, foo_spawner, outdir):
+        self._outdir = outdir
+        print('*****************************************************', self._outdir)
         self._foo_spawner = foo_spawner
-        self._run_registry = run_registry
 
     def spawn(self, path, metadata):
-        task = BarTask(_id=path, _dependencies=[self._foo_spawner.spawn(path, metadata)], _metadata=metadata)
-        task.run_registry = self._run_registry
+        task = BarTask(_id=path, _dependencies=[self._foo_spawner.spawn(path, metadata)], _metadata=metadata, _outdir=self._outdir)
         return task
 
     def branch(self):
-        return BarSpawner(self._foo_spawner.branch(), self._run_registry)
+        return BarSpawner(self._foo_spawner.branch(), self._outdir)
+
+def create_spawner(outfile):
+    return BarSpawner(FooSpawner(outfile), outfile)
 
 @pytest.fixture
-def run_registry():
-    return []
-
-@pytest.fixture
-def spawner(run_registry):
-    return BarSpawner(FooSpawner(run_registry), run_registry)
+def spawner(tmpdir):
+    return create_spawner(str(tmpdir))
 
 @pytest.fixture
 def example_data_folder():

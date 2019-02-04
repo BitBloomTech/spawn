@@ -19,7 +19,6 @@
 from importlib import import_module
 from inspect import signature
 
-from spawn import __name__ as APP_NAME
 from spawn.specification.generator_methods import Generator
 from spawn.specification.evaluators import create_function_evaluator
 
@@ -56,7 +55,7 @@ class PluginLoader:
         :type config: :class:`ConfigurationBase`
         """
         self._config = config
-        plugin_definitions = self._config.get(APP_NAME, 'plugins', parameter_type=list, default=[])
+        plugin_definitions = self._config.get(self._config.default_category, 'plugins', parameter_type=list, default=[])
         self._plugins = {**self._pre_loaded_plugins}
         for plugin_def in plugin_definitions:
             plugin_name, plugin = _load_plugin(plugin_def)
@@ -90,7 +89,10 @@ class PluginLoader:
         if not hasattr(plugin, 'create_spawner'):
             raise TypeError('Plugin {} has no method create_spawner'.format(plugin_type))
         arg_names = signature(plugin.create_spawner).parameters
-        arg_values = {n: self._config.get(plugin_type, n) or self._config.get(APP_NAME, n) for n in arg_names}
+        arg_values = {
+            n: self._config.get(plugin_type, n) or self._config.get(self._config.default_category, n)
+            for n in arg_names
+        }
         return plugin.create_spawner(**arg_values)
 
     def load_generators(self):

@@ -14,21 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+"""Interface method for creating a spawn config object
 """
-spawn root module
-=================================================
+from spawn.config import (
+    CommandLineConfiguration, CompositeConfiguration,
+    DefaultConfiguration, IniFileConfiguration
+)
 
-.. :platform: Unix, Windows
-   :synopsis: Concisely declare and run simulations with many parameter permutations.
-.. moduleauthor:: Michael Tinning <michael.tinning@simmovation.tech>
-.. moduleauthor:: Philip Bradstock <philip.bradstock@simmovation.tech>
-"""
-__copyright__ = 'Copyright (C) 2018, Simmovation Ltd.'
-__author__ = 'Simmovation Ltd.'
-
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
-
-# Default `run` and `inspect` should be local
-from .interface import run_local as run, inspect_local as inspect, write_inspection
+def spawn_config(**kwargs):
+    """Create a spawn config object with extra kwargs
+    """
+    command_line_config = CommandLineConfiguration(**kwargs)
+    ini_file_config = IniFileConfiguration(
+        command_line_config.get(CommandLineConfiguration.default_category, 'config_file')
+    )
+    default_config = DefaultConfiguration()
+    return CompositeConfiguration(command_line_config, ini_file_config, default_config)

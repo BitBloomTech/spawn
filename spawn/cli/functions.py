@@ -24,13 +24,9 @@ import luigi.configuration
 import luigi.interface
 
 from spawn import __name__ as APP_NAME
-from spawn.config import (CommandLineConfiguration, CompositeConfiguration,
-                          DefaultConfiguration, IniFileConfiguration)
-from spawn.parsers import SpecificationFileReader, SpecificationParser
-from spawn.plugins import PluginLoader
+from spawn.interface import LocalInterface, spawn_config, write_inspection
 from spawn.schedulers import LuigiScheduler
-from spawn.specification import DictSpecificationConverter
-from spawn.util import configure_logging, prettyspec
+from spawn.util import configure_logging
 
 # Prevent luigi from setting up it's own logging
 #pylint: disable=protected-access
@@ -60,7 +56,7 @@ _pass_config = click.make_pass_decorator(dict)
 def cli(ctx, **kwargs):
     """Command Line Interface
     """
-    config = _get_config(**kwargs)
+    config = spawn_config(**kwargs)
     configure_logging(config.get(APP_NAME, 'log_level'), ctx.invoked_subcommand, config.get(APP_NAME, 'log_console'))
     ctx.obj = kwargs
 
@@ -69,7 +65,7 @@ def cli(ctx, **kwargs):
 def check_config(config):
     """Check the configuration. Parses the current configuration and prints to stdout
     """
-    _print_config(_get_config(**config))
+    _print_config(spawn_config(**config))
 
 @cli.command()
 @_pass_config
@@ -82,25 +78,19 @@ def check_config(config):
 def inspect(config, **kwargs):
     """Expand and write to console the contents of the SPECFILE
     """
-    config = _get_config(**{**config, **kwargs})
+    config = spawn_config(**{**config, **kwargs})
     specfile = config.get(APP_NAME, 'specfile')
     outfile = config.get(APP_NAME, 'outfile')
     click.echo('Inspecing input file "{}":'.format(click.format_filename(specfile)))
-    reader = SpecificationFileReader(specfile)
-    parser = SpecificationParser(reader, PluginLoader(config))
-    spec = parser.parse()
-    spec_dict = DictSpecificationConverter().convert(spec)
-    click.echo('Number of leaves: {}'.format(len(spec.root_node.leaves)))
-    if outfile is not None:
-        format_ = config.get(APP_NAME, 'format')
-        with open(outfile, 'w') as f:
-            if format_ == 'txt':
-                prettyspec(spec_dict, f)
-            elif format_ == 'json':
-                json.dump(spec_dict, f, indent=2)
-        click.echo('Specification details written to {}'.format(f.name))
-    else:
-        prettyspec(spec_dict)
+    interface = LocalInterface(config)
+    with open(specfile) as fp:
+        obj = json.load(fp)
+    spec_dict = interface.inspect(obj)
+    spec_stats = interface.stats(obj)
+    click.echo('Stats: {}'.format('; '.join('{}={}'.format(k, v) for k, v in spec_stats.items())))
+    write_inspection(spec_dict, outfile or click.get_text_stream('stdout'), config.get(APP_NAME, 'format'))
+    if outfile:
+        click.echo('Specification details written to {}'.format(outfile))
 
 @cli.command()
 @_pass_config
@@ -114,34 +104,20 @@ def inspect(config, **kwargs):
 def run(config, **kwargs):
     """Runs the SPECFILE contents and write output to OUTDIR
     """
-    config = _get_config(**{**config, **kwargs})
-    reader = SpecificationFileReader(config.get(APP_NAME, 'specfile'))
-    plugin_loader = PluginLoader(config)
-    spec = SpecificationParser(reader, plugin_loader).parse()
-    plugin_type = config.get(APP_NAME, 'type') or spec.metadata.spec_type
-    if not plugin_type:
-        raise ValueError((
-            'No plugin type defined - please specify the --type argument ' +
-            'or add a type property in the spec file'
-        ))
-    spawner = plugin_loader.create_spawner(plugin_type)
-    scheduler = LuigiScheduler(config)
-    scheduler.run(spawner, spec)
+    config = spawn_config(**{**config, **kwargs})
+    interface = LocalInterface(config)
+    with open(config.get(APP_NAME, 'specfile')) as fp:
+        spec_dict = json.load(fp)
+    interface.run(spec_dict)
 
 @cli.command()
 @_pass_config
 def work(config):
     """Adds a worker to a remote scheduler
     """
-    config = _get_config(**{**config, 'local': False})
+    config = spawn_config(**{**config, 'local': False})
     scheduler = LuigiScheduler(config)
     scheduler.add_worker()
-
-def _get_config(**kwargs):
-    command_line_config = CommandLineConfiguration(**kwargs)
-    ini_file_config = IniFileConfiguration(command_line_config.get(APP_NAME, 'config_file'))
-    default_config = DefaultConfiguration()
-    return CompositeConfiguration(command_line_config, ini_file_config, default_config)
 
 def _print_config(config, ):
     name_col_width = 0

@@ -23,8 +23,6 @@ from os import path, makedirs
 
 import appdirs
 
-from spawn import __name__ as app_name
-
 class CustomLogLevel(Enum):
     """Enum to add custom log level TRACE
     """
@@ -32,7 +30,7 @@ class CustomLogLevel(Enum):
 
 TRACE = CustomLogLevel.TRACE.value
 
-LOG_DIR = path.join(appdirs.user_log_dir(), app_name)
+LOG_DIR = path.join(appdirs.user_log_dir(), 'spawn')
 
 def configure_logging(log_level, command_name, log_console=True, log_file=True):
     """Configure logging

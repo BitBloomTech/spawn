@@ -30,7 +30,7 @@ class IniFileConfiguration(ConfigurationBase):
         :param ini_file: The file to read
         :type ini_file: path-like
         """
-        self._config = configparser.ConfigParser() if path.isfile(ini_file) else None
+        self._config = configparser.ConfigParser() if ini_file and path.isfile(ini_file) else None
         if self._config:
             self._config.read(ini_file)
 
