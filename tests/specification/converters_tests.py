@@ -141,6 +141,7 @@ SPEC_4 = {
     'notes': 'Some notes',
     'spec': {
         'policy:path': 'X{alpha}/Y{beta}',
+        '_casper': 1.0,
         'combine:zip': {
             'alpha': [3.0, 12.0],
             'beta': [0.0, 180.0]
@@ -161,17 +162,19 @@ EXPECTED_4 = {
             {
                 'path': 'X3.0/Y0.0',
                 'name': 'beta',
-                'value': 0.0
+                'value': 0.0,
+                'ghosts': {'casper': 1.0}
             }
         ]
-    },{
+    }, {
         'name': 'alpha',
         'value': 12.0,
         'children': [
             {
                 'path': 'X12.0/Y180.0',
                 'name': 'beta',
-                'value': 180.0
+                'value': 180.0,
+                'ghosts': {'casper': 1.0}
             }
         ]
     }]
