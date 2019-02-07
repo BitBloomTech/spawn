@@ -40,6 +40,8 @@ def _prettyspec_impl(spec, indent, outstream):
         else:
             name = spec['name']
         outstream.write('{}{}: {}'.format(INDENT * indent, name, spec['value']))
+    if spec.get('ghosts'):
+        outstream.write(' | {}'.format(', '.join('_{}: {}'.format(k, v) for k, v in spec['ghosts'].items())))
     if spec.get('path'):
         outstream.write(' | path: {}'.format(spec['path']))
     outstream.write('\n')
