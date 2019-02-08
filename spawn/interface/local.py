@@ -21,7 +21,7 @@ from os import path
 import json
 
 from spawn.plugins import PluginLoader
-from spawn.parsers import SpecificationParser, DictSpecificationProvider
+from spawn.parsers import SpecificationParser
 from spawn.specification import DictSpecificationConverter
 from spawn.schedulers import LuigiScheduler
 
@@ -88,8 +88,7 @@ class LocalInterface(SpawnInterface):
         scheduler.run(spawner, spec)
 
     def _spec_dict_to_spec(self, spec_dict):
-        reader = DictSpecificationProvider(spec_dict)
-        return SpecificationParser(reader, self._plugin_loader).parse()
+        return SpecificationParser(self._plugin_loader).parse(spec_dict)
 
     @staticmethod
     def _spec_to_spec_dict(spec):
