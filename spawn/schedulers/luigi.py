@@ -20,7 +20,7 @@ import logging
 
 from luigi import build, worker, rpc, scheduler, execution_summary
 
-from spawn.generate_tasks import generate_tasks_from_spec
+from spawn.tasks.generate import generate_tasks_from_spec
 
 LOGGER = logging.getLogger()
 
