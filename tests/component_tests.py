@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path, pardir
 import luigi
-from spawn.generate_tasks import generate_tasks_from_spec
+from spawn.tasks.generate import generate_tasks_from_spec
 from spawn.parsers.specification_parser import SpecificationNodeParser
 from spawn.parsers.value_proxy import ValueProxyParser
 
