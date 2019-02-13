@@ -14,25 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
-"""Methods to generate tasks from spec
+"""Methods to generate :class:`SimulationTask`s
 """
-from spawn.util import PathBuilder
-
+from spawn.util import PathBuilder, TypedProperty
 from spawn.specification.specification import SpecificationNode, IndexedNode
-
-from spawn.util import TypedProperty
-
-def generate_tasks(task_spawner, run_list):
-    """Generate list of luigi.Task for a flat 1D run list"""
-    tasks = []
-    for run in run_list:
-        branch = task_spawner.branch()
-        for k, v in run.items():
-            setattr(branch, k, v)
-        task = branch.spawn()
-        task.metadata.update(run)
-        tasks.append(task)
-    return tasks
 
 def _check_type(task_spawner, name, value):
     if hasattr(type(task_spawner), name):

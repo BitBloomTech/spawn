@@ -16,15 +16,12 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 from os import path
 import numpy as np
-from glob import glob
-import json
-from spawn.generate_tasks import generate_tasks_from_spec
+from spawn.tasks.generate import generate_tasks_from_spec
 from spawn.tasks import SpawnTask
 from spawn.parsers import *
 from spawn.parsers.value_proxy import ValueProxyParser
 
-from .conftest import *
-
+from ..conftest import *
 
 def test_can_create_1d_set_of_tasks(tmpdir, spawner):
     run_spec = {'alpha': list(np.arange(4.0, 15.0, 2.0))}
