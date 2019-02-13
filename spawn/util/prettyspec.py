@@ -23,6 +23,7 @@ from spawn.util.validation import validate_type
 INDENT = '  '
 
 def _prettyspec_impl(spec, indent, outstream):
+    # pylint: disable=too-many-branches
     if spec.get('base_file'):
         outstream.write('base_file: {}\n'.format(spec['base_file']))
     if 'metadata' in spec:
