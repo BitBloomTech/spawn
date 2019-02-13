@@ -19,6 +19,7 @@ import luigi
 from spawn.tasks.generate import generate_tasks_from_spec
 from spawn.parsers.specification_parser import SpecificationNodeParser
 from spawn.parsers.value_proxy import ValueProxyParser
+from spawn.parsers.value_libraries import ValueLibraries
 
 
 def test_can_run_job_with_dependency(spawner, tmpdir):
@@ -28,7 +29,7 @@ def test_can_run_job_with_dependency(spawner, tmpdir):
     run_spec = {
         'alpha': 8.0, 'beta': 0.0, 'gamma': 1.0
     }
-    root_node = SpecificationNodeParser(ValueProxyParser({})).parse(run_spec)
+    root_node = SpecificationNodeParser(ValueProxyParser(ValueLibraries())).parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     luigi.build(tasks, local_scheduler=True, log_level='WARNING')
     assert tasks[0].complete()

@@ -193,9 +193,9 @@ class ValueProxyParser:
                                 The default is {}.
         :type value_libraries: dict
         """
-        self._evaluator_library = value_libraries.get(EVALUATOR, {})
-        self._generator_library = value_libraries.get(GENERATOR, {})
-        self._macro_library = value_libraries.get(MACRO, {})
+        self._evaluator_library = value_libraries.evaluators
+        self._generator_library = value_libraries.generators
+        self._macro_library = value_libraries.macros
 
     def parse(self, value):
         """Parse the value string

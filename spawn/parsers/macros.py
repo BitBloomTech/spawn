@@ -19,8 +19,8 @@
 from spawn.specification.value_proxy import Macro, ValueProxy
 
 from .value_proxy import ValueProxyParser
-from .constants import MACRO
 from ..util.validation import validate_type
+from .value_libraries import ValueLibraries
 
 MAX_PASSES = 10
 
@@ -30,13 +30,13 @@ class MacrosParser:
     def __init__(self, value_libraries, value_proxy_parser):
         """Initialise :class:`MacrosParser`
 
+        :param value_libraries: The value libraries
+        :type value_libraries: :class:`ValueLibraries`
         :param value_proxy_parser: The value proxy parser
         :type value_proxy_parser: :class:`ValueProxyParser`
         """
         validate_type(value_proxy_parser, ValueProxyParser, 'value_proxy_parser')
-        validate_type(value_libraries, dict, 'value_libraries')
-        if not MACRO in value_libraries:
-            raise ValueError('value_libraries must have MACRO section')
+        validate_type(value_libraries, ValueLibraries, 'value_libraries')
         self._value_proxy_parser = value_proxy_parser
         self._value_libraries = value_libraries
 
@@ -77,12 +77,12 @@ class MacrosParser:
                 'Failed to parse macros - the following macros ' +
                 'could not be parsed after {} passes: {}'
             ).format(MAX_PASSES, macros))
-        return self._value_libraries[MACRO]
+        return self._value_libraries.macros
 
     def _add_macro(self, name, value):
         if not isinstance(value, ValueProxy):
             value = Macro(value)
-        self._value_libraries[MACRO][name] = value
+        self._value_libraries.macros[name] = value
 
     def _parse_dict(self, value):
         for k, v in value.items():

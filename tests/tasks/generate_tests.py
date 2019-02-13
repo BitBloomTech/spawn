@@ -25,7 +25,7 @@ from ..conftest import *
 
 def test_can_create_1d_set_of_tasks(tmpdir, spawner):
     run_spec = {'alpha': list(np.arange(4.0, 15.0, 2.0))}
-    root_node = SpecificationNodeParser(ValueProxyParser({})).parse(run_spec)
+    root_node = SpecificationNodeParser(ValueProxyParser(ValueLibraries())).parse(run_spec)
     tasks = generate_tasks_from_spec(spawner, root_node, tmpdir.strpath)
     assert len(tasks) == 6
     for t in tasks:
@@ -36,7 +36,7 @@ def test_can_create_1d_set_of_tasks(tmpdir, spawner):
 
 def test_can_create_runs_from_example_spec(tmpdir, spawner, plugin_loader, example_data_folder):
     input_path = path.join(example_data_folder, 'example_spec.json')
-    spec_model = SpecificationParser(SpecificationFileReader(input_path), plugin_loader).parse()
+    spec_model = SpecificationParser(plugin_loader).parse(SpecificationFileReader(input_path).get())
     runs = generate_tasks_from_spec(spawner, spec_model.root_node, tmpdir.strpath)
     assert len(runs) == 3 * (3 + 9*4)
     for t in runs:
