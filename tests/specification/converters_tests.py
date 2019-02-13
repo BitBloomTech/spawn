@@ -178,7 +178,7 @@ EXPECTED_4 = {
 }
 
 def parse(spec, plugin_loader):
-    return SpecificationParser(DictSpecificationProvider(spec), plugin_loader).parse()
+    return SpecificationParser(plugin_loader).parse(spec)
 
 @pytest.fixture
 def dict_converter():

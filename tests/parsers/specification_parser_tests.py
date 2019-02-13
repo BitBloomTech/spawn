@@ -22,19 +22,16 @@ from spawn.parsers.specification_parser import *
 from spawn.specification.specification import *
 from spawn.specification.value_proxy import *
 
+@pytest.fixture
+def parser(plugin_loader):
+    return SpecificationParser(plugin_loader)
+
 class DefaultSpecificationNodeParser(SpecificationNodeParser):
     def __init__(self, **kwargs):
         super().__init__(
-            value_proxy_parser=ValueProxyParser(kwargs.get('value_libraries', {})),
+            value_proxy_parser=ValueProxyParser(kwargs.get('value_libraries', ValueLibraries())),
             combinators={'zip': zip_properties, 'product': product}, default_combinator='product'
         )
-
-
-def _parse_spec_into_node(spec, plugin_loader):
-    provider = DictSpecificationProvider(spec)
-    parser = SpecificationParser(provider, plugin_loader)
-    return parser.parse().root_node
-
 
 def test_parse_null_node_returns_root_node_no_children():
     node = DefaultSpecificationNodeParser().parse(None)
@@ -143,7 +140,7 @@ def parser_with_incremental_int_generator():
     generator_library = {
         'MyGen': IncrementalInt(4, 2)
     }
-    return DefaultSpecificationNodeParser(value_libraries={'gen': generator_library})
+    return DefaultSpecificationNodeParser(value_libraries=ValueLibraries(generators=generator_library))
 
 
 def test_can_use_generator_once(parser_with_incremental_int_generator):
@@ -178,8 +175,8 @@ def test_generator_persists(parser_with_incremental_int_generator):
     assert collected_properties[1]['seed2'] == 8
 
 
-def test_generator_does_not_duplicate(plugin_loader):
-    provider = DictSpecificationProvider({
+def test_generator_does_not_duplicate(parser):
+    description = {
         'generators': {
             'MyGen': {
                 'method': 'IncrementalInt'
@@ -190,9 +187,8 @@ def test_generator_does_not_duplicate(plugin_loader):
             'b': {'alpha': '@MyGen', 'beta': '@MyGen'},
             'c': {'alpha': '#repeat(@MyGen, 3)'}
         }
-    })
-    parser = SpecificationParser(provider, plugin_loader)
-    root_node = parser.parse().root_node
+    }
+    root_node = parser.parse(description).root_node
     collected_properties = [leaf.collected_properties for leaf in root_node.leaves]
     assert collected_properties[0]['alpha'] == 1
     assert collected_properties[1]['alpha'] == 2
@@ -203,7 +199,7 @@ def test_generator_does_not_duplicate(plugin_loader):
 
 
 def test_emplaces_list_macro_correctly():
-    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'3sections': Macro([-8.0, 0.0, 8.0])}})
+    parser = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(macros={'3sections': Macro([-8.0, 0.0, 8.0])}))
     root_node = parser.parse({
         'alpha': [6.0, 8.0],
         'beta': '$3sections'
@@ -222,7 +218,7 @@ def test_emplaces_dict_macro_correctly():
         'beta': 0.0,
         'gamma': 'idling'
     })
-    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    parser = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(macros={'idling': macro}))
     root_node = parser.parse({
         'alpha': [6.0, 8.0],
         'irrelevant': 'macro:idling'
@@ -242,7 +238,7 @@ def test_raises_lookup_error_if_macro_not_found():
         'beta': 0.0,
         'gamma': 'idling'
     })
-    parser = DefaultSpecificationNodeParser(value_libraries={'macro': {'idling': macro}})
+    parser = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(macros={'idling': macro}))
     with pytest.raises(LookupError):
         parser.parse({
             'alpha': [6.0, 8.0],
@@ -368,7 +364,7 @@ def test_concatenates_paths_in_child_dict_parent_has_properties():
 
 
 def test_can_produce_range_of_items():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'range': RangeEvaluator})).parse({
         'alpha': '#range(1, 3, 1)'
     })
     root_node.evaluate()
@@ -381,7 +377,7 @@ def test_can_produce_range_of_items():
     assert expected == properties
 
 def test_can_produce_range_of_items_combined_with_list():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'range': RangeEvaluator})).parse({
         'alpha': '#range(1, 3, 1)',
         'gamma': [0.0, 180.0]
     })
@@ -398,7 +394,7 @@ def test_can_produce_range_of_items_combined_with_list():
     assert expected == properties
 
 def test_can_produce_range_of_items_stopped_at_macro():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'range': RangeEvaluator}, macros={'vref': Macro(4)})).parse({
         'alpha': '#range(1, $vref, 1.5)',
         'gamma': [0.0, 180.0]
     })
@@ -414,8 +410,8 @@ def test_can_produce_range_of_items_stopped_at_macro():
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
 
-def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator(plugin_loader):
-    provider = DictSpecificationProvider({
+def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator(parser):
+    description = {
         'macros': {
             'MyRange': '#range(2, 5, 2)'
         },
@@ -423,9 +419,8 @@ def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator(plugin_loa
             'alpha': '$MyRange',
             'beta': '#4 + !alpha'
         }
-    })
-    parser = SpecificationParser(provider, plugin_loader)
-    root_node = parser.parse().root_node
+    }
+    root_node = parser.parse(description).root_node
     expected = [
         {'alpha': 2, 'beta': 6},
         {'alpha': 4, 'beta': 8}
@@ -433,8 +428,8 @@ def test_can_use_properties_from_evaluator_in_macro_in_spec_evaluator(plugin_loa
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
 
-def test_can_combine_macro_list_with_two_other_lists(plugin_loader):
-    provider = DictSpecificationProvider({
+def test_can_combine_macro_list_with_two_other_lists(parser):
+    description = {
         'macros': {
             'MyRange': [2, 4]
         },
@@ -443,9 +438,8 @@ def test_can_combine_macro_list_with_two_other_lists(plugin_loader):
             'beta': [9, 10],
             'gamma': ['tadpole', 'frog']
         }
-    })
-    parser = SpecificationParser(provider, plugin_loader)
-    root_node = parser.parse().root_node
+    }
+    root_node = parser.parse(description).root_node
     expected = [
         {'alpha': 2, 'beta': 9, 'gamma': 'tadpole'},
         {'alpha': 2, 'beta': 9, 'gamma': 'frog'},
@@ -460,8 +454,8 @@ def test_can_combine_macro_list_with_two_other_lists(plugin_loader):
     assert expected == properties
 
 
-def test_path_is_right_when_using_object_in_macro(plugin_loader):
-    provider = DictSpecificationProvider({
+def test_path_is_right_when_using_object_in_macro(parser):
+    description = {
         'macros': {
             'DoSomething': {
                 'firstly': 'this',
@@ -474,16 +468,15 @@ def test_path_is_right_when_using_object_in_macro(plugin_loader):
                 'blo': '$DoSomething'
             }
         }
-    })
-    parser = SpecificationParser(provider, plugin_loader)
-    root_node = parser.parse().root_node
+    }
+    root_node = parser.parse(description).root_node
     leaves = root_node.leaves
     assert len(leaves) == 1
     assert leaves[0].path == 'my_path'
 
 
-def test_uses_object_in_macro_successfully(plugin_loader):
-    provider = DictSpecificationProvider({
+def test_uses_object_in_macro_successfully(parser):
+    description = {
         'macros': {
             'DoSomething': {
                 'firstly': 'this',
@@ -497,9 +490,8 @@ def test_uses_object_in_macro_successfully(plugin_loader):
                 'delta': ['a', 'b']
             }
         }
-    })
-    parser = SpecificationParser(provider, plugin_loader)
-    root_node = parser.parse().root_node
+    }
+    root_node = parser.parse(description).root_node
     leaves = root_node.leaves
     assert len(leaves) == 6
     for l in leaves:
@@ -510,8 +502,8 @@ def test_uses_object_in_macro_successfully(plugin_loader):
         assert 'delta' in collected_properties
 
 
-def test_macros_are_recursively_evaluated(plugin_loader):
-    root_node = _parse_spec_into_node({
+def test_macros_are_recursively_evaluated(parser):
+    root_node = parser.parse({
         'macros': {
             'Ref': 1,
             'Something': {
@@ -521,14 +513,14 @@ def test_macros_are_recursively_evaluated(plugin_loader):
         'spec': {
             'blah': '$Something'
         }
-    }, plugin_loader)
+    }).root_node
     leaves = root_node.leaves
     assert len(leaves) == 1
     assert leaves[0].collected_properties == {'alpha': 1}
 
 
 def test_can_do_multiplication_with_evaluator():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'mult': MultiplyEvaluator}, macros={'vref': Macro(4)})).parse({
         'alpha': '#5 * 3',
     })
     root_node.evaluate()
@@ -539,7 +531,7 @@ def test_can_do_multiplication_with_evaluator():
     assert expected == properties
 
 def test_can_multiply_property():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'mult': MultiplyEvaluator}, macros={'vref': Macro(4)})).parse({
         'alpha': [0.0, 10.0, 20.0],
         'gamma': '!alpha * 18'
     })
@@ -553,7 +545,7 @@ def test_can_multiply_property():
     assert expected == properties
 
 def test_can_multiply_macro():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'mult': MultiplyEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'mult': MultiplyEvaluator}, macros={'vref': Macro(4)})).parse({
         'alpha': [0.0, 10.0, 20.0],
         'gamma': '$vref * 1.5'
     })
@@ -567,7 +559,7 @@ def test_can_multiply_macro():
     assert expected == properties
 
 def test_can_produce_range_of_items_stopped_at_property():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'range': RangeEvaluator}, macros={'vref': Macro(4)})).parse({
         'top_speed': [1.5, 3.0, '$vref'],
         'alpha': '#range(0, !top_speed, 1.5)',
     })
@@ -586,7 +578,7 @@ def test_can_produce_range_of_items_stopped_at_property():
     assert expected == properties
 
 def test_can_produce_range_of_items_stopped_at_ghost():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'range': RangeEvaluator}, 'macro': {'vref': Macro(4)}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'range': RangeEvaluator}, macros={'vref': Macro(4)})).parse({
         '_top_speed': 4.5,
         'alpha': '#range(0, !top_speed, 1.5)',
     })
@@ -639,7 +631,7 @@ def test_ghost_parameters_are_overwritten_lower_down():
     assert [l.ghosts for l in root_node.leaves] == expected_ghosts
 
 def test_can_use_macro_list_elements_in_addition():
-    root_node = DefaultSpecificationNodeParser(value_libraries={'eval': {'add': AddEvaluator}, 'macro': {'List': Macro([3, 5])}}).parse({
+    root_node = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(evaluators={'add': AddEvaluator}, macros={'List': Macro([3, 5])})).parse({
         'base_value': '$List',
         'total_value': '!base_value + 4'
     })
@@ -661,8 +653,8 @@ def test_adding_index_property_produces_index_node():
     assert root_node.leaves[0].property_name == 'alpha'
     assert root_node.leaves[0].property_value == 2.3
 
-def test_can_have_multiple_indexed_properties_with_one_being_a_macro(plugin_loader):
-    provider = DictSpecificationProvider({
+def test_can_have_multiple_indexed_properties_with_one_being_a_macro(parser):
+    description = {
         'macros': {
             'Value': 4.0
         },
@@ -672,7 +664,6 @@ def test_can_have_multiple_indexed_properties_with_one_being_a_macro(plugin_load
                 'beta[1]': 6
             }
         }
-    })
-    parser = SpecificationParser(provider, plugin_loader)
-    root_node = parser.parse().root_node
+    }
+    root_node = parser.parse(description).root_node
     assert isinstance(root_node.leaves[0], IndexedNode)

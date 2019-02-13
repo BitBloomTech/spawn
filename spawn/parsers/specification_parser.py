@@ -32,11 +32,11 @@ from .value_proxy import ValueProxyParser
 from .generators import GeneratorsParser
 from .macros import MacrosParser
 from .constants import (
-    GENERATOR, MACRO, EVALUATOR,
     COMBINATOR, ZIP, PRODUCT,
     RANGE, REPEAT, MULTIPLY, DIVIDE, ADD, SUBTRACT,
     PATH, POLICY, GHOST
 )
+from .value_libraries import ValueLibraries
 from ..specification import generator_methods
 from ..util.validation import validate_type, validate_file
 from ..util.path_builder import PathBuilder
@@ -117,54 +117,51 @@ class SpecificationParser:
     produce a tree representation of the nodes.
     """
 
-    def __init__(self, provider, plugin_loader):
+    def __init__(self, plugin_loader):
         """Initialises the :class:`SpecificationParser`
 
         :param provider: The source of the specification description
         :type provider: :class:`SpecificationDescriptionProvider`
         """
-        validate_type(provider, SpecificationDescriptionProvider, 'provider')
-        self._provider = provider
         self._plugin_loader = plugin_loader
         plugin_evaluators = self._plugin_loader.load_evaluators()
-        self._value_libraries = {
-            GENERATOR: {},
-            MACRO: {},
-            EVALUATOR: {**EVALUATOR_LIB, **plugin_evaluators}
-        }
-        self._value_proxy_parser = ValueProxyParser(self._value_libraries)
+        self._pre_loaded_value_libraries = ValueLibraries(evaluators={**EVALUATOR_LIB, **plugin_evaluators})
 
-    def parse(self):
+    def parse(self, description):
         """Parse the specification description
 
         Reads the metadata from the file and creates any required value libraries,
         before initialising a :class:`SpecificationNodeParser` to expand the nodes defined
         in the description.
 
+        :param description: The specification description
+        :type description: dict
+
         :returns: An object representing the expanded specification tree.
         :rtype: :class:`SpecificationModel`
         """
-        description = self._provider.get()
         metadata = SpecificationMetadata(
             description.get('type'), description.get('creation_time'), description.get('notes')
         )
-        self._parse_value_libraries(description)
+        value_libraries = self._pre_loaded_value_libraries.copy()
+        value_proxy_parser = ValueProxyParser(value_libraries)
+        self._update_value_libraries(description, value_proxy_parser, value_libraries)
         node_parser = SpecificationNodeParser(
-            self._value_proxy_parser, self._get_combinators(), default_combinator=PRODUCT
+            value_proxy_parser, self._get_combinators(), default_combinator=PRODUCT
         )
         root_node = node_parser.parse(description.get('spec'))
         root_node.evaluate()
         return SpecificationModel(description.get('base_file'), root_node, metadata)
 
-    def _parse_value_libraries(self, description):
+    def _update_value_libraries(self, description, value_proxy_parser, value_libraries):
         built_in_generators = GeneratorsParser.load_generators_from_module(generator_methods)
         plugin_generators = self._plugin_loader.load_generators()
         generator_lib = GeneratorsParser({
             **built_in_generators, **plugin_generators
         }).parse(description.get('generators'))
-        self._value_libraries[GENERATOR].update(generator_lib)
-        macros_lib = MacrosParser(self._value_libraries, self._value_proxy_parser).parse(description.get('macros'))
-        self._value_libraries[MACRO].update(macros_lib)
+        value_libraries.generators.update(generator_lib)
+        macros_lib = MacrosParser(value_libraries, value_proxy_parser).parse(description.get('macros'))
+        value_libraries.macros.update(macros_lib)
 
     @staticmethod
     def _get_combinators():

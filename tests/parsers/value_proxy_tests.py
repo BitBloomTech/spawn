@@ -21,6 +21,7 @@ from spawn.specification.evaluators import *
 from spawn.specification.value_proxy import *
 from spawn.specification.generator_methods import *
 from spawn.parsers.constants import EVALUATOR, GENERATOR, MACRO
+from spawn.parsers.value_libraries import ValueLibraries
 
 @pytest.fixture
 def parser():
@@ -38,11 +39,7 @@ def parser():
     generator_library = {
         'seed': IncrementalInt()
     }
-    libraries = {
-        EVALUATOR: evaluator_library,
-        MACRO: macro_library,
-        GENERATOR: generator_library
-    }
+    libraries = ValueLibraries(evaluators=evaluator_library, macros=macro_library, generators=generator_library)
     return ValueProxyParser(libraries)
 
 def test_parser_returns_evaluator_for_valid_string(parser):

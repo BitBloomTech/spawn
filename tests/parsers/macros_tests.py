@@ -19,10 +19,11 @@ import pytest
 from spawn.parsers.macros import MacrosParser
 from spawn.parsers.value_proxy import ValueProxyParser
 from spawn.parsers.constants import MACRO
+from spawn.parsers.value_libraries import ValueLibraries
 
 @pytest.fixture
 def parser():
-    value_libraries = {MACRO: {}}
+    value_libraries = ValueLibraries()
     return MacrosParser(value_libraries, ValueProxyParser(value_libraries))
 
 def test_can_parse_simple_macro(parser):
