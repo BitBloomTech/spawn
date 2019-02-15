@@ -78,4 +78,6 @@ class DictSpecificationConverter(SpecificationConverter):
             node_dict['children'] = children
         else:
             node_dict['path'] = node.path
+            if node.ghosts:
+                node_dict['ghosts'] = node.ghosts
         return [node_dict]
