@@ -20,6 +20,10 @@
 import ast
 
 from spawn.specification.evaluators import ParameterEvaluator
+from spawn.errors import (
+    MacroNotFoundError, GeneratorNotFoundError, EvaluatorNotFoundError, InvalidOperatorError,
+    ParserError
+)
 
 from .constants import (
     MACRO, GENERATOR, EVALUATOR, PARAMETER,
@@ -83,10 +87,10 @@ class ValueProxyVisitor(ast.NodeVisitor):
         if any(a is None for a in arg_values):
             null_arg_index = arg_values.index(None)
             offset = node.args[null_arg_index].col_offset
-            raise SyntaxError('Invalid syntax in {} at position {}'.format(self._value_proxy_string, offset))
+            raise ParserError('Invalid syntax in {} at position {}'.format(self._value_proxy_string, offset))
         if node.func.id not in self._evaluator_library:
-            raise LookupError('Evaluator {} not found'.format(node.func.id))
-        self._value_proxy = self._evaluator_library[node.func.id](*arg_values)
+            raise EvaluatorNotFoundError(node.func.id)
+        self._value_proxy = self._evaluator_library[node.func.id](*arg_values, name=node.func.id)
         return self._value_proxy
 
     #pylint: disable=invalid-name,no-self-use
@@ -137,8 +141,8 @@ class ValueProxyVisitor(ast.NodeVisitor):
         right_value = self.visit(node.right)
         op_type = type(node.op)
         if not op_type in OP_NAMES or OP_NAMES[op_type] not in self._evaluator_library:
-            raise SyntaxError('Invalid operator in {} at position {}'.format(self._value_proxy_string, node.col_offset))
-        self._value_proxy = self._evaluator_library[OP_NAMES[op_type]](left_value, right_value)
+            raise InvalidOperatorError(self._value_proxy_string, node.col_offset)
+        self._value_proxy = self._evaluator_library[OP_NAMES[op_type]](left_value, right_value, name=OP_NAMES[op_type])
         return self._value_proxy
 
     #pylint: disable=invalid-name
@@ -156,13 +160,13 @@ class ValueProxyVisitor(ast.NodeVisitor):
         if node.id.startswith(MACRO_TOKEN):
             macro_name = node.id.replace(MACRO_TOKEN, '')
             if not macro_name in self._macro_library:
-                raise LookupError('Macro {} not found'.format(macro_name))
+                raise MacroNotFoundError(macro_name)
             self._value_proxy = self._macro_library[macro_name]
             return self._value_proxy
         if node.id.startswith(GENERATOR_TOKEN):
             generator_name = node.id.replace(GENERATOR_TOKEN, '')
             if not generator_name in self._generator_library:
-                raise LookupError('Generator {} not found'.format(generator_name))
+                raise GeneratorNotFoundError(generator_name)
             self._value_proxy = self._generator_library[generator_name]
             return self._value_proxy
         if node.id.startswith(PARAMETER_TOKEN):

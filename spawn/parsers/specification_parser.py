@@ -19,6 +19,8 @@
 from json import load
 from copy import deepcopy
 
+from spawn.errors import SpecFormatError
+
 from ..specification import (
     SpecificationModel, SpecificationMetadata, SpecificationNode,
     ValueProxyNode, SpecificationNodeFactory
@@ -140,6 +142,13 @@ class SpecificationParser:
         :returns: An object representing the expanded specification tree.
         :rtype: :class:`SpecificationModel`
         """
+        if 'spec' not in description:
+            raise SpecFormatError('"spec" node not found in description')
+        if not isinstance(description['spec'], dict):
+            raise SpecFormatError('"spec" node should be of type dict')
+        if not description['spec']:
+            raise SpecFormatError('"spec" node is empty')
+
         metadata = SpecificationMetadata(
             description.get('type'), description.get('creation_time'), description.get('notes')
         )
