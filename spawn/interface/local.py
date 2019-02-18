@@ -81,7 +81,7 @@ class LocalInterface(SpawnInterface):
             ))
         spawner = self._plugin_loader.create_spawner(plugin_type)
         scheduler = LuigiScheduler(self._config)
-        inspection_file = path.join(self._config.get(self._config.default_category, 'outfile'), 'spawn.json')
+        inspection_file = path.join(self._config.get(self._config.default_category, 'outdir'), 'spawn.json')
         LOGGER.info('Writing inspection to %s', inspection_file)
         with open(inspection_file, 'w') as fp:
             json.dump(self._spec_to_spec_dict(spec), fp, indent=2)
