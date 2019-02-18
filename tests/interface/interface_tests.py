@@ -19,7 +19,7 @@ def test_tasks_are_run_via_interface(tmpdir):
     config = DefaultConfiguration()
     config.set_default('plugins', 'test:tests.conftest')
     config.set_default('type', 'test')
-    config.set_default('outfile', tmpdir)
+    config.set_default('outdir', tmpdir)
     config.set_default('workers', 1)
     config.set_default('local', True)
     spec_dict = {'spec': {'alpha': list(np.arange(4.0, 10.0, 2.0))}}
