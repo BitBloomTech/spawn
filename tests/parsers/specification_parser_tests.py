@@ -21,6 +21,7 @@ from spawn.specification.combinators import *
 from spawn.parsers.specification_parser import *
 from spawn.specification.specification import *
 from spawn.specification.value_proxy import *
+from spawn.errors import *
 
 @pytest.fixture
 def parser(plugin_loader):
@@ -231,20 +232,6 @@ def test_emplaces_dict_macro_correctly():
     for p in collected_properties:
         assert p['gamma'] == 'idling'
         assert p['beta'] == 0.0
-
-
-def test_raises_lookup_error_if_macro_not_found():
-    macro = Macro({
-        'beta': 0.0,
-        'gamma': 'idling'
-    })
-    parser = DefaultSpecificationNodeParser(value_libraries=ValueLibraries(macros={'idling': macro}))
-    with pytest.raises(LookupError):
-        parser.parse({
-            'alpha': [6.0, 8.0],
-            'irrelevant': 'macro:parked'
-        })
-
 
 
 def test_specification_node_parser_has_correct_path():
@@ -667,3 +654,73 @@ def test_can_have_multiple_indexed_properties_with_one_being_a_macro(parser):
     }
     root_node = parser.parse(description).root_node
     assert isinstance(root_node.leaves[0], IndexedNode)
+
+def test_missing_macro_raises_macro_not_found_error(parser):
+    description = {
+        'spec': {
+            'blah': {
+                'alpha': '$Value'
+            }
+        }
+    }
+    with pytest.raises(MacroNotFoundError) as e:
+        parser.parse(description)
+    assert str(e.value) == 'Macro "Value" not found'
+
+def test_missing_generator_raises_generator_not_found_error(parser):
+    description = {
+        'spec': {
+            'blah': {
+                'alpha': '@Generate'
+            }
+        }
+    }
+    with pytest.raises(GeneratorNotFoundError) as e:
+        parser.parse(description)
+    assert str(e.value) == 'Generator "Generate" not found'
+
+def test_missing_evaluator_raises_evaluator_not_found_error(parser):
+    description = {
+        'spec': {
+            'blah': {
+                'alpha': '#Evaluate()'
+            }
+        }
+    }
+    with pytest.raises(EvaluatorNotFoundError) as e:
+        parser.parse(description).root_node
+    assert str(e.value) == 'Evaluator "Evaluate" not found'
+
+def test_evaluator_with_incorrect_args_raises_evaluator_type_error(parser):
+    description = {
+        'spec': {
+            'blah': {
+                'alpha': '#range(1, 2, 3, 4)'
+            }
+        }
+    }
+    with pytest.raises(EvaluatorTypeError) as e:
+        parser.parse(description)
+    assert str(e.value) == 'range() takes the following arguments: start, end, step (1, 2, 3, 4 provided)'
+
+def test_invalid_operator_raises_invalid_operator_error(parser):
+    description = {
+        'spec': {
+            'blah': {
+                'alpha': '#1 // 2'
+            }
+        }
+    }
+    with pytest.raises(InvalidOperatorError) as e:
+        parser.parse(description)
+    assert str(e.value) == 'Invalid operator in 1 // 2 near position 0'
+
+@pytest.mark.parametrize('description, error', [
+    ({}, '"spec" node not found in description'),
+    ({'spec': ['a', 'b']}, '"spec" node should be of type dict'),
+    ({'spec': {}}, '"spec" node is empty')
+])
+def test_spec_format_error_raised_for_invalid_description(parser, description, error):
+    with pytest.raises(SpecFormatError) as e:
+        parser.parse(description)
+    assert str(e.value) == 'Invalid spec format: {}'.format(error)

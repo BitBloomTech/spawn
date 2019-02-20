@@ -19,6 +19,8 @@
 from abc import abstractmethod
 import inspect
 
+from spawn.errors import EvaluatorTypeError
+
 from .value_proxy import ValueProxy, evaluate
 
 class Evaluator(ValueProxy):
@@ -26,13 +28,16 @@ class Evaluator(ValueProxy):
 
     Implements the :meth:`evaluate` method of the parent class to expand any arguments
     """
-    def __init__(self, *args):
+    def __init__(self, *args, name=None):
         """Initialises the :class:`Evaluator`
 
         :param args: The arguments (may be evaluators)
         :type args: args
+        :param name: The name of the function
+        :type name: str
         """
         self._args = args
+        self._name = name
 
     #pylint: disable=arguments-differ
     def evaluate(self, **kwargs):
@@ -43,9 +48,17 @@ class Evaluator(ValueProxy):
         """
         args = [self._evaluate_arg(a, **kwargs) for a in self._args]
         parameters = inspect.signature(self._evaluate).parameters
-        if 'kwargs' in parameters:
-            return self._evaluate(*args, **kwargs)
-        return self._evaluate(*args)
+        try:
+            if 'kwargs' in parameters:
+                return self._evaluate(*args, **kwargs)
+            return self._evaluate(*args)
+        except TypeError:
+            evaluator_name = self._name or type(self).__name__
+            named_parameters = [
+                k for k, v in parameters.items()
+                if v.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+            ]
+            raise EvaluatorTypeError(evaluator_name, named_parameters, args)
 
     #pylint: disable=no-self-use
     def _evaluate_arg(self, arg, **kwargs):
