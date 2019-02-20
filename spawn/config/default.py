@@ -23,7 +23,8 @@ DEFAULT_CONFIGURATION = {
         'workers': 4,
         'config_file': ConfigurationBase.default_category + '.ini',
         'runner_type': 'process',
-        'prereq_outdir': 'prerequisites'
+        'prereq_outdir': 'prerequisites',
+        'local': True
     },
     'server': {
         'port': 8082,
