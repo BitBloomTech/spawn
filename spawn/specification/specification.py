@@ -529,7 +529,7 @@ class ListNode(SpecificationNode):
 class SpecificationNodeFactory:
     """Factory class for creating :class:`SpecificationNode` objects
     """
-    def create(self, parent, name, value, path, ghosts, children=None):
+    def create(self, parent, name, value, path, ghosts, children=None, literal=False):
         """Creates a :class:`SpecificationNode`, based on the value
 
         :param parent: The parent :class:`SpecificationNode`
@@ -542,15 +542,17 @@ class SpecificationNodeFactory:
         :type ghosts: dict
         :param children: The children of the new node, if any
         :type children: list
+        :param literal: if True, the value is not expandable and is set literally
+        :type literal: bool
         """
         children = children or []
         validate_type(ghosts, dict, 'ghosts')
         validate_type(children, list, 'children')
-        if isinstance(value, dict):
+        if isinstance(value, dict) and not literal:
             node = DictNode(parent, name, value, path, ghosts)
-        elif isinstance(value, list):
+        elif isinstance(value, list) and not literal:
             node = ListNode(parent, name, value, path, ghosts)
-        elif isinstance(value, ValueProxy):
+        elif isinstance(value, ValueProxy) and not literal:
             node = ValueProxyNode(parent, name, value, path, ghosts)
         else:
             name_index = self._index(name)

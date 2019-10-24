@@ -36,7 +36,7 @@ from .macros import MacrosParser
 from .constants import (
     COMBINATOR, ZIP, PRODUCT,
     RANGE, REPEAT, MULTIPLY, DIVIDE, ADD, SUBTRACT,
-    PATH, POLICY, GHOST
+    PATH, POLICY, GHOST, LITERAL
 )
 from .value_libraries import ValueLibraries
 from ..specification import generator_methods
@@ -238,19 +238,22 @@ class SpecificationNodeParser:
         return {**left, **right, **merged}
 
     def _parse_value(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
+        literal = self._is_literal(name)
+        if literal:
+            name = self._deliteral(name)
         # combinator lookup
         if self._is_combinator(name):
             self._parse_combinator(parent, name, value, next_node_spec, node_policies, ghost_parameters)
         # list expansion
-        elif isinstance(value, list):
+        elif isinstance(value, list) and not literal:
             for val in value:
                 self._parse_value(parent, name, val, next_node_spec, node_policies, ghost_parameters)
         # burrow into object
-        elif isinstance(value, dict):
+        elif isinstance(value, dict) and not literal:
             self.parse(value, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
             self.parse(next_node_spec, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
-        elif isinstance(value, str) and self._is_value_proxy(value):
+        elif isinstance(value, str) and self._is_value_proxy(value) and not literal:
             next_parent = ValueProxyNode(
                 parent, name, self._value_proxy_parser.parse(value),
                 node_policies.get(PATH, None), ghost_parameters
@@ -259,7 +262,7 @@ class SpecificationNodeParser:
         # simple single value
         else:
             next_parent = self._node_factory.create(
-                parent, name, value, node_policies.get(PATH, None), ghost_parameters
+                parent, name, value, node_policies.get(PATH, None), ghost_parameters, literal=literal
             )
             self.parse(next_node_spec, next_parent)
 
@@ -314,6 +317,16 @@ class SpecificationNodeParser:
     def _deghost(prop):
         if not SpecificationNodeParser._is_ghost(prop):
             raise ValueError('Cannot deghost a non-ghost property')
+        return prop[1:]
+
+    @staticmethod
+    def _is_literal(prop):
+        return prop.startswith(LITERAL)
+
+    @staticmethod
+    def _deliteral(prop):
+        if not SpecificationNodeParser._is_literal(prop):
+            raise ValueError('Cannot deliteral a non-literal property')
         return prop[1:]
 
     @staticmethod

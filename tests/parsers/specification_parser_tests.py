@@ -724,3 +724,26 @@ def test_spec_format_error_raised_for_invalid_description(parser, description, e
     with pytest.raises(SpecFormatError) as e:
         parser.parse(description)
     assert str(e.value) == 'Invalid spec format: {}'.format(error)
+
+@pytest.mark.parametrize('literal_value',[
+    [4, 5, 6],
+    {'delta': 1, 'epsilon': 2},
+    '$MyMacro',
+    '@Generate()',
+    '#Evaluate()',
+    '!this is not an equation'
+])
+def test_literal_properties_are_not_expanded(literal_value):
+    root_node = DefaultSpecificationNodeParser().parse({
+        'alpha': {
+            'beta': ['egg', 'tadpole'],
+            '~gamma': literal_value
+        }
+    })
+    root_node.evaluate()
+    expected = [
+        {'beta': 'egg', 'gamma': literal_value},
+        {'beta': 'tadpole', 'gamma': literal_value}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
