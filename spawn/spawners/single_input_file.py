@@ -24,7 +24,7 @@ from ..simulation_inputs import SimulationInput
 from .task_spawner import TaskSpawner
 
 
-class SingleInputFileSpawner(TaskSpawner):
+class SingleInputFileSpawner(TaskSpawner, object):
     """Runs bespoke executable taking a single input file as its only command line argument"""
 
     def __init__(self, simulation_input, file_name):
@@ -37,15 +37,31 @@ class SingleInputFileSpawner(TaskSpawner):
         """
         if not isinstance(simulation_input, SimulationInput):
             raise TypeError("simulation_input must be of type SimulationInput")
-        self._simulation_input = simulation_input
-        self._file_name = file_name
+        self.__simulation_input = simulation_input
+        self.__file_name = file_name
 
     def spawn(self, path_, metadata):
-        input_file_path = path.join(path_, self._file_name)
-        self._simulation_input.to_file(input_file_path)
+        input_file_path = path.join(path_, self.__file_name)
+        self.__simulation_input.to_file(input_file_path)
         return SimulationTask(_id=path_,
                               _input_file_path=input_file_path,
                               _metadata=metadata)
 
     def branch(self):
-        return SingleInputFileSpawner(copy.deepcopy(self._simulation_input), self._file_name)
+        return SingleInputFileSpawner(copy.deepcopy(self.__simulation_input), self.__file_name)
+
+    def __getattribute__(self, item):
+        return object.__getattribute__(self, item)
+
+    def __getattr__(self, item):
+        try:
+            return self.__getattribute__(item)
+        except AttributeError:
+            return self.__simulation_input[item]
+
+    def __setattr__(self, key, value):
+        try:
+            self.__getattribute__(key)
+            self.__setattr__(key, value)  # recursion error
+        except AttributeError:
+            self.__simulation_input[key] = value
