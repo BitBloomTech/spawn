@@ -40,7 +40,6 @@ def test_branched_spawner_spawns_different_file(sim_input, tmpdir, set_config):
     spawner = SingleInputFileSpawner(sim_input, 'input.json')
     branch = spawner.branch()
     branch.a = 'frog'
-    # branch.b.c = 'tadpole'
     mkdir(path.join(tmpdir, 'a'))
     mkdir(path.join(tmpdir, 'b'))
     spawner.spawn(path.join(tmpdir, 'a'), {})
@@ -50,3 +49,4 @@ def test_branched_spawner_spawns_different_file(sim_input, tmpdir, set_config):
     with open(path.join(tmpdir, 'b', 'input.json'), 'r') as fp:
         b = json.load(fp)
     assert a != b
+    assert b['a'] == 'frog'
