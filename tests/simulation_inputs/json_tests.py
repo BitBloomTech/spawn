@@ -28,7 +28,8 @@ def test_write_read_round_trip(tmpdir, params):
     inp.to_file(fp)
     inp2 = JsonSimulationInput.from_file(fp)
     assert params['a'] == inp2['a']
-    assert params['b'] == inp2['b']
+    assert params['b']['c'] == inp2['b']['c']
+    assert params['b']['d'] == inp2['b']['d']
 
 
 def test_deepcopy_unlinks_inputs(params):

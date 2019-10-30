@@ -54,6 +54,7 @@ class SingleInputFileSpawner(TaskSpawner):
 
     def __getattr__(self, item):
         if item.startswith('__') and item.endswith('__'):
+            # pylint: disable=no-member
             return super().__getattr__(item)
         return self.__dict__['__simulation_input'][item]
 
