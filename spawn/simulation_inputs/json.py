@@ -21,8 +21,8 @@ import copy
 from .simulation_input import SimulationInput
 
 
-class JsonSimulationInput(SimulationInput):
-    """A dictionary input written as a JSON file"""
+class JsonSimulationInputView(SimulationInput):
+    """A dictionary input written as a JSON file where the parameter set is not deep-copied"""
 
     def __init__(self, parameter_set, **write_options):
         """Create a instance of :class:`JsonSimulationInput`
@@ -30,7 +30,7 @@ class JsonSimulationInput(SimulationInput):
         :param parameter_set: Baseline parameter set
         :type parameter_set: dict
         """
-        self._parameter_set = copy.deepcopy(parameter_set)
+        self._parameter_set = parameter_set
         self._write_options = write_options
 
     @classmethod
@@ -49,4 +49,20 @@ class JsonSimulationInput(SimulationInput):
         self._parameter_set.__setitem__(key, value)
 
     def __getitem__(self, item):
-        return self._parameter_set.__getitem__(item)
+        obj = self._parameter_set.__getitem__(item)
+        if isinstance(obj, dict):
+            return JsonSimulationInputView(obj, **self._write_options)
+        return obj
+
+
+class JsonSimulationInput(JsonSimulationInputView):
+    """A dictionary input written as a JSON file where the parameter set is deep copied"""
+
+    def __init__(self, parameter_set, **write_options):
+        """Create a instance of :class:`JsonSimulationInput`
+
+        :param parameter_set: Baseline parameter set (deep copied)
+        :type parameter_set: dict
+        """
+        self._parameter_set = copy.deepcopy(parameter_set)
+        self._write_options = write_options

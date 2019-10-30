@@ -22,10 +22,12 @@ import copy
 from ..tasks import SimulationTask
 from ..simulation_inputs import SimulationInput
 from .task_spawner import TaskSpawner
+from ..util import TypedProperty
 
 
-class SingleInputFileSpawner(TaskSpawner, object):
+class SingleInputFileSpawner(TaskSpawner):
     """Runs bespoke executable taking a single input file as its only command line argument"""
+    aa = TypedProperty(float)
 
     def __init__(self, simulation_input, file_name):
         """Create a instance of :class:`SingleInputFileSpawner`
@@ -37,31 +39,26 @@ class SingleInputFileSpawner(TaskSpawner, object):
         """
         if not isinstance(simulation_input, SimulationInput):
             raise TypeError("simulation_input must be of type SimulationInput")
-        self.__simulation_input = simulation_input
-        self.__file_name = file_name
+        self.__dict__['__simulation_input'] = simulation_input
+        self.__dict__['__file_name'] = file_name
 
     def spawn(self, path_, metadata):
-        input_file_path = path.join(path_, self.__file_name)
-        self.__simulation_input.to_file(input_file_path)
+        input_file_path = path.join(path_, self.__dict__['__file_name'])
+        self.__dict__['__simulation_input'].to_file(input_file_path)
         return SimulationTask(_id=path_,
                               _input_file_path=input_file_path,
                               _metadata=metadata)
 
     def branch(self):
-        return SingleInputFileSpawner(copy.deepcopy(self.__simulation_input), self.__file_name)
-
-    def __getattribute__(self, item):
-        return object.__getattribute__(self, item)
+        return SingleInputFileSpawner(copy.deepcopy(self.__dict__['__simulation_input']), self.__dict__['__file_name'])
 
     def __getattr__(self, item):
-        try:
-            return self.__getattribute__(item)
-        except AttributeError:
-            return self.__simulation_input[item]
+        if item.startswith('__') and item.endswith('__'):
+            return super().__getattr__(item)
+        return self.__dict__['__simulation_input'][item]
 
     def __setattr__(self, key, value):
-        try:
-            self.__getattribute__(key)
-            self.__setattr__(key, value)  # recursion error
-        except AttributeError:
-            self.__simulation_input[key] = value
+        if key.startswith('__') and key.endswith('__'):
+            super().__setattr__(key, value)
+        else:
+            self.__dict__['__simulation_input'][key] = value
