@@ -774,3 +774,17 @@ def test_with_literal_key_and_value_value_is_unchanged():
     expected = [{'alpha': s}]
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
+
+def test_multiple_literal_lists_in_object_does_not_combine():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'alpha': {
+            '~beta': ['egg', 'tadpole'],
+            '~gamma': [1, 2, 3]
+        }
+    })
+    expected = [{
+        'beta': ['egg', 'tadpole'],
+        'gamma': [1, 2, 3]
+    }]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties

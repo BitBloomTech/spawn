@@ -298,8 +298,10 @@ class SpecificationNodeParser:
         next_key = list(node_spec.keys())[0]
         if len(node_spec) == 1:
             return (next_key, node_spec[next_key]), {}
-        # If the next value is a list, expand it using the default combinator if possible
-        if not self._is_combinator(next_key) and isinstance(node_spec[next_key], list) and self._default_combinator:
+        # If the next value is a list (but key is not a list), expand it using the default combinator if possible
+        if not self._is_combinator(next_key)\
+                and (isinstance(node_spec[next_key], list) and not self._is_literal(next_key))\
+                and self._default_combinator:
             return ('{}{}'.format(self._prefix(COMBINATOR), self._default_combinator), node_spec), {}
         next_node_spec = {k: v for k, v in node_spec.items() if k != next_key}
         return (next_key, node_spec[next_key]), next_node_spec
