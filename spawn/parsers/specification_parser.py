@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """This module defines the ``SpecificationParser``, which parsers specifications
 """
-from json import load
+import json
 from copy import deepcopy
 
 from spawn.errors import SpecFormatError
@@ -89,7 +89,7 @@ class SpecificationFileReader(SpecificationDescriptionProvider):
         :rtype: dict
         """
         with open(self._input_file) as input_fp:
-            return load(input_fp)
+            return json.load(input_fp)
 
 class DictSpecificationProvider(SpecificationDescriptionProvider):
     """Implementation of :class:`SpecificationDescriptionProvider` that reads
@@ -238,9 +238,7 @@ class SpecificationNodeParser:
         return {**left, **right, **merged}
 
     def _parse_value(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
-        literal = self._is_literal(name)
-        if literal:
-            name = self._deliteral(name)
+        literal, name, value = self._parse_literal(name, value)
         # combinator lookup
         if self._is_combinator(name):
             self._parse_combinator(parent, name, value, next_node_spec, node_policies, ghost_parameters)
@@ -265,6 +263,16 @@ class SpecificationNodeParser:
                 parent, name, value, node_policies.get(PATH, None), ghost_parameters, literal=literal
             )
             self.parse(next_node_spec, next_parent)
+
+    def _parse_literal(self, name, value):
+        literal_key = self._is_literal(name)
+        literal_value = self._is_literal(value)
+        literal = literal_key or literal_value
+        if literal_key:
+            name = self._deliteral(name)
+        elif literal_value:
+            value = self._deliteral(value)
+        return literal, name, value
 
     def _is_value_proxy(self, value):
         return self._value_proxy_parser.is_value_proxy(value)
@@ -321,13 +329,16 @@ class SpecificationNodeParser:
 
     @staticmethod
     def _is_literal(prop):
-        return prop.startswith(LITERAL)
+        return isinstance(prop, str) and prop.startswith(LITERAL)
 
     @staticmethod
     def _deliteral(prop):
         if not SpecificationNodeParser._is_literal(prop):
             raise ValueError('Cannot deliteral a non-literal property')
-        return prop[1:]
+        try:
+            return json.loads(prop[1:])
+        except json.JSONDecodeError:
+            return prop[1:]
 
     @staticmethod
     def _prefix(name):
