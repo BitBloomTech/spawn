@@ -58,6 +58,7 @@ class JsonSimulationInputView(SimulationInput):
 class JsonSimulationInput(JsonSimulationInputView):
     """A dictionary input written as a JSON file where the parameter set is deep copied"""
 
+    # pylint: disable=super-init-not-called
     def __init__(self, parameter_set, **write_options):
         """Create a instance of :class:`JsonSimulationInput`
 
