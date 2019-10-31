@@ -39,7 +39,8 @@ class SimulationTask(SpawnTask):
     def run(self):
         """Run this task
         """
-        self._create_runner().run()
+        if self._exe_path:
+            self._create_runner().run()
 
     def complete(self):
         """Determine if this task is complete
@@ -47,6 +48,8 @@ class SimulationTask(SpawnTask):
         :returns: ``True`` if this task is complete; otherwise ``False``
         :rtype: bool
         """
+        if not self._exe_path:
+            return True
         return self._create_runner().complete()
 
     def on_failure(self, exception):

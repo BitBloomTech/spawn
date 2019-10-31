@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """Spawner implementation that spawns :class:`SimulationTask`s taking a single input file path as its only command line
  argument"""
-from os import path
+from os import path, makedirs
 import copy
 
 from ..tasks import SimulationTask
@@ -43,6 +43,8 @@ class SingleInputFileSpawner(TaskSpawner):
         self.__dict__['__file_name'] = file_name
 
     def spawn(self, path_, metadata):
+        if not path.isdir(path_):
+            makedirs(path_)
         input_file_path = path.join(path_, self.__dict__['__file_name'])
         self.__dict__['__simulation_input'].to_file(input_file_path)
         return SimulationTask(_id=path_,
