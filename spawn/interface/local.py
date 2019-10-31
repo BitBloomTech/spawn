@@ -17,7 +17,7 @@
 """Defines the local implementation of :class:`SpawnInterface`
 """
 import logging
-from os import path
+from os import path, makedirs
 import json
 
 from spawn.plugins import PluginLoader
@@ -79,13 +79,18 @@ class LocalInterface(SpawnInterface):
                 'No plugin type defined - please specify the --type argument ' +
                 'or add a type property in the spec file'
             ))
+        self._write_json_inspection_file(spec, self._config.get(self._config.default_category, 'outdir'))
         spawner = self._plugin_loader.create_spawner(plugin_type)
         scheduler = LuigiScheduler(self._config)
-        inspection_file = path.join(self._config.get(self._config.default_category, 'outdir'), 'spawn.json')
+        scheduler.run(spawner, spec)
+
+    def _write_json_inspection_file(self, spec, outdir):
+        if not path.isdir(outdir):
+            makedirs(outdir)
+        inspection_file = path.join(outdir, 'spawn.json')
         LOGGER.info('Writing inspection to %s', inspection_file)
         with open(inspection_file, 'w') as fp:
             json.dump(self._spec_to_spec_dict(spec), fp, indent=2)
-        scheduler.run(spawner, spec)
 
     def _spec_dict_to_spec(self, spec_dict):
         return SpecificationParser(self._plugin_loader).parse(spec_dict)

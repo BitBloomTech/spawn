@@ -26,9 +26,14 @@ spawn root module
 __copyright__ = 'Copyright (C) 2018, Simmovation Ltd.'
 __author__ = 'Simmovation Ltd.'
 
+from .plugins import json_input_file as json_plugin
+from .plugins import PluginLoader
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
 # Default `run` and `inspect` should be local
 from .interface import run_local as run, inspect_local as inspect, write_inspection
+
+# Load built-in plugins
+PluginLoader.pre_load_plugin('json', json_plugin)
