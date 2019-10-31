@@ -73,6 +73,7 @@ def test_load_generators_finds_all_generators(plugin_loader):
 
 def test_load_generators_finds_correct_evaluators(plugin_loader):
     evaluators = plugin_loader.load_evaluators()
-    assert set(evaluators.keys()) == {'spawn_evaluator', 'multiply_evaluator'}
+    assert 'spawn_evaluator' in evaluators
+    assert 'multiply_evaluator' in evaluators
     assert evaluators['spawn_evaluator']().evaluate() == 'spawn'
     assert evaluators['multiply_evaluator'](42, 3).evaluate() == 126
