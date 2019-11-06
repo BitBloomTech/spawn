@@ -16,6 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """This module defines the generator parser
 """
+import copy
 import inspect
 from ..specification import generator_methods
 from ..util.validation import validate_type
@@ -45,8 +46,8 @@ class GeneratorsParser:
             if 'method' not in gen:
                 raise KeyError("Generator '{}' missing 'method'".format(name))
             method = gen['method']
-            del gen['method']
-            generator_objects[name] = self._instantiate(method, gen)
+            gen_args = {k: v for k, v in gen.items() if k != 'method'}
+            generator_objects[name] = self._instantiate(method, gen_args)
         return generator_objects
 
     def _instantiate(self, method, args):
