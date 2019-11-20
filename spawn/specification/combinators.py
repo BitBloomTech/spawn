@@ -47,7 +47,7 @@ def zip_properties(value):
     values_list = list(value.values())
     if not all(len(l) == len(values_list[0]) for l in values_list):
         raise ValueError('all lists in value {} were not the same length'.format(value))
-    return [{k: v for k, v in zip(value.keys(), values)} for values in zip(*values_list)]
+    return [dict(zip(value.keys(), values)) for values in zip(*values_list)]
 
 def product(value):
     """Combines properties by generating the Cartesian product of items in the first value with the remaining values

@@ -62,7 +62,8 @@ class GeneratorsParser:
         :rtype: :class:`GeneratorsParser`
         """
         is_generator = lambda c: inspect.isclass(c) and issubclass(c, generator_methods.Generator)
-        return {name: class_type for name, class_type in inspect.getmembers(module, is_generator)}
+        return dict(inspect.getmembers(module, is_generator))
+
 
     @classmethod
     def default(cls):
