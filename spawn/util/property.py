@@ -62,7 +62,7 @@ class PropertyBase:
         :type fvalidate: func
         :param default: The default value for this property
         :type default: object
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -227,7 +227,7 @@ class NumericProperty(TypedProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: numeric
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -272,7 +272,7 @@ class IntProperty(NumericProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: int
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -306,7 +306,7 @@ class FloatProperty(NumericProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: float
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -339,7 +339,7 @@ class StringProperty(TypedProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: str
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -365,30 +365,6 @@ class ArrayProperty(PropertyBase):
     :meth:`__get__`, :meth:`__set__` and :meth:`__delete__` return array wrappers
     that allow indexes to be used
     """
-    def __init__(
-            self, type_, fget=None, fset=None, fdel=None, fvalidate=None,
-            default=None, doc=None, abstract=False, readonly=False):
-        """Initialises :class:`ArrayProperty`
-
-        :param fget: Getter function for property
-        :type fget: func
-        :param fset: Setter function for property
-        :type fset: func
-        :param fdel: Deleter function for property
-        :type fdel: func
-        :param fvalidate: Validation function for property
-        :type fvalidate: func
-        :param default: The default value for this property
-        :type default: object
-        :parm doc: The docstring for this property
-        :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation);
-        ``False`` otherwise.
-        :type abstract: bool
-        """
-        super().__init__(fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
-        self._type = type_
-
     def __get__(self, obj, _type=None):
         if obj is None:
             return self
