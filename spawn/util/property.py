@@ -373,8 +373,6 @@ class ArrayProperty(PropertyBase):
             return self
         if self._name is None:
             raise ValueError('Cannot get property, name has not been set')
-        if self._abstract:
-            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         return self._wrapper(obj)
 
     def __set__(self, obj, value):
