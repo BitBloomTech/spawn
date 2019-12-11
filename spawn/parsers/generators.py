@@ -16,7 +16,6 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """This module defines the generator parser
 """
-import copy
 import inspect
 from ..specification import generator_methods
 from ..util.validation import validate_type
