@@ -22,6 +22,9 @@ import functools
 
 from spawn.util.validation import validate_type
 
+def _not_implemented_message(obj, name, problem):
+    return "'{}' {} in '{}'".format(name, problem, obj.__class__.__name__)
+
 def typed_property(type_):
     """Function decorator for :class:`TypedProperty`
     """
@@ -165,7 +168,7 @@ class TypedProperty(PropertyBase):
         if self._fget:
             return self._fget(obj)
         if self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         return obj.__dict__.get(self._name, self._default)
 
     def __set__(self, obj, value):
@@ -174,7 +177,7 @@ class TypedProperty(PropertyBase):
         if self._name is None:
             raise ValueError('Cannot set property, name has not been set')
         if self._readonly:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "cannot be set because it's read-only"))
         self._validate(obj, value)
         if hasattr(obj, self._get_fname('validate')):
             getattr(obj, self._get_fname('validate'))(value)
@@ -185,7 +188,7 @@ class TypedProperty(PropertyBase):
         elif self._fset:
             self._fset(obj, value)
         elif self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         else:
             obj.__dict__[self._name] = value
 
@@ -197,7 +200,7 @@ class TypedProperty(PropertyBase):
         elif self._fdel:
             self._fdel(obj)
         elif self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         else:
             del obj.__dict__[self._name]
 
@@ -371,7 +374,7 @@ class ArrayProperty(PropertyBase):
         if self._name is None:
             raise ValueError('Cannot get property, name has not been set')
         if self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         return self._wrapper(obj)
 
     def __set__(self, obj, value):
@@ -380,7 +383,7 @@ class ArrayProperty(PropertyBase):
         if self._name is None:
             raise ValueError('Cannot set property, name has not been set')
         if self._readonly or self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         validate_type(value, list, 'value')
         wrapper = self._wrapper(obj)
         for i, v in enumerate(value):
@@ -392,7 +395,7 @@ class ArrayProperty(PropertyBase):
         if hasattr(obj, self._get_fname('delete')):
             getattr(obj, self._get_fname('delete'))()
         if self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         if self._fget or self._fset or self._fdel:
             raise ValueError('Cannot delete array with custom getters and setters')
         del obj.__dict__[self._name]
