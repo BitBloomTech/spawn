@@ -27,6 +27,7 @@ PRODUCT = 'product'
 POLICY = 'policy'
 PATH = 'path'
 GHOST = '_'
+LITERAL = '~'
 
 GENERATOR_SHORT = '@'
 MACRO_SHORT = '$'

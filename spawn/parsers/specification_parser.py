@@ -16,7 +16,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """This module defines the ``SpecificationParser``, which parsers specifications
 """
-from json import load
+import json
 from copy import deepcopy
 
 from spawn.errors import SpecFormatError
@@ -36,7 +36,7 @@ from .macros import MacrosParser
 from .constants import (
     COMBINATOR, ZIP, PRODUCT,
     RANGE, REPEAT, MULTIPLY, DIVIDE, ADD, SUBTRACT,
-    PATH, POLICY, GHOST
+    PATH, POLICY, GHOST, LITERAL
 )
 from .value_libraries import ValueLibraries
 from ..specification import generator_methods
@@ -89,7 +89,7 @@ class SpecificationFileReader(SpecificationDescriptionProvider):
         :rtype: dict
         """
         with open(self._input_file) as input_fp:
-            return load(input_fp)
+            return json.load(input_fp)
 
 class DictSpecificationProvider(SpecificationDescriptionProvider):
     """Implementation of :class:`SpecificationDescriptionProvider` that reads
@@ -238,19 +238,20 @@ class SpecificationNodeParser:
         return {**left, **right, **merged}
 
     def _parse_value(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
+        literal, name, value = self._parse_literal(name, value)
         # combinator lookup
         if self._is_combinator(name):
             self._parse_combinator(parent, name, value, next_node_spec, node_policies, ghost_parameters)
         # list expansion
-        elif isinstance(value, list):
+        elif isinstance(value, list) and not literal:
             for val in value:
                 self._parse_value(parent, name, val, next_node_spec, node_policies, ghost_parameters)
         # burrow into object
-        elif isinstance(value, dict):
+        elif isinstance(value, dict) and not literal:
             self.parse(value, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
             self.parse(next_node_spec, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
-        elif isinstance(value, str) and self._is_value_proxy(value):
+        elif isinstance(value, str) and self._is_value_proxy(value) and not literal:
             next_parent = ValueProxyNode(
                 parent, name, self._value_proxy_parser.parse(value),
                 node_policies.get(PATH, None), ghost_parameters
@@ -259,9 +260,19 @@ class SpecificationNodeParser:
         # simple single value
         else:
             next_parent = self._node_factory.create(
-                parent, name, value, node_policies.get(PATH, None), ghost_parameters
+                parent, name, value, node_policies.get(PATH, None), ghost_parameters, literal=literal
             )
             self.parse(next_node_spec, next_parent)
+
+    def _parse_literal(self, name, value):
+        literal_key = self._is_literal(name)
+        literal_value = self._is_literal(value)
+        literal = literal_key or literal_value
+        if literal_key:
+            name = self._deliteral(name)
+        elif literal_value:
+            value = self._deliteral(value)
+        return literal, name, value
 
     def _is_value_proxy(self, value):
         return self._value_proxy_parser.is_value_proxy(value)
@@ -287,8 +298,10 @@ class SpecificationNodeParser:
         next_key = list(node_spec.keys())[0]
         if len(node_spec) == 1:
             return (next_key, node_spec[next_key]), {}
-        # If the next value is a list, expand it using the default combinator if possible
-        if not self._is_combinator(next_key) and isinstance(node_spec[next_key], list) and self._default_combinator:
+        # If the next value is a list (but key is not a list), expand it using the default combinator if possible
+        if not self._is_combinator(next_key)\
+                and (isinstance(node_spec[next_key], list) and not self._is_literal(next_key))\
+                and self._default_combinator:
             return ('{}{}'.format(self._prefix(COMBINATOR), self._default_combinator), node_spec), {}
         next_node_spec = {k: v for k, v in node_spec.items() if k != next_key}
         return (next_key, node_spec[next_key]), next_node_spec
@@ -315,6 +328,19 @@ class SpecificationNodeParser:
         if not SpecificationNodeParser._is_ghost(prop):
             raise ValueError('Cannot deghost a non-ghost property')
         return prop[1:]
+
+    @staticmethod
+    def _is_literal(prop):
+        return isinstance(prop, str) and prop.startswith(LITERAL)
+
+    @staticmethod
+    def _deliteral(prop):
+        if not SpecificationNodeParser._is_literal(prop):
+            raise ValueError('Cannot deliteral a non-literal property')
+        try:
+            return json.loads(prop[1:])
+        except json.JSONDecodeError:
+            return prop[1:]
 
     @staticmethod
     def _prefix(name):
