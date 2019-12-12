@@ -22,12 +22,10 @@ import copy
 from ..tasks import SimulationTask
 from ..simulation_inputs import SimulationInput
 from .task_spawner import TaskSpawner
-from ..util import TypedProperty
 
 
 class SingleInputFileSpawner(TaskSpawner):
     """Runs bespoke executable taking a single input file as its only command line argument"""
-    aa = TypedProperty(float)
 
     def __init__(self, simulation_input, file_name):
         """Create a instance of :class:`SingleInputFileSpawner`

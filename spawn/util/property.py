@@ -22,6 +22,9 @@ import functools
 
 from spawn.util.validation import validate_type
 
+def _not_implemented_message(obj, name, problem):
+    return "'{}' {} in '{}'".format(name, problem, obj.__class__.__name__)
+
 def typed_property(type_):
     """Function decorator for :class:`TypedProperty`
     """
@@ -62,7 +65,7 @@ class PropertyBase:
         :type fvalidate: func
         :param default: The default value for this property
         :type default: object
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -165,7 +168,7 @@ class TypedProperty(PropertyBase):
         if self._fget:
             return self._fget(obj)
         if self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         return obj.__dict__.get(self._name, self._default)
 
     def __set__(self, obj, value):
@@ -174,7 +177,7 @@ class TypedProperty(PropertyBase):
         if self._name is None:
             raise ValueError('Cannot set property, name has not been set')
         if self._readonly:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "cannot be set because it's read-only"))
         self._validate(obj, value)
         if hasattr(obj, self._get_fname('validate')):
             getattr(obj, self._get_fname('validate'))(value)
@@ -185,7 +188,7 @@ class TypedProperty(PropertyBase):
         elif self._fset:
             self._fset(obj, value)
         elif self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         else:
             obj.__dict__[self._name] = value
 
@@ -197,7 +200,7 @@ class TypedProperty(PropertyBase):
         elif self._fdel:
             self._fdel(obj)
         elif self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         else:
             del obj.__dict__[self._name]
 
@@ -227,7 +230,7 @@ class NumericProperty(TypedProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: numeric
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -272,7 +275,7 @@ class IntProperty(NumericProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: int
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -306,7 +309,7 @@ class FloatProperty(NumericProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: float
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -339,7 +342,7 @@ class StringProperty(TypedProperty):
         :type fvalidate: func
         :param default: The default value for this property
         :type default: str
-        :parm doc: The docstring for this property
+        :param doc: The docstring for this property
         :type doc: str
         :param abstract: ``True`` if this property is abstract (requires implementation);
         ``False`` otherwise.
@@ -365,37 +368,11 @@ class ArrayProperty(PropertyBase):
     :meth:`__get__`, :meth:`__set__` and :meth:`__delete__` return array wrappers
     that allow indexes to be used
     """
-    def __init__(
-            self, type_, fget=None, fset=None, fdel=None, fvalidate=None,
-            default=None, doc=None, abstract=False, readonly=False):
-        """Initialises :class:`ArrayProperty`
-
-        :param fget: Getter function for property
-        :type fget: func
-        :param fset: Setter function for property
-        :type fset: func
-        :param fdel: Deleter function for property
-        :type fdel: func
-        :param fvalidate: Validation function for property
-        :type fvalidate: func
-        :param default: The default value for this property
-        :type default: object
-        :parm doc: The docstring for this property
-        :type doc: str
-        :param abstract: ``True`` if this property is abstract (requires implementation);
-        ``False`` otherwise.
-        :type abstract: bool
-        """
-        super().__init__(fget, fset, fdel, fvalidate, default, doc, abstract, readonly)
-        self._type = type_
-
     def __get__(self, obj, _type=None):
         if obj is None:
             return self
         if self._name is None:
             raise ValueError('Cannot get property, name has not been set')
-        if self._abstract:
-            raise NotImplementedError()
         return self._wrapper(obj)
 
     def __set__(self, obj, value):
@@ -404,7 +381,7 @@ class ArrayProperty(PropertyBase):
         if self._name is None:
             raise ValueError('Cannot set property, name has not been set')
         if self._readonly or self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         validate_type(value, list, 'value')
         wrapper = self._wrapper(obj)
         for i, v in enumerate(value):
@@ -416,7 +393,7 @@ class ArrayProperty(PropertyBase):
         if hasattr(obj, self._get_fname('delete')):
             getattr(obj, self._get_fname('delete'))()
         if self._abstract:
-            raise NotImplementedError()
+            raise NotImplementedError(_not_implemented_message(obj, self._name, "not implemented (abstract)"))
         if self._fget or self._fset or self._fdel:
             raise ValueError('Cannot delete array with custom getters and setters')
         del obj.__dict__[self._name]

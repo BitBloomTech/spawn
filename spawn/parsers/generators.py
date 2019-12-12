@@ -45,8 +45,8 @@ class GeneratorsParser:
             if 'method' not in gen:
                 raise KeyError("Generator '{}' missing 'method'".format(name))
             method = gen['method']
-            del gen['method']
-            generator_objects[name] = self._instantiate(method, gen)
+            gen_args = {k: v for k, v in gen.items() if k != 'method'}
+            generator_objects[name] = self._instantiate(method, gen_args)
         return generator_objects
 
     def _instantiate(self, method, args):
@@ -62,7 +62,8 @@ class GeneratorsParser:
         :rtype: :class:`GeneratorsParser`
         """
         is_generator = lambda c: inspect.isclass(c) and issubclass(c, generator_methods.Generator)
-        return {name: class_type for name, class_type in inspect.getmembers(module, is_generator)}
+        return dict(inspect.getmembers(module, is_generator))
+
 
     @classmethod
     def default(cls):
