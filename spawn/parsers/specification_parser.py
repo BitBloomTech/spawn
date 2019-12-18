@@ -17,6 +17,7 @@
 """This module defines the ``SpecificationParser``, which parsers specifications
 """
 import json
+import logging
 from copy import deepcopy
 
 from spawn.errors import SpecFormatError
@@ -238,20 +239,25 @@ class SpecificationNodeParser:
         return {**left, **right, **merged}
 
     def _parse_value(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
+        logger = logging.getLogger(__name__)
         literal, name, value = self._parse_literal(name, value)
         # combinator lookup
         if self._is_combinator(name):
+            logger.debug('Parsing "{}" as combinator'.format(name))
             self._parse_combinator(parent, name, value, next_node_spec, node_policies, ghost_parameters)
         # list expansion
         elif isinstance(value, list) and not literal:
+            logger.debug('Parsing "{}" as list'.format(name))
             for val in value:
                 self._parse_value(parent, name, val, next_node_spec, node_policies, ghost_parameters)
         # burrow into object
         elif isinstance(value, dict) and not literal:
+            logger.debug('Parsing "{}" as object'.format(name))
             self.parse(value, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
             self.parse(next_node_spec, parent, node_policies=node_policies, ghost_parameters=ghost_parameters)
         # rhs prefixed proxies (evaluators and co.) - short form and long form
         elif isinstance(value, str) and self._is_value_proxy(value) and not literal:
+            logger.debug('Parsing "{}" as value proxy'.format(name))
             next_parent = ValueProxyNode(
                 parent, name, self._value_proxy_parser.parse(value),
                 node_policies.get(PATH, None), ghost_parameters
@@ -259,6 +265,7 @@ class SpecificationNodeParser:
             self.parse(next_node_spec, next_parent)
         # simple single value
         else:
+            logger.debug('Parsing "{}" as raw value ({})'.format(name, value))
             next_parent = self._node_factory.create(
                 parent, name, value, node_policies.get(PATH, None), ghost_parameters, literal=literal
             )

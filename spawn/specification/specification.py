@@ -18,6 +18,7 @@
 """
 from copy import deepcopy
 import re
+import logging
 
 from spawn.util import PathBuilder
 from spawn.util.validation import validate_type
@@ -162,6 +163,7 @@ class SpecificationNode:
         :type child: :class:`SpecificationNode`
         """
         if child not in self._children:
+            logging.getLogger(__name__).debug('Adding child {} onto {}'.format(child.description, self.description))
             self._children.append(child)
             #pylint: disable=protected-access
             child._parent = self
@@ -327,6 +329,10 @@ class SpecificationNode:
                 ))
             self._path = path
         return self._path
+
+    @property
+    def description(self):
+        return 'root node' if self.is_root else 'node with property "{}"'.format(self.property_name)
 
     def evaluate(self):
         """Evaluates all children in this node
