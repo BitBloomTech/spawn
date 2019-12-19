@@ -163,7 +163,7 @@ class SpecificationNode:
         :type child: :class:`SpecificationNode`
         """
         if child not in self._children:
-            logging.getLogger(__name__).debug('Adding child {} onto {}'.format(child.description, self.description))
+            logging.getLogger(__name__).debug('Adding child %s onto %s', child.description, self.description)
             self._children.append(child)
             #pylint: disable=protected-access
             child._parent = self
@@ -332,6 +332,11 @@ class SpecificationNode:
 
     @property
     def description(self):
+        """Description of this node
+
+        :returns: A description of the node
+        :rtype: str
+        """
         return 'root node' if self.is_root else 'node with property "{}"'.format(self.property_name)
 
     def evaluate(self):
