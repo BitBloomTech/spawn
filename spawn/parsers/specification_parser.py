@@ -281,7 +281,8 @@ class SpecificationNodeParser:
 
     def _parse_combinator(self, parent, name, value, next_node_spec, node_policies, ghost_parameters):
         for node_spec in self._get_combinator(name)(value):
-            self._parse_value(parent, '', node_spec, next_node_spec, node_policies, ghost_parameters)
+            node_spec = {**node_spec, **next_node_spec}
+            self.parse(node_spec, parent)
 
     def _get_next_node(self, node_spec):
         next_key = list(node_spec.keys())[0]

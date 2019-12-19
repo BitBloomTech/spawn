@@ -724,3 +724,27 @@ def test_spec_format_error_raised_for_invalid_description(parser, description, e
     with pytest.raises(SpecFormatError) as e:
         parser.parse(description)
     assert str(e.value) == 'Invalid spec format: {}'.format(error)
+
+def test_variable_succeeding_combinator(parser):
+    spec = {
+        "spec": {
+            "operation_mode": "normal",
+            "combine:zip": {
+                "turbulence_intensity": [
+                    10, 20, 30
+                ],
+                "wind_speed": [
+                    7, 8, 9
+                ]
+            },
+            "initial_rotor_speed": "#2 * !wind_speed"
+        }
+    }
+    model = parser.parse(spec)
+    expected_properties = [
+        { "turbulence_intensity": 10, "wind_speed": 7, "initial_rotor_speed": 14, "operation_mode": "normal" },
+        { "turbulence_intensity": 20, "wind_speed": 8, "initial_rotor_speed": 16, "operation_mode": "normal" },
+        { "turbulence_intensity": 30, "wind_speed": 9, "initial_rotor_speed": 18, "operation_mode": "normal" }
+    ]
+    assert len(model.root_node.leaves) == 3
+    assert [l.collected_properties for l in model.root_node.leaves] == expected_properties
