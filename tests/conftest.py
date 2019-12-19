@@ -77,8 +77,8 @@ class BarSpawner(TaskSpawner):
     def branch(self):
         return BarSpawner(self._foo_spawner.branch(), self._outdir)
 
-def create_spawner(outfile):
-    return BarSpawner(FooSpawner(outfile), outfile)
+def create_spawner(outdir):
+    return BarSpawner(FooSpawner(outdir), outdir)
 
 @pytest.fixture
 def spawner(tmpdir):

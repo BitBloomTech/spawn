@@ -15,9 +15,9 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 import pytest
+import json
 
 from spawn.specification.generator_methods import *
-from spawn.specification.combinators import *
 from spawn.parsers.specification_parser import *
 from spawn.specification.specification import *
 from spawn.specification.value_proxy import *
@@ -724,6 +724,71 @@ def test_spec_format_error_raised_for_invalid_description(parser, description, e
     with pytest.raises(SpecFormatError) as e:
         parser.parse(description)
     assert str(e.value) == 'Invalid spec format: {}'.format(error)
+
+_literals = [
+    [4, 5, 6],
+    {'delta': 1, 'epsilon': 2},
+    '$NotAMacro',
+    '@NotAGenerator',
+    '#NotAnEvaluator',
+    '!this is not an equation'
+]
+@pytest.mark.parametrize('literal_value', _literals)
+def test_key_literal_properties_are_not_expanded(literal_value):
+    root_node = DefaultSpecificationNodeParser().parse({
+        'alpha': {
+            'beta': ['egg', 'tadpole'],
+            '~gamma': literal_value
+        }
+    })
+    root_node.evaluate()
+    expected = [
+        {'beta': 'egg', 'gamma': literal_value},
+        {'beta': 'tadpole', 'gamma': literal_value}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+@pytest.mark.parametrize('literal_value', _literals)
+def test_value_literal_properties_are_not_expanded(literal_value):
+    root_node = DefaultSpecificationNodeParser().parse({
+        'alpha': {
+            'beta': ['egg', 'tadpole'],
+            'gamma': '~' + (literal_value if isinstance(literal_value, str) else json.dumps(literal_value))
+        }
+    })
+    root_node.evaluate()
+    expected = [
+        {'beta': 'egg', 'gamma': literal_value},
+        {'beta': 'tadpole', 'gamma': literal_value}
+    ]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_with_literal_key_and_value_value_is_unchanged():
+    s = '~I just like tildes OK!'
+    root_node = DefaultSpecificationNodeParser().parse({
+        '~alpha': s
+    })
+    root_node.evaluate()
+    expected = [{'alpha': s}]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
+def test_multiple_literal_lists_in_object_does_not_combine():
+    root_node = DefaultSpecificationNodeParser().parse({
+        'alpha': {
+            '~beta': ['egg', 'tadpole'],
+            '~gamma': [1, 2, 3]
+        }
+    })
+    expected = [{
+        'beta': ['egg', 'tadpole'],
+        'gamma': [1, 2, 3]
+    }]
+    properties = [l.collected_properties for l in root_node.leaves]
+    assert expected == properties
+
 
 def test_variable_succeeding_combinator(parser):
     spec = {

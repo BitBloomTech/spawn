@@ -18,6 +18,7 @@
 """
 from copy import deepcopy
 import re
+import logging
 
 from spawn.util import PathBuilder
 from spawn.util.validation import validate_type
@@ -162,6 +163,7 @@ class SpecificationNode:
         :type child: :class:`SpecificationNode`
         """
         if child not in self._children:
+            logging.getLogger(__name__).debug('Adding child {} onto {}'.format(child.description, self.description))
             self._children.append(child)
             #pylint: disable=protected-access
             child._parent = self
@@ -327,6 +329,10 @@ class SpecificationNode:
                 ))
             self._path = path
         return self._path
+
+    @property
+    def description(self):
+        return 'root node' if self.is_root else 'node with property "{}"'.format(self.property_name)
 
     def evaluate(self):
         """Evaluates all children in this node
@@ -529,7 +535,7 @@ class ListNode(SpecificationNode):
 class SpecificationNodeFactory:
     """Factory class for creating :class:`SpecificationNode` objects
     """
-    def create(self, parent, name, value, path, ghosts, children=None):
+    def create(self, parent, name, value, path, ghosts, children=None, literal=False):
         """Creates a :class:`SpecificationNode`, based on the value
 
         :param parent: The parent :class:`SpecificationNode`
@@ -542,15 +548,17 @@ class SpecificationNodeFactory:
         :type ghosts: dict
         :param children: The children of the new node, if any
         :type children: list
+        :param literal: if True, the value is not expandable and is set literally
+        :type literal: bool
         """
         children = children or []
         validate_type(ghosts, dict, 'ghosts')
         validate_type(children, list, 'children')
-        if isinstance(value, dict):
+        if isinstance(value, dict) and not literal:
             node = DictNode(parent, name, value, path, ghosts)
-        elif isinstance(value, list):
+        elif isinstance(value, list) and not literal:
             node = ListNode(parent, name, value, path, ghosts)
-        elif isinstance(value, ValueProxy):
+        elif isinstance(value, ValueProxy) and not literal:
             node = ValueProxyNode(parent, name, value, path, ghosts)
         else:
             name_index = self._index(name)

@@ -4,7 +4,7 @@ Spawn input is a hierarchical structure of branching nodes which allows large nu
 
 ## Getting Started
 
-The specification is defined in an object named `"spec"`. Each name/value pair within this object is a parameter name and its value. The following generates a single specification node with one parameter, named `"alpha"` with a vlue of 4:
+The specification is defined in an object named `"spec"`. Each name/value pair within this object is a parameter name and its value. The following generates a single specification node with one parameter, named `"alpha"` with a value of 4:
 ```json
 {
     "spec": {
@@ -13,7 +13,7 @@ The specification is defined in an object named `"spec"`. Each name/value pair w
 }
 ```
 
-Sibling name/value pairs are simultaneous (i.e. orccur on the same node). The following generates a single node with *two* simulataneous parameters - `"alpha"` with a value of 4, and "beta" with a value of "tadpole":
+Sibling name/value pairs are simultaneous (i.e. occur on the same node). The following generates a single node with *two* simultaneous parameters - `"alpha"` with a value of 4, and "beta" with a value of "tadpole":
 ```json
 {
     "spec": {
@@ -34,7 +34,7 @@ Separate nodes can be created by separating parameters into different JSON nodes
 }
 ```
 
-An identical specifcation could be written (less concisely) as:
+An identical specification could be written (less concisely) as:
 ```json
 {
     "spec": {
@@ -44,7 +44,7 @@ An identical specifcation could be written (less concisely) as:
 }
 ```
 
-Avoiding repetitive definition and enabling concise and readable but compex specifications is one of the key aims of Spawn.
+Avoiding repetitive definition and enabling concise and readable but complex specifications is one of the key aims of Spawn.
 
 ## Arrays
 
@@ -89,7 +89,7 @@ There is no limit to the number of sibling arrays, but they *must* all have equa
 
 ## Value Proxies
 
-The value of parameter/value pairs can be represented by a proxy. The proxy is a string that starts with either a type identifier followed by a colon (longhand) or a special character (shorthand) to determine which type of value proxy it is. The parser then replaces the proxy when the specification is resolved. The tpyes of value proxies are as follows:
+The value of parameter/value pairs can be represented by a proxy. The proxy is a string that starts with either a type identifier followed by a colon (longhand) or a special character (shorthand) to determine which type of value proxy it is. The parser then replaces the proxy when the specification is resolved. The types of value proxies are as follows:
 
 | Type | Longhand | Shorthand | Description |
 |------|----------|-----------|-------------|
@@ -151,7 +151,7 @@ The following example generates a value of 4 for "alpha" via the "a" object and 
 
 ### Evaluators
 
-Evaluators allow function-style syntax to evaluate expressions with arguments. Arithmetic operations are supported as well as inbuilt evaluators `range`, which produces an evenly speced array, and `repeat`, which repeats a particular value. Unlike macros and generators, evaluators do not need an object defined alongside the `spec`. Some examples:
+Evaluators allow function-style syntax to evaluate expressions with arguments. Arithmetic operations are supported as well as inbuilt evaluators `range`, which produces an evenly spaced array, and `repeat`, which repeats a particular value. Unlike macros and generators, evaluators do not need an object defined alongside the `spec`. Some examples:
 
 | Example | Resolution |
 |---------|------------|
@@ -163,7 +163,7 @@ Evaluators allow function-style syntax to evaluate expressions with arguments. A
 | `"#range(0.3, 0.5, 0.1)"` | `[0.3, 0.4, 0.5]` |
 | `"eval:repeat(5, 3)"` | `[5, 5, 5]` |
 
-Note that the `repeat` can be used with a generator as argument and therefore generate a different value for each elemtn of the array. Evaluators can also take other parameters simultaneously present in the specification if they are prefixed by `!`. They do not need to be in the same object, but if not they must be defined higher up the object tree (i.e. they are unreferencable if in sub-objects). The following resolves `"gamma"` into the list `[3, 4]`:
+Note that the `repeat` can be used with a generator as argument and therefore generate a different value for each element of the array. Evaluators can also take other parameters simultaneously present in the specification if they are prefixed by `!`. They do not need to be in the same object, but if not they must be defined higher up the object tree (i.e. they are not referenceable if in sub-objects). The following resolves `"gamma"` into the list `[3, 4]`:
 ```json
 {
     "spec": {
@@ -176,7 +176,7 @@ Note that the `repeat` can be used with a generator as argument and therefore ge
 }
 ```
 
-Whenu referencing a parameter in an arithemtic operation, the `#` is no longer needed (but the `!` is required):
+When referencing a parameter in an arithmetic operation, the `#` is no longer needed (but the `!` is required):
 ``` JSON
 {
     "spec": {
@@ -186,9 +186,26 @@ Whenu referencing a parameter in an arithemtic operation, the `#` is no longer n
 }
 ```
 
-### Resolution Order
+## Literals
 
-work in progress
+There are cases in which it is desired that specification value does not take on its default spawn interpretation. For this, there is the concept of a literal. This is done by prefixing the parameter name with `~`. The following will generate a single node where `alpha` is an array (passed through to the spawner as a list) and `beta` is a string starting with `$` (rather than looking up a macro). Arrays, objects, all (apparent) value proxies and equations can be taken as literal and therefore not expanded or looked up:
+``` JSON
+{
+    "spec": {
+        "~alpha": ["egg", "tadpole", "frog"],
+        "~beta": "$NotAMacro"
+    }
+}
+```
+
+Literals can also be specified on the value-side. This can be particularly useful when it is desired to expand literals as part of an expansion. In this case, the value must always be a string, but if the string succeeding the literal prefix is JSON serialisable it will be serialised as such, otherwise the value will remain a string. For example, the following produces three nodes, each with an array as the value of the `alpha` parameter:
+```JSON
+{
+    "spec": {
+        "alpha": ["~[1, 2]", "~[3, 4]", "~[5, 6, 7]"]
+    }
+}
+```
 
 ## Policies
 

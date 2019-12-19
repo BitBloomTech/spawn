@@ -30,7 +30,9 @@ class IniFileConfiguration(ConfigurationBase):
         :param ini_file: The file to read
         :type ini_file: path-like
         """
-        self._config = configparser.ConfigParser() if ini_file and path.isfile(ini_file) else None
+        if ini_file and not path.isfile(ini_file):
+            raise OSError("Could not find ini file '{}'".format(ini_file))
+        self._config = configparser.ConfigParser() if ini_file else None
         if self._config:
             self._config.read(ini_file)
 

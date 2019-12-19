@@ -63,7 +63,7 @@ class ProcessRunner:
         validate_file(self._input_file_path, 'input_file_path')
         validate_file(self._exe_path, 'exe_path')
         LOGGER.info('Executing \'%s\': %s', self._id, self.process_args)
-        output = subprocess.run(args=self.process_args, cwd=self._cwd,
+        output = subprocess.run(args=self.process_args, cwd=self._cwd, check=False,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._write_logs(output)
         state = self._output_to_state(output)

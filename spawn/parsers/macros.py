@@ -16,6 +16,8 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 """This module defines the generator parser
 """
+import copy
+
 from spawn.specification.value_proxy import Macro, ValueProxy
 
 from .value_proxy import ValueProxyParser
@@ -51,6 +53,7 @@ class MacrosParser:
         :returns: An dict containing the values for the specified macros.
         :rtype: dict
         """
+        macros = copy.deepcopy(macros)  # deep copy so that popping doesn't remove macros for any future parsings
         if macros is None:
             return {}
         validate_type(macros, dict, 'macros')
