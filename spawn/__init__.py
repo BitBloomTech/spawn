@@ -33,7 +33,7 @@ __version__ = get_versions()['version']
 del get_versions
 
 # Default `run` and `inspect` should be local
-from .interface import run_local as run, inspect_local as inspect, write_inspection
+from .interface import run_local as run, inspect_local as inspect, stats_local as stats, write_inspection
 
 # Load built-in plugins
 PluginLoader.pre_load_plugin('json', json_plugin)

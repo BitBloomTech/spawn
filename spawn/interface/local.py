@@ -99,6 +99,13 @@ class LocalInterface(SpawnInterface):
     def _spec_to_spec_dict(spec):
         return DictSpecificationConverter().convert(spec)
 
+def _make_config(config):
+    if isinstance(config, dict):
+        return spawn_config(**config)
+    if config is None:
+        return spawn_config()
+    return config
+
 def run(spec_dict, config=None):
     """Run the spec_dict
 
@@ -107,8 +114,7 @@ def run(spec_dict, config=None):
     :param config: The config
     :type config: dict or :class:`ConfigurationBase`
     """
-    config = spawn_config(**config) if isinstance(config, dict) else spawn_config() if config is None else config
-
+    config = _make_config(config)
     LocalInterface(config).run(spec_dict)
 
 def inspect(spec_dict, config=None):
@@ -119,6 +125,16 @@ def inspect(spec_dict, config=None):
     :param config: The config
     :type config: dict or :class:`ConfigurationBase`
     """
-    config = spawn_config(**config) if isinstance(config, dict) else spawn_config() if config is None else config
-
+    config = _make_config(config)
     return LocalInterface(config).inspect(spec_dict)
+
+def stats(spec_dict, config=None):
+    """Get spawn stats about the spec_dict
+
+    :param spec_dict: The spec dict
+    :type spec_dict: dict
+    :param config: The config
+    :type config: dict or :class:`ConfigurationBase`
+    """
+    config = _make_config(config)
+    return LocalInterface(config).stats(spec_dict)

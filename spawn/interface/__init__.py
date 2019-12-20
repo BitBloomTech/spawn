@@ -17,6 +17,6 @@
 """Defines objects that implement the spawn interface
 """
 from .spawn import SpawnInterface
-from .local import LocalInterface, run as run_local, inspect as inspect_local
+from .local import LocalInterface, run as run_local, inspect as inspect_local, stats as stats_local
 from .config import spawn_config
 from .util import write_inspection
