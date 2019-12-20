@@ -793,23 +793,22 @@ def test_multiple_literal_lists_in_object_does_not_combine():
 def test_variable_succeeding_combinator(parser):
     spec = {
         "spec": {
-            "operation_mode": "normal",
             "combine:zip": {
-                "turbulence_intensity": [
+                "alpha": [
                     10, 20, 30
                 ],
-                "wind_speed": [
+                "beta": [
                     7, 8, 9
                 ]
             },
-            "initial_rotor_speed": "#2 * !wind_speed"
+            "gamma": "#2 * !beta"
         }
     }
     model = parser.parse(spec)
     expected_properties = [
-        { "turbulence_intensity": 10, "wind_speed": 7, "initial_rotor_speed": 14, "operation_mode": "normal" },
-        { "turbulence_intensity": 20, "wind_speed": 8, "initial_rotor_speed": 16, "operation_mode": "normal" },
-        { "turbulence_intensity": 30, "wind_speed": 9, "initial_rotor_speed": 18, "operation_mode": "normal" }
+        {"alpha": 10, "beta": 7, "gamma": 14},
+        {"alpha": 20, "beta": 8, "gamma": 16},
+        {"alpha": 30, "beta": 9, "gamma": 18}
     ]
     assert len(model.root_node.leaves) == 3
     assert [l.collected_properties for l in model.root_node.leaves] == expected_properties
