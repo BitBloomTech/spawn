@@ -788,3 +788,27 @@ def test_multiple_literal_lists_in_object_does_not_combine():
     }]
     properties = [l.collected_properties for l in root_node.leaves]
     assert expected == properties
+
+
+def test_variable_succeeding_combinator(parser):
+    spec = {
+        "spec": {
+            "combine:zip": {
+                "alpha": [
+                    10, 20, 30
+                ],
+                "beta": [
+                    7, 8, 9
+                ]
+            },
+            "gamma": "#2 * !beta"
+        }
+    }
+    model = parser.parse(spec)
+    expected_properties = [
+        {"alpha": 10, "beta": 7, "gamma": 14},
+        {"alpha": 20, "beta": 8, "gamma": 16},
+        {"alpha": 30, "beta": 9, "gamma": 18}
+    ]
+    assert len(model.root_node.leaves) == 3
+    assert [l.collected_properties for l in model.root_node.leaves] == expected_properties
