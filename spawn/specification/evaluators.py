@@ -19,7 +19,7 @@
 from abc import abstractmethod
 import inspect
 
-from spawn.errors import EvaluatorTypeError
+from spawn.errors import EvaluatorTypeError, ParameterNotFoundError, EvaluatorParameterNotFoundError
 
 from .value_proxy import ValueProxy, evaluate
 
@@ -62,7 +62,11 @@ class Evaluator(ValueProxy):
 
     #pylint: disable=no-self-use
     def _evaluate_arg(self, arg, **kwargs):
-        return evaluate(arg, **kwargs) if isinstance(arg, ValueProxy) else arg
+        try:
+            return evaluate(arg, **kwargs) if isinstance(arg, ValueProxy) else arg
+        except ParameterNotFoundError as ex:
+            evaluator_name = self._name or type(self).__name__
+            raise EvaluatorParameterNotFoundError(ex.parameter_name, evaluator_name) from ex
 
     @abstractmethod
     #pylint: disable=no-self-use
@@ -123,6 +127,8 @@ class ParameterEvaluator(Evaluator):
     """
     #pylint: disable=arguments-differ
     def _evaluate(self, parameter_name, **kwargs):
+        if parameter_name not in kwargs:
+            raise ParameterNotFoundError(parameter_name)
         return kwargs[parameter_name]
 
 class RepeatEvaluator(Evaluator):

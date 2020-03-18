@@ -41,6 +41,20 @@ class EvaluatorNotFoundError(ParserError):
     def __init__(self, evaluator_name):
         super().__init__('Evaluator "{}" not found'.format(evaluator_name))
 
+class ParameterNotFoundError(ParserError):
+    """Error raised when a parameter argument to an evaluator is not found in the currently defined parameters
+    """
+    def __init__(self, parameter_name):
+        self.parameter_name = parameter_name
+        super().__init__('Parameter "{}" not found'.format(parameter_name))
+
+class EvaluatorParameterNotFoundError(ParserError):
+    """Error raised when a parameter argument to an evaluator is not found in the currently defined parameters
+    """
+    def __init__(self, parameter_name, evaluator_name):
+        super().__init__('Parameter "{}" as argument to "{}" non-existent at this node'.format(parameter_name,
+                                                                                               evaluator_name))
+
 class EvaluatorTypeError(ParserError):
     """Error raised when an evaluator is provided with incorrect arguments
     """
