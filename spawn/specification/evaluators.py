@@ -66,7 +66,7 @@ class Evaluator(ValueProxy):
             return evaluate(arg, **kwargs) if isinstance(arg, ValueProxy) else arg
         except ParameterNotFoundError as ex:
             evaluator_name = self._name or type(self).__name__
-            raise EvaluatorParameterNotFoundError(ex.parameter_name, evaluator_name)
+            raise EvaluatorParameterNotFoundError(ex.parameter_name, evaluator_name) from ex
 
     @abstractmethod
     #pylint: disable=no-self-use
