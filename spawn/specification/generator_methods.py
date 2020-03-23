@@ -17,6 +17,7 @@
 """Generator methods
 """
 import random
+from importlib import import_module
 from spawn.specification.value_proxy import ValueProxy
 
 
@@ -74,3 +75,25 @@ class IncrementalInt(Generator):
         v = self._next_number
         self._next_number += self._step
         return v
+
+
+class ScipyDistribution(Generator):
+    """Generator of values from a statistical distribution in scipy.stats module"""
+    def __init__(self, distribution, **kwargs):
+        """Initialises :class:`ScipyDistribution`
+
+        :param distribution: Name of statistical function that exists in scipy.stats
+        :param kwargs: Arguments to creation of statistical function
+        """
+        try:
+            scipy_stats_module = import_module('scipy.stats')
+        except ImportError as ex:
+            raise ImportError("The scipy module is not installed and therefore the 'scipy.{}'"
+                              " generator cannot be created".format(distribution)) from ex
+        if not hasattr(scipy_stats_module, distribution):
+            raise ValueError("'{}' distribution not found in scipy.stats module")
+        self._distribution = getattr(scipy_stats_module, distribution)(**kwargs)
+
+    def evaluate(self):
+        """Call `rvs` method of statistical function"""
+        return self._distribution.rvs()
