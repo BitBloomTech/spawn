@@ -70,6 +70,20 @@ def check_config(config):
 @cli.command()
 @_pass_config
 @click.argument('specfile', type=click.Path(exists=True))
+def stats(config, **kwargs):
+    """Analyse the SPECFILE and print stats to the screen"""
+    config = spawn_config(**{**config, **kwargs})
+    specfile = config.get(APP_NAME, 'specfile')
+    click.echo('Getting stats for input file "{}":'.format(click.format_filename(specfile)))
+    interface = LocalInterface(config)
+    with open(specfile) as fp:
+        obj = json.load(fp)
+    spec_stats = interface.stats(obj)
+    click.echo(_stats_to_string(spec_stats))
+
+@cli.command()
+@_pass_config
+@click.argument('specfile', type=click.Path(exists=True))
 @click.option('-o', '--outfile', type=click.Path(), help='write inspection output to file rather than to console')
 @click.option(
     '-f', '--format', type=click.Choice(['txt', 'json']),
@@ -87,7 +101,7 @@ def inspect(config, **kwargs):
         obj = json.load(fp)
     spec_dict = interface.inspect(obj)
     spec_stats = interface.stats(obj)
-    click.echo('Stats: {}'.format('; '.join('{}={}'.format(k, v) for k, v in spec_stats.items())))
+    click.echo(_stats_to_string(spec_stats))
     write_inspection(spec_dict, outfile or click.get_text_stream('stdout'), config.get(APP_NAME, 'format'))
     if outfile:
         click.echo('Specification details written to {}'.format(outfile))
@@ -118,6 +132,9 @@ def work(config):
     config = spawn_config(**{**config, 'local': False})
     scheduler = LuigiScheduler(config)
     scheduler.add_worker()
+
+def _stats_to_string(stats):
+    return 'Stats: {}'.format('; '.join('{}={}'.format(k, v) for k, v in stats.items()))
 
 def _print_config(config, ):
     name_col_width = 0

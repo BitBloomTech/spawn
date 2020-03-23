@@ -27,6 +27,11 @@ def test_tasks_are_run_via_interface(tmpdir):
     assert path.isfile(path.join(str(tmpdir), 'spawn.json'))
     assert len(glob(str(tmpdir) + '/**')) == 7
 
+def test_can_get_stats(spec):
+    stats = spawn.stats(spec)
+    assert 'leaf_count' in stats
+    assert stats['leaf_count'] > 0
+
 def test_can_inspect(spec):
     result = spawn.inspect(spec)
     assert isinstance(result, dict)
