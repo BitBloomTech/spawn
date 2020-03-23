@@ -133,8 +133,8 @@ def work(config):
     scheduler = LuigiScheduler(config)
     scheduler.add_worker()
 
-def _stats_to_string(stats):
-    return 'Stats: {}'.format('; '.join('{}={}'.format(k, v) for k, v in stats.items()))
+def _stats_to_string(spec_stats):
+    return 'Stats: {}'.format('; '.join('{}={}'.format(k, v) for k, v in spec_stats.items()))
 
 def _print_config(config, ):
     name_col_width = 0
