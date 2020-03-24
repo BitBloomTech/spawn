@@ -91,7 +91,7 @@ class ScipyDistribution(Generator):
             raise ImportError("The scipy module is not installed and therefore the 'scipy.{}'"
                               " generator cannot be created".format(distribution)) from ex
         if not hasattr(scipy_stats_module, distribution):
-            raise ValueError("'{}' distribution not found in scipy.stats module")
+            raise KeyError("'{}' distribution not found in scipy.stats module")
         self._distribution = getattr(scipy_stats_module, distribution)(**kwargs)
 
     def evaluate(self):

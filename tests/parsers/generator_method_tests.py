@@ -51,5 +51,5 @@ def test_scipy_uniform():
 
 
 def test_raises_value_error_with_invalid_scipy_distribution():
-    with pytest.raises(ValueError):
+    with pytest.raises(KeyError):
         ScipyDistribution('not_a_scipy_distribution')

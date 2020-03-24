@@ -35,6 +35,16 @@ def test_passes_args_correctly():
     assert gens['Gen1'].evaluate() == 52
 
 
+def test_invokes_scipy_uniform_correctly():
+    gen_spec = {'Gen1': {
+        'method': 'scipy.uniform',
+        'loc': 3.0,
+        'scale': 0.1
+    }}
+    gens = GeneratorsParser.default().parse(gen_spec)
+    assert 3.0 <= gens['Gen1'].evaluate() <= 3.1
+
+
 def test_raises_key_error_when_method_not_present():
     with pytest.raises(KeyError):
         GeneratorsParser.default().parse({'Gen1': {'key': 'val'}})

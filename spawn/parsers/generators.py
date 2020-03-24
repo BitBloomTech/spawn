@@ -52,6 +52,8 @@ class GeneratorsParser:
     def _instantiate(self, method, args):
         if method in self._generators:
             return self._generators[method](**args)
+        if method.startswith('scipy.'):
+            return self._generators['ScipyDistribution'](method[len('scipy.'):], **args)
         raise KeyError("Method '" + method + "' not found in generator methods")
 
     @staticmethod
