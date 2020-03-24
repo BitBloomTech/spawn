@@ -17,7 +17,6 @@
 """Generator methods
 """
 import random
-from importlib import import_module
 from spawn.specification.value_proxy import ValueProxy
 
 
@@ -86,14 +85,15 @@ class ScipyDistribution(Generator):
         :param kwargs: Arguments to creation of statistical function
         """
         try:
-            scipy_stats_module = import_module('scipy.stats')
+            from numpy import random
+            from scipy import stats as scipy_stats
         except ImportError as ex:
             raise ImportError("The scipy module is not installed and therefore the 'scipy.{}'"
                               " generator cannot be created".format(distribution)) from ex
-        if not hasattr(scipy_stats_module, distribution):
-            raise KeyError("'{}' distribution not found in scipy.stats module")
-        self._distribution = getattr(scipy_stats_module, distribution)(**kwargs)
-        self._random_state = import_module('numpy.random').RandomState(random_state)
+        if not hasattr(scipy_stats, distribution):
+            raise KeyError("'{}' distribution not found in scipy.stats module".format(distribution))
+        self._distribution = getattr(scipy_stats, distribution)(**kwargs)
+        self._random_state = random.RandomState(random_state)
 
     def evaluate(self):
         """Call `rvs` method of statistical function"""
