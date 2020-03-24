@@ -79,7 +79,7 @@ class IncrementalInt(Generator):
 
 class ScipyDistribution(Generator):
     """Generator of values from a statistical distribution in scipy.stats module"""
-    def __init__(self, distribution, **kwargs):
+    def __init__(self, distribution, random_state=None, **kwargs):
         """Initialises :class:`ScipyDistribution`
 
         :param distribution: Name of statistical function that exists in scipy.stats
@@ -93,7 +93,8 @@ class ScipyDistribution(Generator):
         if not hasattr(scipy_stats_module, distribution):
             raise KeyError("'{}' distribution not found in scipy.stats module")
         self._distribution = getattr(scipy_stats_module, distribution)(**kwargs)
+        self._random_state = import_module('numpy.random').RandomState(random_state)
 
     def evaluate(self):
         """Call `rvs` method of statistical function"""
-        return self._distribution.rvs()
+        return self._distribution.rvs(random_state=self._random_state)

@@ -50,6 +50,12 @@ def test_scipy_uniform():
     assert 5.0 <= gen.evaluate() <= 5.1
 
 
+def test_same_random_state_gives_same_value():
+    gen1 = ScipyDistribution('norm', random_state=2, scale=2.0)
+    gen2 = ScipyDistribution('norm', random_state=2, scale=2.0)
+    assert gen1.evaluate() == gen2.evaluate()
+
+
 def test_raises_value_error_with_invalid_scipy_distribution():
     with pytest.raises(KeyError):
         ScipyDistribution('not_a_scipy_distribution')
