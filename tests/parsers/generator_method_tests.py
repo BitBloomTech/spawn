@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+import pytest
 from spawn.specification.generator_methods import *
 
 
@@ -42,3 +43,19 @@ def test_incremental_int():
     assert gen.evaluate() == 10
     assert gen.evaluate() == 15
     assert gen.evaluate() == 20
+
+
+def test_scipy_uniform():
+    gen = ScipyDistribution('uniform', loc=5.0, scale=0.1)
+    assert 5.0 <= gen.evaluate() <= 5.1
+
+
+def test_same_random_state_gives_same_value():
+    gen1 = ScipyDistribution('norm', random_state=2, scale=2.0)
+    gen2 = ScipyDistribution('norm', random_state=2, scale=2.0)
+    assert gen1.evaluate() == gen2.evaluate()
+
+
+def test_raises_value_error_with_invalid_scipy_distribution():
+    with pytest.raises(KeyError):
+        ScipyDistribution('not_a_scipy_distribution')

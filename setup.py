@@ -41,7 +41,8 @@ tests_require = [
     'numpy',
     'pandas',
     'tox',
-    'licensify'
+    'licensify',
+    'scipy'
 ]
 
 extras_require = {

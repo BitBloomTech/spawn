@@ -20,6 +20,7 @@ import json
 import pytest
 
 import luigi.configuration
+from scipy import stats as scipy_stats  # avoids strange import err
 
 from spawn.config import DefaultConfiguration
 from spawn.plugins import PluginLoader

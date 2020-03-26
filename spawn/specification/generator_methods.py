@@ -74,3 +74,28 @@ class IncrementalInt(Generator):
         v = self._next_number
         self._next_number += self._step
         return v
+
+
+class ScipyDistribution(Generator):
+    """Generator of values from a statistical distribution in scipy.stats module"""
+    def __init__(self, distribution, random_state=None, **kwargs):
+        """Initialises :class:`ScipyDistribution`
+
+        :param distribution: Name of statistical function that exists in scipy.stats
+        :param kwargs: Arguments to creation of statistical function
+        """
+        try:
+            # pylint: disable=import-outside-toplevel
+            from numpy import random as np_random
+            from scipy import stats as scipy_stats
+        except ImportError as ex:
+            raise ImportError("The scipy module is not installed and therefore the 'scipy.{}'"
+                              " generator cannot be created".format(distribution)) from ex
+        if not hasattr(scipy_stats, distribution):
+            raise KeyError("'{}' distribution not found in scipy.stats module".format(distribution))
+        self._distribution = getattr(scipy_stats, distribution)(**kwargs)
+        self._random_state = np_random.RandomState(random_state)
+
+    def evaluate(self):
+        """Call `rvs` method of statistical function"""
+        return self._distribution.rvs(random_state=self._random_state)
