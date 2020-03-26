@@ -85,7 +85,8 @@ class ScipyDistribution(Generator):
         :param kwargs: Arguments to creation of statistical function
         """
         try:
-            from numpy import random
+            # pylint: disable=import-outside-toplevel
+            from numpy import random as np_random
             from scipy import stats as scipy_stats
         except ImportError as ex:
             raise ImportError("The scipy module is not installed and therefore the 'scipy.{}'"
@@ -93,7 +94,7 @@ class ScipyDistribution(Generator):
         if not hasattr(scipy_stats, distribution):
             raise KeyError("'{}' distribution not found in scipy.stats module".format(distribution))
         self._distribution = getattr(scipy_stats, distribution)(**kwargs)
-        self._random_state = random.RandomState(random_state)
+        self._random_state = np_random.RandomState(random_state)
 
     def evaluate(self):
         """Call `rvs` method of statistical function"""
