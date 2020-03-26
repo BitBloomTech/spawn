@@ -42,7 +42,7 @@ tests_require = [
     'pandas',
     'tox',
     'licensify',
-    'scipy==1.4.0'
+    'scipy'
 ]
 
 extras_require = {
